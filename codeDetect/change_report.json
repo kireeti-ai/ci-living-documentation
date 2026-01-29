@@ -1,0 +1,581 @@
+{
+  "meta": {
+    "generated_at": "2026-01-29T07:09:28.675730Z",
+    "tool_version": "1.0.0"
+  },
+  "context": {
+    "repository": "Quizora-ai",
+    "branch": "main",
+    "commit_sha": "63d36c2b",
+    "full_sha": "63d36c2bceb6575930f19d50e9a6ceb4f5294618",
+    "author": "Kireeti",
+    "author_email": "kireetiv2005@gmail.com",
+    "intent": {
+      "message": "Merge pull request #1 from kireeti-ai/add-security-features\n\nAdd multi-factor authentication, AES-256 encryption, and QR code identity verification",
+      "timestamp": "2026-01-27T19:01:15"
+    },
+    "stats": {
+      "total_commits": 33,
+      "is_first_commit": false
+    }
+  },
+  "analysis_summary": {
+    "total_files": 18,
+    "highest_severity": "MAJOR",
+    "breaking_changes_detected": true
+  },
+  "changes": [
+    {
+      "file": "Frontend/src/App.jsx",
+      "change_type": "MODIFIED",
+      "language": "javascript",
+      "severity": "PATCH",
+      "complexity_score": 5,
+      "is_binary": false,
+      "syntax_error": false,
+      "features": {
+        "functions": [
+          "App"
+        ],
+        "react_components": [],
+        "hooks": [],
+        "dependencies": [
+          "react-router-dom",
+          "./pages/Auth/Auth",
+          "./pages/Faculty/FacultyDashboard",
+          "./pages/Faculty/QuestionBank",
+          "./pages/Student/StudentDashboard",
+          "./pages/Student/QuizPlayer",
+          "./pages/Student/ResultPage",
+          "./pages/Faculty/AIQuestionGenerator",
+          "./pages/Profile/Profile"
+        ],
+        "api_endpoints": []
+      }
+    },
+    {
+      "file": "Frontend/src/components/Sidebar/Sidebar.jsx",
+      "change_type": "MODIFIED",
+      "language": "javascript",
+      "severity": "MINOR",
+      "complexity_score": 7,
+      "is_binary": false,
+      "syntax_error": false,
+      "features": {
+        "functions": [
+          "Sidebar",
+          "handleLogout"
+        ],
+        "react_components": [],
+        "hooks": [
+          "useLocation",
+          "useNavigate"
+        ],
+        "dependencies": [
+          "react",
+          "lucide-react",
+          "react-router-dom"
+        ],
+        "api_endpoints": []
+      }
+    },
+    {
+      "file": "Frontend/src/pages/Auth/Auth.jsx",
+      "change_type": "MODIFIED",
+      "language": "javascript",
+      "severity": "MINOR",
+      "complexity_score": 8,
+      "is_binary": false,
+      "syntax_error": false,
+      "features": {
+        "functions": [
+          "Auth",
+          "parseJwt"
+        ],
+        "react_components": [],
+        "hooks": [
+          "useState",
+          "useNavigate"
+        ],
+        "dependencies": [
+          "react",
+          "lucide-react",
+          "react-router-dom",
+          "axios"
+        ],
+        "api_endpoints": []
+      }
+    },
+    {
+      "file": "Frontend/src/pages/Profile/Profile.css",
+      "change_type": "DELETED",
+      "language": null,
+      "severity": "PATCH",
+      "complexity_score": 0,
+      "is_binary": false,
+      "syntax_error": false,
+      "features": {}
+    },
+    {
+      "file": "Frontend/src/pages/Profile/Profile.jsx",
+      "change_type": "DELETED",
+      "language": "javascript",
+      "severity": "MINOR",
+      "complexity_score": 10,
+      "is_binary": false,
+      "syntax_error": false,
+      "features": {
+        "functions": [
+          "Profile",
+          "handleBack"
+        ],
+        "react_components": [],
+        "hooks": [
+          "useState",
+          "useEffect",
+          "useNavigate"
+        ],
+        "dependencies": [
+          "react",
+          "lucide-react",
+          "react-router-dom",
+          "axios"
+        ],
+        "api_endpoints": []
+      }
+    },
+    {
+      "file": "Frontend/src/pages/Student/Student.css",
+      "change_type": "MODIFIED",
+      "language": null,
+      "severity": "PATCH",
+      "complexity_score": 0,
+      "is_binary": false,
+      "syntax_error": false,
+      "features": {}
+    },
+    {
+      "file": "Frontend/src/pages/Student/StudentDashboard.jsx",
+      "change_type": "MODIFIED",
+      "language": "javascript",
+      "severity": "MINOR",
+      "complexity_score": 10,
+      "is_binary": false,
+      "syntax_error": false,
+      "features": {
+        "functions": [
+          "StudentDashboard",
+          "handleLogout"
+        ],
+        "react_components": [],
+        "hooks": [
+          "useState",
+          "useEffect",
+          "useNavigate"
+        ],
+        "dependencies": [
+          "react",
+          "react-router-dom",
+          "axios",
+          "lucide-react"
+        ],
+        "api_endpoints": []
+      }
+    },
+    {
+      "file": "README.md",
+      "change_type": "MODIFIED",
+      "language": null,
+      "severity": "PATCH",
+      "complexity_score": 0,
+      "is_binary": false,
+      "syntax_error": false,
+      "features": {}
+    },
+    {
+      "file": "SECURITY_FEATURES.md",
+      "change_type": "DELETED",
+      "language": null,
+      "severity": "PATCH",
+      "complexity_score": 0,
+      "is_binary": false,
+      "syntax_error": false,
+      "features": {}
+    },
+    {
+      "file": "backend/pom.xml",
+      "change_type": "MODIFIED",
+      "language": null,
+      "severity": "PATCH",
+      "complexity_score": 0,
+      "is_binary": false,
+      "syntax_error": false,
+      "features": {}
+    },
+    {
+      "file": "backend/src/main/java/com/exl/quizapp/config/SecurityConfig.java",
+      "change_type": "MODIFIED",
+      "language": "java",
+      "severity": "MINOR",
+      "complexity_score": 10,
+      "is_binary": false,
+      "syntax_error": false,
+      "features": {
+        "classes": [
+          "SecurityConfig"
+        ],
+        "methods": [
+          "securityFilterChain",
+          "corsConfigurationSource",
+          "authenticationProvider",
+          "authenticationManager",
+          "passwordEncoder"
+        ],
+        "annotations": [
+          "@Bean",
+          "@EnableWebSecurity",
+          "@Configuration",
+          "@Lazy"
+        ],
+        "dependencies": [
+          "MyUserDetailsService",
+          "Bean",
+          "Configuration",
+          "Lazy",
+          "AuthenticationManager",
+          "AuthenticationProvider",
+          "DaoAuthenticationProvider",
+          "Customizer",
+          "AuthenticationConfiguration",
+          "HttpSecurity",
+          "EnableWebSecurity",
+          "SessionCreationPolicy",
+          "BCryptPasswordEncoder",
+          "PasswordEncoder",
+          "SecurityFilterChain",
+          "UsernamePasswordAuthenticationFilter",
+          "CorsConfiguration",
+          "CorsConfigurationSource",
+          "UrlBasedCorsConfigurationSource",
+          "List"
+        ],
+        "api_endpoints": []
+      },
+      "comments": [
+        "// FIX: Added \"/ai/**\" to the permitAll list so the generator is accessible",
+        "//localhost:5173\"));"
+      ]
+    },
+    {
+      "file": "backend/src/main/java/com/exl/quizapp/controller/UserController.java",
+      "change_type": "MODIFIED",
+      "language": "java",
+      "severity": "MAJOR",
+      "complexity_score": 10,
+      "is_binary": false,
+      "syntax_error": false,
+      "features": {
+        "classes": [
+          "UserController"
+        ],
+        "methods": [
+          "register",
+          "greet"
+        ],
+        "annotations": [
+          "@GetMapping",
+          "@RestController",
+          "@PostMapping",
+          "@RequestBody",
+          "@Autowired"
+        ],
+        "dependencies": [
+          "Users",
+          "QrCodeService",
+          "UserService",
+          "Autowired",
+          "ResponseEntity",
+          "Authentication",
+          "SecurityContextHolder",
+          "HashMap",
+          "Map"
+        ],
+        "api_endpoints": [
+          {
+            "verb": "POST",
+            "route": "/register",
+            "line": 25
+          },
+          {
+            "verb": "POST",
+            "route": "/login",
+            "line": 30
+          },
+          {
+            "verb": "POST",
+            "route": "/verify-otp",
+            "line": 35
+          },
+          {
+            "verb": "GET",
+            "route": "/api/user/profile",
+            "line": 47
+          },
+          {
+            "verb": "GET",
+            "route": "/api/user/qr-code",
+            "line": 56
+          },
+          {
+            "verb": "GET",
+            "route": "/hello",
+            "line": 72
+          }
+        ]
+      },
+      "comments": [
+        "// Generate QR code with user ID"
+      ]
+    },
+    {
+      "file": "backend/src/main/java/com/exl/quizapp/model/Users.java",
+      "change_type": "MODIFIED",
+      "language": "java",
+      "severity": "MAJOR",
+      "complexity_score": 10,
+      "is_binary": false,
+      "syntax_error": false,
+      "features": {
+        "classes": [
+          "Users"
+        ],
+        "methods": [
+          "setName",
+          "setRole",
+          "getName",
+          "getRole",
+          "toString",
+          "setId",
+          "setUsername",
+          "setPassword",
+          "getId",
+          "getUsername",
+          "getPassword",
+          "getEmail",
+          "setEmail"
+        ],
+        "annotations": [
+          "@Entity",
+          "@GeneratedValue",
+          "@Override",
+          "@Id"
+        ],
+        "dependencies": [
+          "Entity",
+          "GeneratedValue",
+          "GenerationType",
+          "Id"
+        ],
+        "api_endpoints": []
+      },
+      "comments": [
+        "// Encrypted email field"
+      ]
+    },
+    {
+      "file": "backend/src/main/java/com/exl/quizapp/service/EmailService.java",
+      "change_type": "DELETED",
+      "language": "java",
+      "severity": "MINOR",
+      "complexity_score": 5,
+      "is_binary": false,
+      "syntax_error": false,
+      "features": {
+        "classes": [
+          "EmailService"
+        ],
+        "methods": [
+          "sendOtpEmail"
+        ],
+        "annotations": [
+          "@Service",
+          "@Autowired"
+        ],
+        "dependencies": [
+          "Autowired",
+          "SimpleMailMessage",
+          "JavaMailSender",
+          "Service"
+        ],
+        "api_endpoints": []
+      }
+    },
+    {
+      "file": "backend/src/main/java/com/exl/quizapp/service/EncryptionService.java",
+      "change_type": "DELETED",
+      "language": "java",
+      "severity": "MINOR",
+      "complexity_score": 8,
+      "is_binary": false,
+      "syntax_error": false,
+      "features": {
+        "classes": [
+          "EncryptionService"
+        ],
+        "methods": [
+          "encrypt",
+          "decrypt"
+        ],
+        "annotations": [
+          "@Value",
+          "@Service"
+        ],
+        "dependencies": [
+          "Value",
+          "Service",
+          "Cipher",
+          "IvParameterSpec",
+          "SecretKeySpec",
+          "StandardCharsets",
+          "SecureRandom",
+          "Base64"
+        ],
+        "api_endpoints": []
+      },
+      "comments": [
+        "// 32 bytes for AES-256",
+        "// Generate random IV",
+        "// Create secret key",
+        "// Encrypt",
+        "// Combine IV and encrypted data",
+        "// Return Base64 encoded",
+        "// Decode Base64",
+        "// Extract IV",
+        "// Extract encrypted data",
+        "// Create secret key",
+        "// Decrypt"
+      ]
+    },
+    {
+      "file": "backend/src/main/java/com/exl/quizapp/service/OtpService.java",
+      "change_type": "DELETED",
+      "language": "java",
+      "severity": "MINOR",
+      "complexity_score": 10,
+      "is_binary": false,
+      "syntax_error": false,
+      "features": {
+        "classes": [
+          "OtpService",
+          "to",
+          "OtpData"
+        ],
+        "methods": [
+          "generateOtp",
+          "getOtp",
+          "getExpiryTime"
+        ],
+        "annotations": [
+          "@Service"
+        ],
+        "dependencies": [
+          "Service",
+          "SecureRandom",
+          "LocalDateTime",
+          "Map",
+          "ConcurrentHashMap"
+        ],
+        "api_endpoints": []
+      },
+      "comments": [
+        "// Store OTP with expiry time: key = email, value = OtpData",
+        "// Generate 6-digit OTP",
+        "// Store OTP with expiry time",
+        "// Check if OTP is expired",
+        "// Check if OTP matches",
+        "// Remove OTP after successful validation (use-once policy)"
+      ]
+    },
+    {
+      "file": "backend/src/main/java/com/exl/quizapp/service/QrCodeService.java",
+      "change_type": "DELETED",
+      "language": "java",
+      "severity": "MINOR",
+      "complexity_score": 7,
+      "is_binary": false,
+      "syntax_error": false,
+      "features": {
+        "classes": [
+          "QrCodeService"
+        ],
+        "methods": [
+          "generateQrCode"
+        ],
+        "annotations": [
+          "@Service"
+        ],
+        "dependencies": [
+          "BarcodeFormat",
+          "WriterException",
+          "MatrixToImageWriter",
+          "BitMatrix",
+          "QRCodeWriter",
+          "Service",
+          "ByteArrayOutputStream",
+          "IOException",
+          "Base64"
+        ],
+        "api_endpoints": []
+      }
+    },
+    {
+      "file": "backend/src/main/java/com/exl/quizapp/service/UserService.java",
+      "change_type": "MODIFIED",
+      "language": "java",
+      "severity": "MINOR",
+      "complexity_score": 9,
+      "is_binary": false,
+      "syntax_error": false,
+      "features": {
+        "classes": [
+          "UserService"
+        ],
+        "methods": [
+          "register",
+          "verifyOtp"
+        ],
+        "annotations": [
+          "@Service",
+          "@Autowired"
+        ],
+        "dependencies": [
+          "UserRepo",
+          "Users",
+          "Autowired",
+          "AuthenticationManager",
+          "UsernamePasswordAuthenticationToken",
+          "Authentication",
+          "PasswordEncoder",
+          "Service",
+          "HashMap",
+          "Map"
+        ],
+        "api_endpoints": []
+      },
+      "comments": [
+        "// Encrypt email before saving",
+        "// Fetch the full user object from DB",
+        "// Generate OTP",
+        "// Send OTP to user's email (username is used as email)",
+        "// If email sending fails, log the error and fail authentication",
+        "// NOTE: For development/testing, you may temporarily want to display the OTP,",
+        "// but this should NEVER be done in production as it bypasses email verification",
+        "// Validate OTP",
+        "// Fetch user",
+        "// Generate JWT token",
+        "// Decrypt email if it exists",
+        "// fallback to username"
+      ]
+    }
+  ]
+}

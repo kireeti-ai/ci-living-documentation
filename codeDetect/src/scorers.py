@@ -1,0 +1,248 @@
+"""
+US-16: Complexity Scoring
+US-17: Severity Scoring
+
+Impact scoring module for code change analysis.
+"""
+
+from typing import Dict, List, Any, Optional
+
+
+class ComplexityScorer:
+    """
+    US-16: Calculates Cyclomatic Complexity Score.
+
+    Complexity is based on:
+    1. Control flow nodes (if, for, while, try/catch)
+    2. Feature density (methods, functions, classes)
+    3. Dependencies count
+    """
+
+    # Weights for different features
+    WEIGHTS = {
+        "complexity_nodes": 1,      # Each branching node adds 1
+        "api_endpoints": 3,         # API endpoints are complex
+        "methods": 1,               # Each method
+        "functions": 1,             # Each function
+        "classes": 2,               # Classes are more complex
+        "hooks": 2,                 # React hooks (state management)
+        "decorators": 1,            # Python decorators
+        "dependencies": 0.5,        # Import dependencies
+        "imports": 0.5,             # Same as dependencies
+        "schema_annotations": 3,    # Database schema
+    }
+
+    @staticmethod
+    def calculate(features: Dict[str, Any]) -> int:
+        """
+        Calculate complexity score from extracted features.
+
+        Args:
+            features: Dictionary of extracted code features
+
+        Returns:
+            Complexity score (0-10 scale)
+        """
+        score = 0.0
+
+        # US-16: Count branching nodes (primary complexity metric)
+        complexity_nodes = features.get("complexity_nodes", 0)
+        if isinstance(complexity_nodes, int):
+            score += complexity_nodes * ComplexityScorer.WEIGHTS["complexity_nodes"]
+
+        # Add feature-based complexity
+        for feature_key, weight in ComplexityScorer.WEIGHTS.items():
+            if feature_key == "complexity_nodes":
+                continue  # Already handled above
+
+            value = features.get(feature_key, [])
+            if isinstance(value, list):
+                score += len(value) * weight
+            elif isinstance(value, int):
+                score += value * weight
+
+        # Normalize to 0-10 scale
+        normalized = min(int(score), 10)
+
+        return normalized
+
+    @staticmethod
+    def get_complexity_level(score: int) -> str:
+        """Convert numeric score to human-readable level."""
+        if score <= 3:
+            return "LOW"
+        elif score <= 6:
+            return "MEDIUM"
+        else:
+            return "HIGH"
+
+
+class SeverityCalculator:
+    """
+    US-17: Determines Impact Severity (MAJOR, MINOR, PATCH).
+
+    Severity Levels:
+    - MAJOR: Breaking changes (API, schema, contracts)
+    - MINOR: Functional changes (new features, logic changes)
+    - PATCH: Non-breaking changes (styling, docs, refactoring)
+    """
+
+    # Annotations/patterns that indicate MAJOR changes
+    MAJOR_PATTERNS = {
+        'java': [
+            '@RestController', '@Controller', '@RequestMapping',
+            '@GetMapping', '@PostMapping', '@PutMapping', '@DeleteMapping',
+            '@Entity', '@Table', '@Column'
+        ],
+        'python': [
+            '@app.route', '@router.', '@api.', '@blueprint.'
+        ],
+        'javascript': [
+            'app.get', 'app.post', 'router.get', 'router.post'
+        ]
+    }
+
+    # File patterns that indicate critical changes
+    CRITICAL_FILES = [
+        'pom.xml', 'build.gradle', 'package.json', 'requirements.txt',
+        'Dockerfile', 'docker-compose', 'application.properties',
+        'application.yml', '.env', 'schema', 'migration'
+    ]
+
+    @staticmethod
+    def assess(ext: str, features: Dict[str, Any],
+               schema_tags: List[str],
+               config: Optional[Dict] = None) -> str:
+        """
+        Assess the severity level of a code change.
+
+        Args:
+            ext: File extension
+            features: Extracted code features
+            schema_tags: Schema-related tags (e.g., JPA_ENTITY)
+            config: Optional configuration dictionary
+
+        Returns:
+            Severity level: "MAJOR", "MINOR", or "PATCH"
+        """
+        # 1. US-14: Schema Changes are always MAJOR
+        if schema_tags:
+            return "MAJOR"
+
+        # 2. Check for API endpoints (US-13)
+        if features.get("api_endpoints") or features.get("api_routes"):
+            return "MAJOR"
+
+        # 3. Check schema annotations
+        if features.get("schema_annotations"):
+            return "MAJOR"
+
+        # 4. Language-specific checks
+        if ext == '.java':
+            return SeverityCalculator._assess_java(features)
+
+        elif ext in ['.ts', '.tsx', '.js', '.jsx']:
+            return SeverityCalculator._assess_javascript(features)
+
+        elif ext == '.py':
+            return SeverityCalculator._assess_python(features)
+
+        elif ext in ['.sql']:
+            return "MAJOR"  # SQL changes are always significant
+
+        elif ext in ['.yaml', '.yml', '.json', '.properties', '.env']:
+            return SeverityCalculator._assess_config(features, ext)
+
+        # 5. Default to PATCH for unknown types
+        return "PATCH"
+
+    @staticmethod
+    def _assess_java(features: Dict[str, Any]) -> str:
+        """Assess severity for Java files."""
+        annotations = features.get("annotations", [])
+
+        # Check for Spring controller annotations
+        for ann in annotations:
+            if any(pattern in ann for pattern in SeverityCalculator.MAJOR_PATTERNS['java']):
+                return "MAJOR"
+
+        # Check for significant method changes
+        methods = features.get("methods", [])
+        if len(methods) > 3:
+            return "MINOR"
+
+        return "PATCH" if not methods else "MINOR"
+
+    @staticmethod
+    def _assess_javascript(features: Dict[str, Any]) -> str:
+        """Assess severity for JavaScript/TypeScript files."""
+        # React component changes
+        if features.get("react_components"):
+            # UI component changes are MINOR unless they affect state
+            if features.get("hooks"):
+                return "MINOR"
+            return "PATCH"
+
+        # Hook changes indicate state management
+        if features.get("hooks"):
+            return "MINOR"
+
+        # Export changes can be significant
+        if features.get("exports"):
+            return "MINOR"
+
+        # Default styling/text changes
+        return "PATCH"
+
+    @staticmethod
+    def _assess_python(features: Dict[str, Any]) -> str:
+        """Assess severity for Python files."""
+        decorators = features.get("decorators", [])
+
+        # Check for API decorators
+        for dec in decorators:
+            if any(pattern in dec for pattern in ['route', 'api', 'endpoint']):
+                return "MAJOR"
+
+        # Check for significant function/class changes
+        functions = features.get("functions", [])
+        classes = features.get("classes", [])
+
+        if classes:
+            return "MINOR"
+
+        if len(functions) > 2:
+            return "MINOR"
+
+        return "PATCH"
+
+    @staticmethod
+    def _assess_config(features: Dict[str, Any], ext: str) -> str:
+        """Assess severity for configuration files."""
+        # Configuration changes can have wide impact
+        return "MINOR"
+
+    @staticmethod
+    def get_severity_reason(severity: str, features: Dict, schema_tags: List) -> str:
+        """Generate human-readable reason for severity assignment."""
+        reasons = []
+
+        if schema_tags:
+            reasons.append(f"Schema changes detected: {', '.join(schema_tags)}")
+
+        if features.get("api_endpoints") or features.get("api_routes"):
+            reasons.append("API endpoint modifications")
+
+        if features.get("react_components"):
+            reasons.append(f"React components: {', '.join(features['react_components'][:3])}")
+
+        if features.get("hooks"):
+            reasons.append(f"React hooks: {', '.join(features['hooks'][:3])}")
+
+        if features.get("methods"):
+            reasons.append(f"Methods: {len(features['methods'])} modified")
+
+        if features.get("functions"):
+            reasons.append(f"Functions: {len(features['functions'])} modified")
+
+        return "; ".join(reasons) if reasons else "General code changes"
