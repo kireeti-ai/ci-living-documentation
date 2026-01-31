@@ -102,15 +102,7 @@ The tool generates `impact_report.json` with:
 
 **Security:** Never commit tokens to version control. Use environment variables or CI/CD secrets.
 
-## Configuration
 
-Edit `config.yaml` to customize:
-
-- File ignore patterns
-- Critical paths
-- API patterns
-- Severity weights
-- Complexity thresholds
 
 ## Supported Languages
 
