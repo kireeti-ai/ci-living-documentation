@@ -1,8 +1,4 @@
 """
-US-1: Git Context Validation
-US-2: Smart Change Retrieval
-US-3: New Project Safety
-
 Git management module for extracting repository context and changes.
 Supports both local repositories and GitHub URLs with token authentication.
 """
@@ -17,8 +13,6 @@ from git import Repo, InvalidGitRepositoryError, GitCommandError
 
 class GitManager:
     """
-    US-1: Git Context Validation
-
     Manages git repository access with proper validation and error handling.
     Supports both local paths and GitHub URLs with token authentication.
     """
@@ -65,7 +59,7 @@ class GitManager:
             # Local repository path
             self.repo_path = repo_path
 
-            # US-1: Validate .git directory exists
+            # Validate .git directory exists
             git_dir = os.path.join(repo_path, ".git")
             if not os.path.exists(git_dir):
                 raise InvalidGitRepositoryError(
@@ -91,7 +85,7 @@ class GitManager:
 
     def get_metadata(self) -> Dict[str, Any]:
         """
-        US-1: Extract repository metadata for impact_report.json
+        Extract repository metadata for impact_report.json.
 
         Returns:
             Dictionary containing repository context
@@ -139,9 +133,6 @@ class GitManager:
 
     def get_changed_files(self, compare_with: str = "HEAD~1") -> List[Dict[str, str]]:
         """
-        US-2: Smart Change Retrieval
-        US-3: New Project Safety
-
         Determines which files are ADDED, MODIFIED, or DELETED.
         Handles first commit gracefully by listing all files as ADDED.
 
@@ -162,7 +153,7 @@ class GitManager:
                 "error": str(e)
             }]
 
-        # US-3: Handle first commit (no parents)
+        # Handle first commit (no parents)
         if not head_commit.parents:
             for item in head_commit.tree.traverse():
                 if item.type == 'blob':
@@ -173,7 +164,7 @@ class GitManager:
                     })
             return changes
 
-        # US-2: Compare against previous commit
+        # Compare against previous commit
         try:
             diffs = head_commit.diff(compare_with)
         except GitCommandError as e:
@@ -219,8 +210,6 @@ class GitManager:
 
     def get_file_content(self, file_path: str, ref: str = "HEAD") -> str:
         """
-        US-5: Binary Safety
-
         Safely retrieve file content from a specific git reference.
 
         Args:

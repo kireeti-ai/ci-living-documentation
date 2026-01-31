@@ -1,7 +1,4 @@
 """
-US-16: Complexity Scoring
-US-17: Severity Scoring
-
 Impact scoring module for code change analysis.
 """
 
@@ -10,8 +7,6 @@ from typing import Dict, List, Any, Optional
 
 class ComplexityScorer:
     """
-    US-16: Calculates Cyclomatic Complexity Score.
-
     Complexity is based on:
     1. Control flow nodes (if, for, while, try/catch)
     2. Feature density (methods, functions, classes)
@@ -45,7 +40,7 @@ class ComplexityScorer:
         """
         score = 0.0
 
-        # US-16: Count branching nodes (primary complexity metric)
+        # Count branching nodes (primary complexity metric)
         complexity_nodes = features.get("complexity_nodes", 0)
         if isinstance(complexity_nodes, int):
             score += complexity_nodes * ComplexityScorer.WEIGHTS["complexity_nodes"]
@@ -79,8 +74,6 @@ class ComplexityScorer:
 
 class SeverityCalculator:
     """
-    US-17: Determines Impact Severity (MAJOR, MINOR, PATCH).
-
     Severity Levels:
     - MAJOR: Breaking changes (API, schema, contracts)
     - MINOR: Functional changes (new features, logic changes)
@@ -125,11 +118,11 @@ class SeverityCalculator:
         Returns:
             Severity level: "MAJOR", "MINOR", or "PATCH"
         """
-        # 1. US-14: Schema Changes are always MAJOR
+        # Schema changes are always MAJOR
         if schema_tags:
             return "MAJOR"
 
-        # 2. Check for API endpoints (US-13)
+        # Check for API endpoints
         if features.get("api_endpoints") or features.get("api_routes"):
             return "MAJOR"
 

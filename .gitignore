@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+*.egg
+.pytest_cache/
+.mypy_cache/
+.pytype/
+.ruff_cache/
+.venv/
+venv/
+ENV/
+.env/
+.env.*
+
+# Node
+node_modules/
+
+# Java/Gradle/Maven
+*.class
+*.jar
+*.war
+*.ear
+.gradle/
+build/
+target/
+
+# Logs
+*.log
+
+# OS / Editor
+.DS_Store
+.idea/
+.vscode/
+
+# Docker
+*.pid
+
+# Generated reports / outputs
+codeDetect/impact_report.json
+codeDetect/change_report.json
+codeDetect/reports/
+summaryEngine/summaries/
+
+# Temporary / backups
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Cache directories anywhere
+**/__pycache__/

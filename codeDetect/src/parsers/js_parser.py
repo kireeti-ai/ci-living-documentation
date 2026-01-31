@@ -2,7 +2,7 @@ import re
 
 class JSParser:
     """
-    US-8: Detects React Components and Hooks.
+    Detects React components and hooks.
     """
 
     # React Patterns

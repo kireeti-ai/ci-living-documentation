@@ -1,6 +1,4 @@
 """
-US-5: Binary Safety
-US-11: Syntax Tolerance
 Tree-sitter based parsing engine for multi-language AST analysis.
 """
 
@@ -20,7 +18,7 @@ except ImportError:
 class TreeSitterEngine:
     """
     Tree-sitter based AST parsing engine.
-    Provides language-agnostic parsing with syntax tolerance (US-11).
+    Provides language-agnostic parsing with syntax tolerance.
     """
 
     # Language mapping: file extension -> tree-sitter language name
@@ -91,7 +89,7 @@ class TreeSitterEngine:
             self.parser.set_language(language)
             tree = self.parser.parse(bytes(code, 'utf-8'))
 
-            # US-11: Syntax Tolerance - Check for errors but continue
+            # Check for errors but continue
             if tree.root_node.has_error:
                 result["syntax_error"] = True
                 result["error_nodes"] = self._collect_error_nodes(tree.root_node)
@@ -139,7 +137,7 @@ class TreeSitterEngine:
         return code[node.start_byte:node.end_byte]
 
     def _extract_java_features(self, root: 'Node', code: str) -> Dict[str, Any]:
-        """US-6, US-7: Extract Java classes, methods, and Spring annotations."""
+        """Extract Java classes, methods, and Spring annotations."""
         features = {
             "classes": [],
             "methods": [],
@@ -176,14 +174,14 @@ class TreeSitterEngine:
             if name_node:
                 features["constructors"].append(self._get_node_text(name_node, code))
 
-        # Annotations (US-7: Spring Annotations)
+        # Annotations (Spring)
         elif node.type in ['marker_annotation', 'annotation']:
             name_node = node.child_by_field_name('name')
             if name_node:
                 ann_name = self._get_node_text(name_node, code)
                 features["annotations"].append(f"@{ann_name}")
 
-                # Check for API annotations (US-13)
+                # Check for API annotations
                 if ann_name in ['GetMapping', 'PostMapping', 'PutMapping',
                                'DeleteMapping', 'PatchMapping', 'RequestMapping']:
                     route = self._extract_annotation_value(node, code)
@@ -193,20 +191,20 @@ class TreeSitterEngine:
                         "line": node.start_point[0] + 1
                     })
 
-                # Check for schema annotations (US-14)
+                # Check for schema annotations
                 if ann_name in ['Entity', 'Table', 'Column', 'Id',
                                'OneToMany', 'ManyToOne', 'ManyToMany']:
                     features["schema_annotations"].append(ann_name)
 
-        # Import declarations (US-15)
+        # Import declarations
         elif node.type == 'import_declaration':
             features["imports"].append(self._get_node_text(node, code).strip())
 
-        # Comments (US-12)
+        # Comments
         elif node.type in ['line_comment', 'block_comment']:
             features["comments"].append(self._get_node_text(node, code).strip())
 
-        # Complexity nodes (US-16)
+        # Complexity nodes
         elif node.type in ['if_statement', 'for_statement', 'while_statement',
                           'do_statement', 'switch_expression', 'try_statement',
                           'catch_clause', 'ternary_expression']:
@@ -230,7 +228,7 @@ class TreeSitterEngine:
         return ""
 
     def _extract_js_features(self, root: 'Node', code: str) -> Dict[str, Any]:
-        """US-8, US-9: Extract JS/TS functions, exports, and React components."""
+        """Extract JS/TS functions, exports, and React components."""
         features = {
             "functions": [],
             "classes": [],
@@ -283,11 +281,11 @@ class TreeSitterEngine:
             if name_node:
                 features["classes"].append(self._get_node_text(name_node, code))
 
-        # Export statements (US-8)
+        # Export statements
         elif node.type == 'export_statement':
             features["exports"].append(self._get_node_text(node, code)[:100] + "...")
 
-        # Import statements (US-15)
+        # Import statements
         elif node.type == 'import_statement':
             source = None
             for child in node.children:
@@ -296,7 +294,7 @@ class TreeSitterEngine:
             if source:
                 features["imports"].append(source)
 
-        # React hooks (US-9)
+        # React hooks
         elif node.type == 'call_expression':
             func = node.child_by_field_name('function')
             if func and func.type == 'identifier':
@@ -305,11 +303,11 @@ class TreeSitterEngine:
                     if func_name not in features["hooks"]:
                         features["hooks"].append(func_name)
 
-        # Comments (US-12)
+        # Comments
         elif node.type == 'comment':
             features["comments"].append(self._get_node_text(node, code).strip())
 
-        # Complexity nodes (US-16)
+        # Complexity nodes
         elif node.type in ['if_statement', 'for_statement', 'for_in_statement',
                           'while_statement', 'do_statement', 'switch_statement',
                           'try_statement', 'catch_clause', 'ternary_expression']:
@@ -329,7 +327,7 @@ class TreeSitterEngine:
         return False
 
     def _extract_python_features(self, root: 'Node', code: str) -> Dict[str, Any]:
-        """US-10: Extract Python functions, classes, and decorators."""
+        """Extract Python functions, classes, and decorators."""
         features = {
             "functions": [],
             "classes": [],
@@ -371,12 +369,12 @@ class TreeSitterEngine:
             if name_node:
                 features["classes"].append(self._get_node_text(name_node, code))
 
-        # Decorators (US-10)
+        # Decorators
         elif node.type == 'decorator':
             dec_text = self._get_node_text(node, code)
             features["decorators"].append(dec_text)
 
-            # Check for API routes (US-13)
+            # Check for API routes
             if any(pattern in dec_text for pattern in ['@app.route', '@router.', '@api.']):
                 route = self._extract_decorator_route(dec_text)
                 features["api_routes"].append({
@@ -385,15 +383,15 @@ class TreeSitterEngine:
                     "line": node.start_point[0] + 1
                 })
 
-        # Import statements (US-15)
+        # Import statements
         elif node.type in ['import_statement', 'import_from_statement']:
             features["imports"].append(self._get_node_text(node, code).strip())
 
-        # Comments (US-12)
+        # Comments
         elif node.type == 'comment':
             features["comments"].append(self._get_node_text(node, code).strip())
 
-        # Complexity nodes (US-16)
+        # Complexity nodes
         elif node.type in ['if_statement', 'elif_clause', 'for_statement',
                           'while_statement', 'try_statement', 'except_clause',
                           'with_statement', 'conditional_expression',

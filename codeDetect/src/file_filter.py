@@ -1,7 +1,4 @@
 """
-US-4: Noise Filtering
-US-5: Binary Safety
-
 File filtering utilities for code change detection.
 """
 
@@ -14,7 +11,7 @@ import yaml
 
 class ConfigLoader:
     """
-    Loads configuration from YAML file (US-4).
+    Loads configuration from YAML file.
     """
 
     @staticmethod
@@ -43,9 +40,6 @@ class ConfigLoader:
 
 class FileFilter:
     """
-    US-4: Noise Filtering
-    US-5: Binary Safety
-
     Filters files based on patterns and safety checks.
     """
 
@@ -113,7 +107,7 @@ class FileFilter:
     @staticmethod
     def is_safe_to_read(file_path: str, additional_ignores: Optional[List[str]] = None) -> bool:
         """
-        US-4 & US-5: Check if file is safe to read and should be analyzed.
+        Check if file is safe to read and should be analyzed.
 
         Args:
             file_path: Path to the file
@@ -138,7 +132,7 @@ class FileFilter:
         if any(part in FileFilter.IGNORED_DIRS for part in parts):
             return False
 
-        # Check additional ignore patterns from config (US-4)
+        # Check additional ignore patterns from config
         if additional_ignores:
             for pattern in additional_ignores:
                 if fnmatch.fnmatch(file_path, pattern):

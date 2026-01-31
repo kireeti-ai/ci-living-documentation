@@ -1,6 +1,4 @@
 """
-US-11: Syntax Tolerance
-
 Syntax checking module that validates source code without crashing on errors.
 Supports multiple languages with graceful degradation.
 """
@@ -12,8 +10,6 @@ from typing import Optional, Tuple
 
 class SyntaxChecker:
     """
-    US-11: Syntax Tolerance
-
     Checks for syntax errors in source code.
     Returns True if syntax is INVALID (error detected).
     Returns False if syntax is valid.
