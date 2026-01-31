@@ -16,3 +16,10 @@ PyYAML>=6.0.1
 
 # Optional: For enhanced analysis
 chardet>=5.2.0  # Encoding detection for binary safety
+
+# Web service deployment
+flask>=3.0.0  # REST API framework
+gunicorn>=21.0.0  # Production WSGI server
+requests>=2.31.0  # HTTP client
+flask>=3.0.0  # REST API service
+requests>=2.31.0  # HTTP client for integrations

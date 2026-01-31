@@ -1,10 +1,10 @@
 {
   "meta": {
-    "generated_at": "2026-01-29T07:09:28.675730Z",
+    "generated_at": "2026-01-31T12:11:40.563013Z",
     "tool_version": "1.0.0"
   },
   "context": {
-    "repository": "Quizora-ai",
+    "repository": "git_clone_vjzau32l",
     "branch": "main",
     "commit_sha": "63d36c2b",
     "full_sha": "63d36c2bceb6575930f19d50e9a6ceb4f5294618",
@@ -68,8 +68,8 @@
         ],
         "react_components": [],
         "hooks": [
-          "useLocation",
-          "useNavigate"
+          "useNavigate",
+          "useLocation"
         ],
         "dependencies": [
           "react",
@@ -94,8 +94,8 @@
         ],
         "react_components": [],
         "hooks": [
-          "useState",
-          "useNavigate"
+          "useNavigate",
+          "useState"
         ],
         "dependencies": [
           "react",
@@ -131,9 +131,9 @@
         ],
         "react_components": [],
         "hooks": [
-          "useState",
           "useEffect",
-          "useNavigate"
+          "useNavigate",
+          "useState"
         ],
         "dependencies": [
           "react",
@@ -169,9 +169,9 @@
         ],
         "react_components": [],
         "hooks": [
-          "useState",
           "useEffect",
-          "useNavigate"
+          "useNavigate",
+          "useState"
         ],
         "dependencies": [
           "react",
@@ -232,10 +232,10 @@
           "passwordEncoder"
         ],
         "annotations": [
-          "@Bean",
           "@EnableWebSecurity",
+          "@Lazy",
           "@Configuration",
-          "@Lazy"
+          "@Bean"
         ],
         "dependencies": [
           "MyUserDetailsService",
@@ -283,11 +283,11 @@
           "greet"
         ],
         "annotations": [
-          "@GetMapping",
           "@RestController",
+          "@Autowired",
           "@PostMapping",
-          "@RequestBody",
-          "@Autowired"
+          "@GetMapping",
+          "@RequestBody"
         ],
         "dependencies": [
           "Users",
@@ -365,10 +365,10 @@
           "setEmail"
         ],
         "annotations": [
-          "@Entity",
           "@GeneratedValue",
-          "@Override",
-          "@Id"
+          "@Entity",
+          "@Id",
+          "@Override"
         ],
         "dependencies": [
           "Entity",
@@ -427,8 +427,8 @@
           "decrypt"
         ],
         "annotations": [
-          "@Value",
-          "@Service"
+          "@Service",
+          "@Value"
         ],
         "dependencies": [
           "Value",

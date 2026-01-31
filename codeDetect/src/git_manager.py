@@ -4,10 +4,13 @@ US-2: Smart Change Retrieval
 US-3: New Project Safety
 
 Git management module for extracting repository context and changes.
+Supports both local repositories and GitHub URLs with token authentication.
 """
 
 import os
 import datetime
+import tempfile
+import shutil
 from typing import List, Dict, Optional, Any
 from git import Repo, InvalidGitRepositoryError, GitCommandError
 
@@ -17,34 +20,65 @@ class GitManager:
     US-1: Git Context Validation
 
     Manages git repository access with proper validation and error handling.
+    Supports both local paths and GitHub URLs with token authentication.
     """
 
-    def __init__(self, repo_path: str):
+    def __init__(self, repo_path: str, github_token: Optional[str] = None, branch: str = "main"):
         """
-        Initialize GitManager with repository path.
+        Initialize GitManager with repository path or GitHub URL.
 
         Args:
-            repo_path: Path to the git repository
+            repo_path: Local path to git repository or GitHub URL (https://github.com/owner/repo)
+            github_token: GitHub personal access token for private repositories
+            branch: Branch to clone (default: main)
 
         Raises:
             InvalidGitRepositoryError: If path is not a valid git repository
         """
-        self.repo_path = repo_path
+        self.is_temporary = False
+        self.temp_dir = None
 
-        # US-1: Validate .git directory exists
-        git_dir = os.path.join(repo_path, ".git")
-        if not os.path.exists(git_dir):
-            raise InvalidGitRepositoryError(
-                f"No .git folder found at {repo_path}. "
-                "Please run this tool in a git repository."
-            )
+        # Check if repo_path is a GitHub URL
+        if repo_path.startswith(('http://', 'https://', 'git@')):
+            self.is_temporary = True
+            self.temp_dir = tempfile.mkdtemp(prefix='git_clone_')
 
-        try:
-            self.repo = Repo(repo_path)
-        except Exception as e:
-            raise InvalidGitRepositoryError(
-                f"Failed to initialize git repository: {e}"
-            )
+            # Build authenticated URL if token provided
+            if github_token and repo_path.startswith('https://github.com/'):
+                # Insert token into URL: https://TOKEN@github.com/owner/repo
+                auth_url = repo_path.replace('https://github.com/', f'https://{github_token}@github.com/')
+            else:
+                auth_url = repo_path
+
+            try:
+                print(f"Cloning repository from {repo_path}...")
+                self.repo = Repo.clone_from(auth_url, self.temp_dir, branch=branch)
+                self.repo_path = self.temp_dir
+                print(f"Repository cloned to temporary directory: {self.temp_dir}")
+            except Exception as e:
+                if self.temp_dir and os.path.exists(self.temp_dir):
+                    shutil.rmtree(self.temp_dir)
+                raise InvalidGitRepositoryError(
+                    f"Failed to clone repository from {repo_path}: {e}"
+                )
+        else:
+            # Local repository path
+            self.repo_path = repo_path
+
+            # US-1: Validate .git directory exists
+            git_dir = os.path.join(repo_path, ".git")
+            if not os.path.exists(git_dir):
+                raise InvalidGitRepositoryError(
+                    f"No .git folder found at {repo_path}. "
+                    "Please run this tool in a git repository."
+                )
+
+            try:
+                self.repo = Repo(repo_path)
+            except Exception as e:
+                raise InvalidGitRepositoryError(
+                    f"Failed to initialize git repository: {e}"
+                )
 
         # Validate repository has at least one commit
         if self.repo.head.is_detached:
@@ -261,3 +295,24 @@ class GitManager:
             return self.repo.is_dirty(untracked_files=True)
         except Exception:
             return False
+
+    def cleanup(self):
+        """Clean up temporary directory if repository was cloned."""
+        if self.is_temporary and self.temp_dir and os.path.exists(self.temp_dir):
+            try:
+                shutil.rmtree(self.temp_dir)
+                print(f"Cleaned up temporary directory: {self.temp_dir}")
+            except Exception as e:
+                print(f"Warning: Failed to clean up temporary directory: {e}")
+
+    def __del__(self):
+        """Destructor to ensure cleanup on object deletion."""
+        self.cleanup()
+
+    def __enter__(self):
+        """Context manager entry."""
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit with cleanup."""
+        self.cleanup()

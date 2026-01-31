@@ -4,6 +4,17 @@
 project_name: "Living-Documentation-Engine"
 version: "1.0.0"
 
+# GitHub Repository Configuration
+github:
+  # Set to true to use GitHub URL instead of local path
+  use_github: false
+  # GitHub repository URL (e.g., https://github.com/owner/repo)
+  repo_url: ""
+  # GitHub personal access token (can also be set via GITHUB_TOKEN env variable)
+  token: ""
+  # Branch to analyze (default: main)
+  branch: "main"
+
 # File patterns to ignore during analysis
 ignore_patterns:
   # Build artifacts

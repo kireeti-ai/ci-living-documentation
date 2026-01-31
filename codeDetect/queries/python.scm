@@ -1,6 +1,4 @@
-; US-10: Python Function and Class Extraction
-; US-12: Docstring/Comment Extraction
-; US-15: Import Analysis
+
 
 ; ============================================
 ; FUNCTION DEFINITIONS
