@@ -53,3 +53,5 @@ summaryEngine/summaries/
 
 # Cache directories anywhere
 **/__pycache__/
+__pycache__/
+*.pyc

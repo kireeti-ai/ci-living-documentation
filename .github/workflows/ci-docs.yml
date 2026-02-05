@@ -50,11 +50,11 @@ jobs:
             const fs = require('fs');
             const report = JSON.parse(fs.readFileSync('codeDetect/change_report.json', 'utf8'));
 
-            const comment = `## 📊 Change Analysis Report
+            const comment = `##  Change Analysis Report
 
             **Total Files Changed:** ${report.analysis_summary.total_files}
             **Highest Severity:** ${report.analysis_summary.highest_severity}
-            **Breaking Changes:** ${report.analysis_summary.breaking_changes_detected ? '⚠️ Yes' : '✅ No'}
+            **Breaking Changes:** ${report.analysis_summary.breaking_changes_detected ? ' Yes' : ' No'}
 
             <details>
             <summary>View Details</summary>

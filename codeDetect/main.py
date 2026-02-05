@@ -4,7 +4,7 @@ import os
 import datetime
 from src.git_manager import GitManager
 from src.file_filter import FileFilter
-from src.scorers import SeverityCalculator, ComplexityScorer
+from src.scorers import SeverityCalculator
 from src.syntax_checker import SyntaxChecker
 from src.parsers.java_parser import JavaParser
 from src.parsers.ts_parser import TSParser
@@ -52,7 +52,6 @@ def main():
                     "change_type": change["change_type"],
                     "language": None,
                     "severity": "PATCH",
-                    "complexity_score": 0,
                     "is_binary": False,
                     "syntax_error": False,
                     "features": {}
@@ -79,10 +78,8 @@ def main():
                 if ext == '.java':
                     record["language"] = "java"
                     features = JavaParser.analyze(content)
-                    if features.get("comments"):
-                        record["comments"] = features["comments"]
 
-                # UPDATED: Handle JS and TS files using the TSParser
+                # Handle JS and TS files using the TSParser
                 elif ext in ['.ts', '.tsx', '.js', '.jsx']:
                     record["language"] = "typescript" if 'ts' in ext else "javascript"
                     features = TSParser.analyze(content)
@@ -96,19 +93,13 @@ def main():
                 if record["syntax_error"]:
                     features["note"] = record["features"]["note"]
 
-                # Remove comments from features to avoid duplication (they're already at record level)
-                if "comments" in features:
-                    del features["comments"]
-
                 record["features"] = features
 
                 # E. Schema & Scoring
                 schema_tags = SchemaDetector.analyze(file_path, content)
                 severity = SeverityCalculator.assess(ext, features, schema_tags)
-                complexity = ComplexityScorer.calculate(features)
 
                 record["severity"] = severity
-                record["complexity_score"] = complexity
 
                 # F. Update Summary Stats
                 if severity_rank[severity] > max_severity:

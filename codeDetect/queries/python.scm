@@ -1,7 +1,14 @@
 
 
 ; ============================================
-; FUNCTION DEFINITIONS
+; PYTHON QUERIES - Essential Features Only
+; US-10: Python Parsing
+; US-13: API Impact
+; US-14: Schema Changes (Django ORM)
+; ============================================
+
+; ============================================
+; FUNCTION DEFINITIONS (US-10)
 ; ============================================
 (function_definition
   name: (identifier) @function.name
@@ -15,7 +22,7 @@
   body: (block) @function.body) @function.async
 
 ; ============================================
-; CLASS DEFINITIONS
+; CLASS DEFINITIONS (US-10)
 ; ============================================
 (class_definition
   name: (identifier) @class.name
@@ -44,7 +51,9 @@
       attribute: (identifier) @decorator.method)
     arguments: (argument_list) @decorator.args)) @decorator.attribute
 
+; ============================================
 ; Flask/FastAPI route decorators (US-13: API Impact)
+; ============================================
 ((decorator
   (call
     function: (attribute
@@ -54,82 +63,7 @@
  (#match? @api.method "^(route|get|post|put|delete|patch)$"))
 
 ; ============================================
-; IMPORTS (US-15: Dependency Graph)
-; ============================================
-(import_statement
-  name: (dotted_name) @import.module) @import.simple
-
-(import_from_statement
-  module_name: (dotted_name) @import.from.module
-  name: (dotted_name) @import.from.name) @import.from
-
-(import_from_statement
-  module_name: (dotted_name) @import.from.module
-  (aliased_import
-    name: (dotted_name) @import.alias.original
-    alias: (identifier) @import.alias.name)) @import.aliased
-
-(import_from_statement
-  module_name: (dotted_name) @import.from.module
-  (wildcard_import)) @import.wildcard
-
-; ============================================
-; DOCSTRINGS (US-12: Context Extraction)
-; ============================================
-; Module docstring
-(module
-  (expression_statement
-    (string) @docstring.module))
-
-; Function docstring
-(function_definition
-  body: (block
-    (expression_statement
-      (string) @docstring.function)))
-
-; Class docstring
-(class_definition
-  body: (block
-    (expression_statement
-      (string) @docstring.class)))
-
-; ============================================
-; COMMENTS (US-12)
-; ============================================
-(comment) @comment
-
-; ============================================
-; CONTROL FLOW (US-16: Complexity)
-; ============================================
-(if_statement) @complexity.if
-(elif_clause) @complexity.elif
-(for_statement) @complexity.for
-(while_statement) @complexity.while
-(try_statement) @complexity.try
-(except_clause) @complexity.except
-(with_statement) @complexity.with
-(conditional_expression) @complexity.ternary
-(raise_statement) @complexity.raise
-(assert_statement) @complexity.assert
-(list_comprehension) @complexity.comprehension
-(dictionary_comprehension) @complexity.dict_comp
-(set_comprehension) @complexity.set_comp
-
-; ============================================
-; ASSIGNMENTS & VARIABLES
-; ============================================
-(assignment
-  left: (identifier) @variable.name
-  right: (_) @variable.value) @variable.assignment
-
-; Type annotations (Python 3.5+)
-(assignment
-  left: (identifier) @variable.typed.name
-  type: (type) @variable.type) @variable.annotated
-
-; ============================================
-; DJANGO/ORM MODELS (US-14: Schema)
-; ============================================
+; DJANGO/ORM MODELS (US-14: Schema Changes)
 ((class_definition
   name: (identifier) @model.name
   superclasses: (argument_list

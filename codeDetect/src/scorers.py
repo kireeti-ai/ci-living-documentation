@@ -1,75 +1,9 @@
 """
 Impact scoring module for code change analysis.
+US-17: Severity Scoring
 """
 
 from typing import Dict, List, Any, Optional
-
-
-class ComplexityScorer:
-    """
-    Complexity is based on:
-    1. Control flow nodes (if, for, while, try/catch)
-    2. Feature density (methods, functions, classes)
-    3. Dependencies count
-    """
-
-    # Weights for different features
-    WEIGHTS = {
-        "complexity_nodes": 1,      # Each branching node adds 1
-        "api_endpoints": 3,         # API endpoints are complex
-        "methods": 1,               # Each method
-        "functions": 1,             # Each function
-        "classes": 2,               # Classes are more complex
-        "hooks": 2,                 # React hooks (state management)
-        "decorators": 1,            # Python decorators
-        "dependencies": 0.5,        # Import dependencies
-        "imports": 0.5,             # Same as dependencies
-        "schema_annotations": 3,    # Database schema
-    }
-
-    @staticmethod
-    def calculate(features: Dict[str, Any]) -> int:
-        """
-        Calculate complexity score from extracted features.
-
-        Args:
-            features: Dictionary of extracted code features
-
-        Returns:
-            Complexity score (0-10 scale)
-        """
-        score = 0.0
-
-        # Count branching nodes (primary complexity metric)
-        complexity_nodes = features.get("complexity_nodes", 0)
-        if isinstance(complexity_nodes, int):
-            score += complexity_nodes * ComplexityScorer.WEIGHTS["complexity_nodes"]
-
-        # Add feature-based complexity
-        for feature_key, weight in ComplexityScorer.WEIGHTS.items():
-            if feature_key == "complexity_nodes":
-                continue  # Already handled above
-
-            value = features.get(feature_key, [])
-            if isinstance(value, list):
-                score += len(value) * weight
-            elif isinstance(value, int):
-                score += value * weight
-
-        # Normalize to 0-10 scale
-        normalized = min(int(score), 10)
-
-        return normalized
-
-    @staticmethod
-    def get_complexity_level(score: int) -> str:
-        """Convert numeric score to human-readable level."""
-        if score <= 3:
-            return "LOW"
-        elif score <= 6:
-            return "MEDIUM"
-        else:
-            return "HIGH"
 
 
 class SeverityCalculator:
@@ -169,23 +103,13 @@ class SeverityCalculator:
     @staticmethod
     def _assess_javascript(features: Dict[str, Any]) -> str:
         """Assess severity for JavaScript/TypeScript files."""
-        # React component changes
-        if features.get("react_components"):
-            # UI component changes are MINOR unless they affect state
-            if features.get("hooks"):
-                return "MINOR"
-            return "PATCH"
-
-        # Hook changes indicate state management
-        if features.get("hooks"):
-            return "MINOR"
-
-        # Export changes can be significant
-        if features.get("exports"):
+        # Function changes indicate logic modifications
+        functions = features.get("functions", [])
+        if len(functions) > 2:
             return "MINOR"
 
         # Default styling/text changes
-        return "PATCH"
+        return "PATCH" if not functions else "MINOR"
 
     @staticmethod
     def _assess_python(features: Dict[str, Any]) -> str:
@@ -225,12 +149,6 @@ class SeverityCalculator:
 
         if features.get("api_endpoints") or features.get("api_routes"):
             reasons.append("API endpoint modifications")
-
-        if features.get("react_components"):
-            reasons.append(f"React components: {', '.join(features['react_components'][:3])}")
-
-        if features.get("hooks"):
-            reasons.append(f"React hooks: {', '.join(features['hooks'][:3])}")
 
         if features.get("methods"):
             reasons.append(f"Methods: {len(features['methods'])} modified")
