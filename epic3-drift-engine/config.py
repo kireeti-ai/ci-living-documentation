@@ -3,6 +3,7 @@ Configuration management for Epic-3 Drift Engine.
 Reads credentials and settings from environment variables.
 """
 import os
+from pydantic import Field, AliasChoices
 from pydantic_settings import BaseSettings
 
 
@@ -12,7 +13,7 @@ class Settings(BaseSettings):
     # R2 / S3-compatible storage credentials
     r2_access_key_id: str = os.getenv("R2_ACCESS_KEY_ID", "")
     r2_secret_access_key: str = os.getenv("R2_SECRET_ACCESS_KEY", "")
-    r2_endpoint_url: str = os.getenv("R2_ENDPOINT_URL", "")
+    r2_endpoint_url: str = Field("", validation_alias=AliasChoices("R2_ENDPOINT_URL", "R2_ENDPOINT"))
     r2_bucket_name: str = os.getenv("R2_BUCKET_NAME", "")
 
     # Application settings
