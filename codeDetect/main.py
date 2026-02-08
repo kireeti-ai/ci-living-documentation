@@ -3,12 +3,13 @@ import json
 import os
 import datetime
 from src.git_manager import GitManager
-from src.file_filter import FileFilter
+from src.file_filter import FileFilter, ConfigLoader
 from src.scorers import SeverityCalculator
 from src.syntax_checker import SyntaxChecker
 from src.parsers.java_parser import JavaParser
 from src.parsers.ts_parser import TSParser
 from src.parsers.schema_detector import SchemaDetector
+from src.parsers.python_parser import PythonParser
 
 def _ask_new_user_interactive() -> bool:
     """Ask on TTY if the user is new to the tool.
@@ -42,6 +43,56 @@ def _is_new_user_flag(argv: list[str]) -> bool:
     # Check env
     env_val = os.environ.get("CODE_DETECT_NEW_USER", "").strip().lower()
     return env_val in truthy
+
+
+def _validate_report_schema(report: dict) -> tuple[bool, str]:
+    """Validate report structure before writing to disk."""
+    if not isinstance(report, dict):
+        return False, "Report must be an object"
+
+    required_top = {"meta", "context", "analysis_summary", "changes"}
+    if not required_top.issubset(report.keys()):
+        return False, "Report missing required top-level keys"
+
+    if not isinstance(report.get("meta"), dict):
+        return False, "meta must be an object"
+    if not isinstance(report.get("context"), dict):
+        return False, "context must be an object"
+    if not isinstance(report.get("analysis_summary"), dict):
+        return False, "analysis_summary must be an object"
+    if not isinstance(report.get("changes"), list):
+        return False, "changes must be an array"
+
+    summary = report["analysis_summary"]
+    summary_keys = {"total_files", "highest_severity", "breaking_changes_detected"}
+    if not summary_keys.issubset(summary.keys()):
+        return False, "analysis_summary missing required keys"
+
+    if not isinstance(summary["total_files"], int):
+        return False, "analysis_summary.total_files must be an integer"
+    if summary["highest_severity"] not in {"PATCH", "MINOR", "MAJOR"}:
+        return False, "analysis_summary.highest_severity must be PATCH|MINOR|MAJOR"
+    if not isinstance(summary["breaking_changes_detected"], bool):
+        return False, "analysis_summary.breaking_changes_detected must be a boolean"
+
+    required_change_keys = {
+        "file", "change_type", "language", "severity", "is_binary", "syntax_error", "features"
+    }
+    for item in report["changes"]:
+        if not isinstance(item, dict):
+            return False, "Each changes entry must be an object"
+        if not required_change_keys.issubset(item.keys()):
+            return False, "A changes entry is missing required keys"
+        if item["severity"] not in {"PATCH", "MINOR", "MAJOR"}:
+            return False, "Change severity must be PATCH|MINOR|MAJOR"
+        if not isinstance(item["is_binary"], bool):
+            return False, "Change is_binary must be a boolean"
+        if not isinstance(item["syntax_error"], bool):
+            return False, "Change syntax_error must be a boolean"
+        if not isinstance(item["features"], dict):
+            return False, "Change features must be an object"
+
+    return True, ""
 
 
 def main():
@@ -81,16 +132,20 @@ def main():
         # Use context manager to ensure cleanup
         with GitManager(repo_path, github_token, branch) as git_mgr:
             report["context"] = git_mgr.get_metadata()
+            config_path = os.path.join(git_mgr.repo_path, "config.yaml")
+            config = ConfigLoader.load(config_path)
+            additional_ignores = config.get("ignore_patterns", [])
 
             # New users: analyze the full repository once for baseline.
             changes_list = git_mgr.list_all_files() if new_user else git_mgr.get_changed_files()
-            report["analysis_summary"]["total_files"] = len(changes_list)
 
             severity_rank = {"PATCH": 1, "MINOR": 2, "MAJOR": 3}
             max_severity = 0
 
             for change in changes_list:
                 file_path = change["path"]
+                if FileFilter.should_exclude_from_analysis(file_path, additional_ignores):
+                    continue
 
                 record = {
                     "file": file_path,
@@ -103,7 +158,7 @@ def main():
                 }
 
                 # A. Binary/Safety Check
-                if not FileFilter.is_safe_to_read(file_path):
+                if FileFilter.is_known_binary_extension(file_path):
                     record["is_binary"] = True
                     record["note"] = "Skipped binary file analysis"
                     report["changes"].append(record)
@@ -111,6 +166,11 @@ def main():
 
                 # B. Read Content
                 content = git_mgr.get_file_content(file_path)
+                if content is None:
+                    record["is_binary"] = True
+                    record["note"] = "Skipped binary file analysis"
+                    report["changes"].append(record)
+                    continue
                 ext = os.path.splitext(file_path)[1].lower()
 
                 # C. Syntax Check
@@ -131,8 +191,7 @@ def main():
 
                 elif ext == '.py':
                     record["language"] = "python"
-                    import re
-                    features["functions"] = re.findall(r'def\s+(\w+)', content)
+                    features = PythonParser.analyze(content)
 
                 # Merge notes if syntax error existed
                 if record["syntax_error"]:
@@ -155,6 +214,12 @@ def main():
                     report["analysis_summary"]["breaking_changes_detected"] = True
 
                 report["changes"].append(record)
+
+            report["analysis_summary"]["total_files"] = len(report["changes"])
+
+            valid, validation_error = _validate_report_schema(report)
+            if not valid:
+                raise ValueError(f"Report validation failed: {validation_error}")
 
             # Save to file
             output_path = os.path.join(os.path.dirname(__file__), 'impact_report.json')

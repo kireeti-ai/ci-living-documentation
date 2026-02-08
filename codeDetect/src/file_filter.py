@@ -105,6 +105,40 @@ class FileFilter:
     }
 
     @staticmethod
+    def _matches_ignore_patterns(file_path: str, additional_ignores: Optional[List[str]] = None) -> bool:
+        """Check ignore patterns from config and default ignored dirs/files."""
+        filename = os.path.basename(file_path)
+        parts = file_path.replace('\\', '/').split('/')
+
+        if filename in FileFilter.IGNORED_FILES:
+            return True
+
+        if any(part in FileFilter.IGNORED_DIRS for part in parts):
+            return True
+
+        if additional_ignores:
+            for pattern in additional_ignores:
+                if fnmatch.fnmatch(file_path, pattern):
+                    return True
+                if fnmatch.fnmatch(filename, pattern):
+                    return True
+                if pattern.endswith('/') and any(part == pattern.rstrip('/') for part in parts):
+                    return True
+
+        return False
+
+    @staticmethod
+    def should_exclude_from_analysis(file_path: str, additional_ignores: Optional[List[str]] = None) -> bool:
+        """Return True when file should be fully excluded from analysis."""
+        return FileFilter._matches_ignore_patterns(file_path, additional_ignores)
+
+    @staticmethod
+    def is_known_binary_extension(file_path: str) -> bool:
+        """Return True when file extension is known binary/non-source."""
+        ext = os.path.splitext(file_path)[1].lower()
+        return ext in FileFilter.IGNORED_EXTENSIONS
+
+    @staticmethod
     def is_safe_to_read(file_path: str, additional_ignores: Optional[List[str]] = None) -> bool:
         """
         Check if file is safe to read and should be analyzed.
@@ -116,32 +150,13 @@ class FileFilter:
         Returns:
             True if file should be analyzed, False otherwise
         """
-        filename = os.path.basename(file_path)
-
-        # Check ignored files
-        if filename in FileFilter.IGNORED_FILES:
+        if FileFilter._matches_ignore_patterns(file_path, additional_ignores):
             return False
 
         # Check extension
         ext = os.path.splitext(file_path)[1].lower()
         if ext in FileFilter.IGNORED_EXTENSIONS:
             return False
-
-        # Check ignored directories
-        parts = file_path.replace('\\', '/').split('/')
-        if any(part in FileFilter.IGNORED_DIRS for part in parts):
-            return False
-
-        # Check additional ignore patterns from config
-        if additional_ignores:
-            for pattern in additional_ignores:
-                if fnmatch.fnmatch(file_path, pattern):
-                    return False
-                if fnmatch.fnmatch(filename, pattern):
-                    return False
-                # Handle directory patterns
-                if pattern.endswith('/') and any(part == pattern.rstrip('/') for part in parts):
-                    return False
 
         # Allow known data files
         if ext in FileFilter.ALLOWED_DATA_EXTS:

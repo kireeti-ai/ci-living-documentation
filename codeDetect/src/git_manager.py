@@ -235,7 +235,7 @@ class GitManager:
             })
         return files
 
-    def get_file_content(self, file_path: str, ref: str = "HEAD") -> str:
+    def get_file_content(self, file_path: str, ref: str = "HEAD") -> Optional[str]:
         """
         Safely retrieve file content from a specific git reference.
 
@@ -244,7 +244,7 @@ class GitManager:
             ref: Git reference (default: HEAD)
 
         Returns:
-            File content as string, or empty string on error
+            File content as string, empty string if missing, or None for binary/decode issues
         """
         try:
             return self.repo.git.show(f"{ref}:{file_path}")
@@ -252,8 +252,8 @@ class GitManager:
             # File might not exist at this ref
             return ""
         except UnicodeDecodeError:
-            # Binary file - return empty
-            return ""
+            # Binary file content that cannot be decoded safely
+            return None
         except Exception:
             return ""
 
