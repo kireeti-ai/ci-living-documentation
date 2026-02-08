@@ -1,9 +1,17 @@
 import json
-import os
+from pathlib import Path
 
-def load_impact_report():
-    base_dir = os.path.dirname(os.path.dirname(__file__))
-    path = os.path.join(base_dir, "input", "impact_report.json")
+REQUIRED_FIELDS = ["report", "meta", "status"]
 
-    with open(path, "r") as f:
-        return json.load(f)
+def load_impact_report(path: str):
+    path = Path(path)
+    if not path.exists():
+        raise FileNotFoundError(f"impact_report.json not found at {path}")
+
+    data = json.loads(path.read_text())
+
+    for field in REQUIRED_FIELDS:
+        if field not in data:
+            raise ValueError(f"Missing required field: {field}")
+
+    return data
