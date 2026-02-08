@@ -13,6 +13,7 @@ class Config:
     ARTIFACTS_DIR: str = os.getenv("ARTIFACTS_DIR", "artifacts")
     IMPACT_REPORT_PATH: str = os.path.join(ARTIFACTS_DIR, "impact_report.json")
     DRIFT_REPORT_PATH: str = os.path.join(ARTIFACTS_DIR, "drift_report.json")
+    DOC_SNAPSHOT_PATH: str = os.path.join(ARTIFACTS_DIR, "doc_snapshot.json")
     DOCS_DIR: str = os.path.join(ARTIFACTS_DIR, "docs")
     DOCS_BUCKET_PATH: str = os.getenv("DOCS_BUCKET_PATH", "")  # Cloud storage path for Epic-2 docs
     SUMMARIES_DIR: str = os.path.join(ARTIFACTS_DIR, "summaries")

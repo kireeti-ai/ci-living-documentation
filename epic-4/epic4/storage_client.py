@@ -206,3 +206,85 @@ class StorageClient:
         except Exception as e:
             logger.error(f"Failed to download from cloud storage: {e}")
             return False
+
+    @retry_with_backoff
+    def upload_to_r2(self, local_path: str, bucket_name: str, key: str) -> bool:
+        """Upload a file to Cloudflare R2 bucket."""
+        if not self.r2_available:
+            raise RuntimeError("R2 client not available")
+
+        self.r2_client.upload_file(local_path, bucket_name, key)
+        logger.info(f"Uploaded {local_path} to r2://{bucket_name}/{key}")
+        return True
+
+    @retry_with_backoff
+    def upload_to_s3(self, local_path: str, bucket_name: str, key: str) -> bool:
+        """Upload a file to AWS S3 bucket."""
+        if not self.s3_available:
+            raise RuntimeError("S3 client not available")
+
+        self.s3_client.upload_file(local_path, bucket_name, key)
+        logger.info(f"Uploaded {local_path} to s3://{bucket_name}/{key}")
+        return True
+
+    @retry_with_backoff
+    def upload_to_gcs(self, local_path: str, bucket_name: str, key: str) -> bool:
+        """Upload a file to Google Cloud Storage bucket."""
+        if not self.gcs_available:
+            raise RuntimeError("GCS client not available")
+
+        from google.cloud import storage
+        bucket = self.gcs_client.bucket(bucket_name)
+        blob = bucket.blob(key)
+        blob.upload_from_filename(local_path)
+        logger.info(f"Uploaded {local_path} to gs://{bucket_name}/{key}")
+        return True
+
+    def upload_file(self, local_path: str, bucket_path_prefix: str) -> bool:
+        """
+        Upload a file to cloud storage.
+
+        Args:
+            local_path: Path to the local file to upload.
+            bucket_path_prefix: Cloud storage URI prefix where the file should be uploaded.
+                                Depending on strategy, this could be the full path or just a directory prefix.
+                                Here we treat it as a directory prefix if it ends with /, otherwise as full path?
+                                Usually for CI artifacts we want to upload with specific names.
+                                Let's assume bucket_path_prefix is the DIRECTORY where we put the file.
+                                e.g. s3://my-bucket/ci-runs/123/
+        """
+        if not bucket_path_prefix:
+            logger.error("No bucket path provided for upload")
+            return False
+
+        if not os.path.exists(local_path):
+            logger.error(f"File to upload not found: {local_path}")
+            return False
+
+        try:
+            parsed = urlparse(bucket_path_prefix)
+            scheme = parsed.scheme
+            bucket_name = parsed.netloc
+            prefix = parsed.path.lstrip('/') # This is the directory path in the bucket
+
+            filename = os.path.basename(local_path)
+            # If prefix is empty, key is just filename. If prefix present, join.
+            # Avoid double slashes.
+            if prefix and not prefix.endswith('/'):
+                 prefix += '/'
+            
+            key = f"{prefix}{filename}"
+
+            if scheme == 'gs':
+                return self.upload_to_gcs(local_path, bucket_name, key)
+            elif scheme == 's3':
+                return self.upload_to_s3(local_path, bucket_name, key)
+            elif scheme == 'r2':
+                return self.upload_to_r2(local_path, bucket_name, key)
+            else:
+                logger.error(f"Unsupported storage scheme: {scheme}")
+                return False
+
+        except Exception as e:
+            logger.error(f"Failed to upload to cloud storage: {e}")
+            return False

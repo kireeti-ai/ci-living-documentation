@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Tuple
 from epic4.config import config
 from epic4.utils import logger
 
@@ -22,7 +22,7 @@ class SummaryGenerator:
             logger.error(f"Failed to decode JSON from {path}: {e}")
             return {}
 
-    def generate(self) -> str:
+    def generate(self) -> Tuple[str, str]:
         impact = self.load_json(self.impact_report_path)
         drift = self.load_json(self.drift_report_path)
 
@@ -33,16 +33,33 @@ class SummaryGenerator:
 
         summary_md = self._render_template(severity, changed_files, affected_symbols, drift_issues)
 
-        # Contract-mandated filename for Epic-5 dashboard integration
-        output_filename = "summary.md"
-        output_path = os.path.join(self.output_dir, output_filename)
+        summary_json = {
+            "commit_sha": self.commit_sha,
+            "severity": severity,
+            "changed_files": changed_files,
+            "affected_symbols": affected_symbols,
+            "drift_issues": drift_issues
+        }
+
+        # Contract-mandated filenames for Epic-5 dashboard integration
+        output_filename_md = "summary.md"
+        output_filename_json = "summary.json"
+        
+        output_path_md = os.path.join(self.output_dir, output_filename_md)
+        output_path_json = os.path.join(self.output_dir, output_filename_json)
 
         os.makedirs(self.output_dir, exist_ok=True)
-        with open(output_path, 'w') as f:
+        
+        # Save MD
+        with open(output_path_md, 'w') as f:
             f.write(summary_md)
+            
+        # Save JSON
+        with open(output_path_json, 'w') as f:
+            json.dump(summary_json, f, indent=2)
 
-        logger.info(f"Summary generated at {output_path}")
-        return output_path
+        logger.info(f"Summary generated at {output_path_md} and {output_path_json}")
+        return output_path_md, output_path_json
 
     def _render_template(self, severity: str, changed_files: List[str], affected_symbols: List[str], drift_issues: List[Dict]) -> str:
         # Deterministic sorting
