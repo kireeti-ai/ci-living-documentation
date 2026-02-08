@@ -10,10 +10,25 @@ import shutil
 from pathlib import Path
 from datetime import datetime
 from flask import Flask, request, jsonify
+from flasgger import Swagger
 import subprocess
 import sys
 
 app = Flask(__name__)
+swagger = Swagger(app, config={
+    "headers": [],
+    "specs": [
+        {
+            "endpoint": 'apispec_1',
+            "route": '/apispec_1.json',
+            "rule_filter": lambda rule: True,  # all in
+            "model_filter": lambda tag: True,  # all in
+        }
+    ],
+    "static_url_path": "/flasgger_static",
+    "swagger_ui": True,
+    "specs_route": "/docs/"
+})
 
 # Configuration
 REPORTS_DIR = Path('/tmp/code-detector-reports')
@@ -21,7 +36,26 @@ REPORTS_DIR.mkdir(exist_ok=True)
 
 @app.route('/health', methods=['GET'])
 def health_check():
-    """Health check endpoint"""
+    """
+    Health check endpoint
+    ---
+    tags:
+      - System
+    responses:
+      200:
+        description: API is healthy
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: healthy
+            service:
+              type: string
+              example: Code Change Detector API
+            timestamp:
+              type: string
+    """
     return jsonify({
         "status": "healthy",
         "service": "Code Change Detector API",
@@ -32,13 +66,47 @@ def health_check():
 def analyze():
     """
     Analyze a repository
-
-    Request Body:
-    {
-        "repo_url": "https://github.com/owner/repo",
-        "github_token": "optional_token",
-        "branch": "main"
-    }
+    ---
+    tags:
+      - Analysis
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - repo_url
+          properties:
+            repo_url:
+              type: string
+              description: URL of the git repository to analyze
+              example: https://github.com/owner/repo
+            github_token:
+              type: string
+              description: GitHub Personal Access Token (optional)
+            branch:
+              type: string
+              description: Branch to analyze
+              default: main
+    responses:
+      200:
+        description: Analysis successful
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: success
+            report:
+              type: object
+              description: Detailed analysis report
+      400:
+        description: Invalid input
+      500:
+        description: Internal server error
+      504:
+        description: Analysis timeout
     """
     try:
         # Validate request
@@ -108,11 +176,39 @@ def analyze():
 def analyze_local():
     """
     Analyze a local repository path
-
-    Request Body:
-    {
-        "repo_path": "/path/to/local/repo"
-    }
+    ---
+    tags:
+      - Analysis
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - repo_path
+          properties:
+            repo_path:
+              type: string
+              description: Local path to the repository
+              example: /path/to/local/repo
+    responses:
+      200:
+        description: Analysis successful
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: success
+            report:
+              type: object
+      400:
+        description: Invalid input
+      404:
+        description: Path not found
+      500:
+        description: Internal server error
     """
     try:
         data = request.json or {}
