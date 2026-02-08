@@ -1,0 +1,62 @@
+name: Epic-4 Automation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  automation:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install .
+
+      - name: Download Artifacts (Simulation)
+        # In a real pipeline, this would be uses: actions/download-artifact@v3
+        # Here we just ensure directories exist for the demo if not present
+        run: |
+          mkdir -p artifacts/docs artifacts/summaries
+          # We assume previous steps generated impact_report.json and drift_report.json
+          # For this example, we create dummy ones if missing
+          if [ ! -f artifacts/impact_report.json ]; then
+            echo '{"severity": "LOW", "changed_files": ["example.py"]}' > artifacts/impact_report.json
+          fi
+          if [ ! -f artifacts/drift_report.json ]; then
+            echo '{"issues": []}' > artifacts/drift_report.json
+          fi
+
+      - name: Run Epic-4 Automation
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+          TARGET_BRANCH: main
+          COMMIT_SHA: ${{ github.sha }}
+          CI_RUN_ID: ${{ github.run_id }}
+          # Cloudflare R2 Configuration (optional - set these in repo secrets)
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          DOCS_BUCKET_PATH: ${{ secrets.DOCS_BUCKET_PATH }}
+        run: |
+          python -m epic4.run \
+            --impact artifacts/impact_report.json \
+            --drift artifacts/drift_report.json \
+            --docs artifacts/docs \
+            --commit ${{ github.sha }}
