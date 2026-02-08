@@ -90,39 +90,45 @@ class GitManager:
         Returns:
             Dictionary containing repository context
         """
-        try:
-            head = self.repo.head.commit
+        metadata: Dict[str, Any] = {
+            "repository": os.path.basename(os.path.abspath(self.repo_path)),
+            "branch": "unknown",
+            "commit_sha": None,
+            "full_sha": None,
+            "author": None,
+            "author_email": None,
+            "intent": {
+                "message": None,
+                "timestamp": None
+            },
+            "stats": {
+                "total_commits": -1,
+                "is_first_commit": False
+            }
+        }
 
+        try:
             # Safely get branch name
             try:
-                branch_name = self.repo.active_branch.name
+                metadata["branch"] = self.repo.active_branch.name
             except TypeError:
-                branch_name = "detached"
+                metadata["branch"] = "detached"
 
-            return {
-                "repository": os.path.basename(os.path.abspath(self.repo_path)),
-                "branch": branch_name,
-                "commit_sha": head.hexsha[:8],
-                "full_sha": head.hexsha,
-                "author": head.author.name,
-                "author_email": head.author.email,
-                "intent": {
-                    "message": head.message.strip(),
-                    "timestamp": datetime.datetime.fromtimestamp(
-                        head.committed_date
-                    ).isoformat()
-                },
-                "stats": {
-                    "total_commits": self._get_commit_count(),
-                    "is_first_commit": len(head.parents) == 0
-                }
-            }
+            head = self.repo.head.commit
+            metadata["commit_sha"] = head.hexsha[:8]
+            metadata["full_sha"] = head.hexsha
+            metadata["author"] = head.author.name
+            metadata["author_email"] = head.author.email
+            metadata["intent"]["message"] = head.message.strip()
+            metadata["intent"]["timestamp"] = datetime.datetime.fromtimestamp(
+                head.committed_date
+            ).isoformat()
+            metadata["stats"]["total_commits"] = self._get_commit_count()
+            metadata["stats"]["is_first_commit"] = len(head.parents) == 0
         except Exception as e:
-            return {
-                "repository": os.path.basename(os.path.abspath(self.repo_path)),
-                "branch": "unknown",
-                "error": str(e)
-            }
+            metadata["error"] = str(e)
+
+        return metadata
 
     def _get_commit_count(self) -> int:
         """Get total number of commits in the repository."""
