@@ -1,3 +1,12 @@
-flask
-requests
-python-dotenv
+# EPIC-2 Backend Requirements
+# Python dependencies for documentation generation and backend API
+
+# Web Framework
+flask==3.0.0
+
+# HTTP Requests
+requests==2.31.0
+
+# For future enhancements
+# python-dotenv==1.0.0  # Environment variable management
+# pyyaml==6.0.1         # YAML parsing if needed

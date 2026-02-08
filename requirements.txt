@@ -1,2 +1,12 @@
-pyyaml
-requests
+# EPIC-2 Documentation Pipeline Requirements
+# Main project dependencies
+
+# HTTP client for calling EPIC-1 API
+requests==2.31.0
+
+# Optional: Add these if needed for enhanced functionality
+# PyYAML==6.0.1           # YAML configuration support
+# python-dotenv==1.0.0    # Environment variables from .env files
+# Jinja2==3.1.2          # Template engine for custom docs
+# Markdown==3.5.1        # Markdown processing utilities
+boto3

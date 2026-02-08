@@ -1,4 +1,52 @@
-
-graph TD
-Repo --> CI
-CI --> Docs
+graph TB
+    subgraph "Development"
+        Dev[Developer]
+        Code[Code Changes]
+    end
+    
+    subgraph "CI/CD Pipeline"
+        GH[GitHub Push/PR]
+        CI[GitHub Actions]
+        E1[EPIC-1 Analysis]
+    end
+    
+    subgraph "Documentation Generation"
+        E2[EPIC-2 Runner]
+        Gen[Documentation Generators]
+    end
+    
+    subgraph "Outputs"
+        README[README.md]
+        API[API Docs]
+        ADR[ADR]
+        Diagrams[Diagrams]
+        Snapshot[Snapshot JSON]
+    end
+    
+    subgraph "Storage"
+        Repo[Git Repository]
+        Artifacts[CI Artifacts]
+    end
+    
+    Dev -->|commits| Code
+    Code -->|push| GH
+    GH -->|triggers| CI
+    CI -->|calls| E1
+    E1 -->|impact report| E2
+    E2 -->|orchestrates| Gen
+    Gen -->|creates| README
+    Gen -->|creates| API
+    Gen -->|creates| ADR
+    Gen -->|creates| Diagrams
+    Gen -->|creates| Snapshot
+    README -->|commits| Repo
+    API -->|commits| Repo
+    ADR -->|commits| Repo
+    Diagrams -->|commits| Repo
+    Snapshot -->|commits| Repo
+    Gen -->|uploads| Artifacts
+    
+    style E1 fill:#e1f5ff
+    style E2 fill:#e1f5ff
+    style Gen fill:#fff4e1
+    style Repo fill:#e8f5e9

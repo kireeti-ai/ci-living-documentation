@@ -1,12 +1,66 @@
 {
-  "commit": "abc123",
-  "generated_at": "2026-02-07T10:18:50.662806",
-  "files_generated": [
-    "README.generated.md",
-    "api-reference.md",
-    "ADR-001.md",
-    "system.mmd",
-    "sequence.mmd",
-    "er.mmd"
-  ]
+  "metadata": {
+    "generated_at": "2026-02-08T17:46:27.485231Z",
+    "generator": "EPIC-2 Documentation Pipeline",
+    "version": "1.0.0"
+  },
+  "repository": {
+    "name": "unknown",
+    "branch": "main",
+    "commit_sha": "unknown",
+    "author": "unknown"
+  },
+  "analysis": {
+    "severity": "UNKNOWN",
+    "breaking_changes": false,
+    "files_changed": 0
+  },
+  "generated_files": [
+    {
+      "path": "README.generated.md",
+      "type": "markdown",
+      "description": "Auto-generated repository README"
+    },
+    {
+      "path": "api/api-reference.md",
+      "type": "markdown",
+      "description": "API endpoint documentation"
+    },
+    {
+      "path": "adr/ADR-001.md",
+      "type": "markdown",
+      "description": "Architecture Decision Record"
+    },
+    {
+      "path": "architecture/system.mmd",
+      "type": "mermaid",
+      "description": "System architecture diagram"
+    },
+    {
+      "path": "architecture/sequence.mmd",
+      "type": "mermaid",
+      "description": "Process sequence diagram"
+    },
+    {
+      "path": "architecture/er.mmd",
+      "type": "mermaid",
+      "description": "Entity-relationship diagram"
+    },
+    {
+      "path": "tree.txt",
+      "type": "text",
+      "description": "Hierarchical file tree"
+    },
+    {
+      "path": "doc_snapshot.json",
+      "type": "json",
+      "description": "Documentation generation metadata"
+    }
+  ],
+  "statistics": {
+    "total_files": 0,
+    "total_documents": 8,
+    "diagram_count": 3
+  },
+  "changed_files": []
 }

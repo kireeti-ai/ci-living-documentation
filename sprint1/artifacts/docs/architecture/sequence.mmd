@@ -1,4 +1,55 @@
-
 sequenceDiagram
-Developer->>CI: Push Code
-CI->>Docs: Generate
+    actor Developer
+    participant GitHub
+    participant CI as GitHub Actions
+    participant EPIC1 as EPIC-1 Backend
+    participant EPIC2 as EPIC-2 Runner
+    participant Generators
+    participant Repo as Repository
+    
+    Developer->>GitHub: Push code changes
+    GitHub->>CI: Trigger workflow
+    
+    Note over CI: Setup Python environment
+    
+    CI->>EPIC1: POST /analyze<br/>{repo_url, branch}
+    EPIC1-->>CI: Impact Report JSON
+    
+    Note over CI: Save to sprint1/input/
+    
+    CI->>EPIC2: python run_epic2.py
+    
+    EPIC2->>EPIC2: Load impact report
+    EPIC2->>Generators: generate_readme()
+    Generators-->>EPIC2: README.generated.md
+    
+    EPIC2->>Generators: generate_api_docs()
+    Generators-->>EPIC2: api-reference.md
+    
+    EPIC2->>Generators: generate_adr()
+    Generators-->>EPIC2: ADR-001.md
+    
+    EPIC2->>Generators: system_diagram()
+    Generators-->>EPIC2: system.mmd
+    
+    EPIC2->>Generators: sequence_diagram()
+    Generators-->>EPIC2: sequence.mmd
+    
+    EPIC2->>Generators: er_diagram()
+    Generators-->>EPIC2: er.mmd
+    
+    EPIC2->>Generators: generate_tree()
+    Generators-->>EPIC2: tree.txt
+    
+    EPIC2->>Generators: write_snapshot()
+    Generators-->>EPIC2: doc_snapshot.json
+    
+    Note over EPIC2: All docs generated
+    
+    CI->>Repo: git add sprint1/artifacts/docs
+    CI->>Repo: git commit -m "docs: auto-generate [skip ci]"
+    CI->>Repo: git push
+    
+    Note over Repo: Documentation updated
+    
+    CI-->>Developer: ✅ Workflow complete

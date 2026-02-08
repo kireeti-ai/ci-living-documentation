@@ -1,4 +1,3 @@
 # API Reference
 
-- `/login`
-- `/register`
+ℹ️ No API endpoints detected in the analyzed code changes.

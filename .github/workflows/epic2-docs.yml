@@ -1,108 +1,59 @@
 name: EPIC-2 Documentation Pipeline
 
 on:
+  workflow_dispatch:
   push:
-    branches:
-      - main
-      - develop
-    paths-ignore:
-      - 'artifacts/docs/**'
-
+    branches: [ main ]
   pull_request:
-    paths-ignore:
-      - 'artifacts/docs/**'
+    branches: [ main ]
 
 jobs:
   generate-docs:
     runs-on: ubuntu-latest
 
+    env:
+      # EPIC-1
+      TARGET_REPO_URL: ${{ secrets.TARGET_REPO_URL }}
+      TARGET_REPO_BRANCH: main
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # R2 Storage
+      R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+
     steps:
-    # -------------------------------
-    # 1️⃣ Checkout repository
-    # -------------------------------
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      # 1️⃣ Checkout EPIC-2 repo
+      - name: Checkout EPIC-2 repository
+        uses: actions/checkout@v4
 
-    # -------------------------------
-    # 2️⃣ Setup Python
-    # -------------------------------
-    - name: Setup Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.10"
+      # 2️⃣ Setup Python
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-    # -------------------------------
-    # 3️⃣ Install dependencies
-    # -------------------------------
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      # 3️⃣ Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r sprint1/requirements.txt
 
-    # -------------------------------
-    # 4️⃣ Generate Impact Report (EPIC-1)
-    # -------------------------------
-    - name: Generate Impact Report (EPIC-1)
-      run: |
-        mkdir -p sprint1/input
-        curl -X POST https://code-detect.onrender.com/analyze \
-          -H "Content-Type: application/json" \
-          -d "{
-                \"repo_url\": \"${{ github.server_url }}/${{ github.repository }}\",
-                \"branch\": \"${{ github.ref_name }}\"
-              }" \
-          -o sprint1/input/impact_report.json
+      # 4️⃣ Run EPIC-2 (auto-fetches EPIC-1 report)
+      - name: Run EPIC-2 Documentation Generator
+        run: |
+          python -m sprint1.src.run_epic2
 
-    # -------------------------------
-    # 5️⃣ Generate Documentation (EPIC-2)
-    # -------------------------------
-    - name: Generate Docs (EPIC-2)
-      run: python sprint1/src/run_epic2.py
+      # 5️⃣ Upload docs as GitHub artifact (debug + audit)
+      - name: Upload generated docs (GitHub artifacts)
+        uses: actions/upload-artifact@v4
+        with:
+          name: epic2-docs
+          path: sprint1/artifacts/docs
 
-    # -------------------------------
-    # 6️⃣ Upload Generated Docs
-    # -------------------------------
-    - name: Upload Documentation Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: epic2-docs
-        path: sprint1/artifacts/docs
-
-    # -------------------------------
-    # 7️⃣ Auto-Commit Generated Docs
-    # -------------------------------
-    - name: Auto-commit generated docs
-      if: github.event_name == 'push'
-      run: |
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-        git add sprint1/artifacts/docs
-
-        if git diff --cached --quiet; then
-          echo "No documentation changes to commit"
-        else
-          git commit -m "docs: auto-generate documentation [skip ci]"
-          git push
-        fi
-
-    # -------------------------------
-    # 📝 Post PR Comment Summary
-    # -------------------------------
-    - name: Post documentation summary to PR
-      if: github.event_name == 'pull_request'
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        python - <<EOF
-        import json
-        from sprint1.src.ci.pr_commenter import build_pr_comment
-
-        report = json.load(open("sprint1/input/impact_report.json"))
-        comment = build_pr_comment(report)
-
-        with open("comment.md", "w") as f:
-            f.write(comment)
-        EOF
-
-        gh pr comment ${{ github.event.pull_request.number }} --body-file comment.md
+      # 6️⃣ Summary
+      - name: Pipeline summary
+        run: |
+          echo "✅ EPIC-2 documentation generated successfully"
+          echo "📦 Uploaded to R2 bucket: $R2_BUCKET_NAME"
