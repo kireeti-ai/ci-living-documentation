@@ -44,6 +44,7 @@ echo "username=x-access-token"
 echo "password={self.token}"
 ''')
         self.credential_helper.flush()
+        self.credential_helper.close()  # Close file handle
         os.chmod(self.credential_helper.name, 0o700)
 
         # Configure git to use the credential helper
@@ -51,6 +52,18 @@ echo "password={self.token}"
             ["config", "--local", "credential.helper", f"!{self.credential_helper.name}"],
             check=False
         )
+        
+        # Register cleanup
+        import atexit
+        atexit.register(self.cleanup)
+
+    def cleanup(self):
+        """Remove temporary credential helper file."""
+        if hasattr(self, 'credential_helper') and os.path.exists(self.credential_helper.name):
+            try:
+                os.unlink(self.credential_helper.name)
+            except OSError:
+                pass
 
     def _run_git_command(self, args: List[str], check=True):
         # Sanitize command for logging (remove sensitive args)

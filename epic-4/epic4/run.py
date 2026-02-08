@@ -139,6 +139,8 @@ This is a degraded artifact. Please check the impact and drift reports manually.
         # If git ops fail, we might still want to upload what we have, but usually it's fatal.
         # However, for artifact preservation, we continue.
         pass
+    finally:
+        gh.cleanup()
 
     # 6. Generate PR Metadata
     pr_metadata_path = os.path.join(config.ARTIFACTS_DIR, "pr_metadata.json")

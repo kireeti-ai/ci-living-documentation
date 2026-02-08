@@ -23,6 +23,9 @@ class SummaryGenerator:
             return {}
 
     def generate(self) -> Tuple[str, str]:
+        if not os.path.exists(self.impact_report_path):
+            raise FileNotFoundError(f"Critical artifact missing: {self.impact_report_path}")
+
         impact = self.load_json(self.impact_report_path)
         drift = self.load_json(self.drift_report_path)
 
