@@ -34,6 +34,26 @@ swagger = Swagger(app, config={
 REPORTS_DIR = Path('/tmp/code-detector-reports')
 REPORTS_DIR.mkdir(exist_ok=True)
 
+
+def _parse_boolean_field(data: dict, field_name: str, default: bool = False):
+    """Return (ok, value, error_response). Enforces explicit boolean type in JSON."""
+    value = data.get(field_name, default)
+    if isinstance(value, bool):
+        return True, value, None
+    return False, None, (jsonify({
+        "error": f"{field_name} must be a boolean (true/false), not {type(value).__name__}"
+    }), 400)
+
+
+def _require_json_object():
+    """Validate request body is JSON object. Returns (ok, data, error_response)."""
+    if not request.is_json:
+        return False, None, (jsonify({"error": "Content-Type must be application/json"}), 400)
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return False, None, (jsonify({"error": "Request body must be a JSON object"}), 400)
+    return True, data, None
+
 @app.route('/health', methods=['GET'])
 def health_check():
     """
@@ -112,16 +132,30 @@ def analyze():
         description: Analysis timeout
     """
     try:
-        # Validate request
-        data = request.json or {}
+        ok, data, error = _require_json_object()
+        if not ok:
+            body, status_code = error
+            return body, status_code
+
         repo_url = data.get('repo_url')
 
-        if not repo_url:
+        if not isinstance(repo_url, str) or not repo_url.strip():
             return jsonify({"error": "repo_url is required"}), 400
 
+        repo_url = repo_url.strip()
         github_token = data.get('github_token', os.environ.get('GITHUB_TOKEN'))
+        if github_token is not None and not isinstance(github_token, str):
+            return jsonify({"error": "github_token must be a string"}), 400
+
         branch = data.get('branch', 'main')
-        new_user = bool(data.get('new_user', False))
+        if not isinstance(branch, str) or not branch.strip():
+            return jsonify({"error": "branch must be a non-empty string"}), 400
+        branch = branch.strip()
+
+        ok, new_user, error = _parse_boolean_field(data, 'new_user', default=False)
+        if not ok:
+            body, status_code = error
+            return body, status_code
 
         # Build command
         cmd = ['python', 'main.py', repo_url]
@@ -220,15 +254,25 @@ def analyze_local():
         description: Internal server error
     """
     try:
-        data = request.json or {}
-        repo_path = data.get('repo_path')
-        new_user = bool(data.get('new_user', False))
+        ok, data, error = _require_json_object()
+        if not ok:
+            body, status_code = error
+            return body, status_code
 
-        if not repo_path:
+        repo_path = data.get('repo_path')
+        ok, new_user, error = _parse_boolean_field(data, 'new_user', default=False)
+        if not ok:
+            body, status_code = error
+            return body, status_code
+
+        if not isinstance(repo_path, str) or not repo_path.strip():
             return jsonify({"error": "repo_path is required"}), 400
+        repo_path = repo_path.strip()
 
         if not os.path.exists(repo_path):
             return jsonify({"error": "Repository path does not exist"}), 404
+        if not os.path.isdir(repo_path):
+            return jsonify({"error": "repo_path must be a directory"}), 400
 
         # Build command
         cmd = ['python', 'main.py', repo_path]

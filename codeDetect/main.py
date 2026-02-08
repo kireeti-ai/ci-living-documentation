@@ -33,7 +33,7 @@ def _is_new_user_flag(argv: list[str]) -> bool:
     """
     truthy = {"1", "true", "yes", "y"}
     # Check CLI
-    for i, a in enumerate(argv):
+    for a in argv:
         if a == "--new-user":
             return True
         if a.startswith("--new-user="):
@@ -45,12 +45,17 @@ def _is_new_user_flag(argv: list[str]) -> bool:
 
 
 def main():
+    usage_error = {"error": "Usage: python main.py <repo_path_or_url> [github_token] [branch] [--new-user]"}
+
     if len(sys.argv) < 2:
-        print(json.dumps({"error": "Usage: python main.py <repo_path_or_url> [github_token] [branch]"}))
+        print(json.dumps(usage_error))
         sys.exit(1)
 
     # Extract positional args (ignore known flags we handle separately)
     args = [a for a in sys.argv[1:] if not a.startswith("--new-user")]
+    if not args:
+        print(json.dumps(usage_error))
+        sys.exit(1)
 
     repo_path = args[0]
     github_token = args[1] if len(args) > 1 else os.environ.get('GITHUB_TOKEN')
