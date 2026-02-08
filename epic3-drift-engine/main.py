@@ -7,6 +7,8 @@ import os
 import sys
 from typing import Dict, Any, Optional
 from contextlib import asynccontextmanager
+import httpx
+import json
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, BackgroundTasks, status
 from fastapi.responses import JSONResponse, FileResponse
@@ -29,13 +31,21 @@ logger = logging.getLogger(__name__)
 # Request/Response Models
 class DriftAnalysisRequest(BaseModel):
     """Request model for triggering drift analysis."""
-    impact_report_path: str = Field(
-        default="inputs/impact_report.json",
-        description="Path to impact_report.json from Epic-1"
+    impact_report_url: Optional[str] = Field(
+        default=None,
+        description="URL to fetch impact_report.json from Epic-1 code-detect server"
     )
-    doc_snapshot_path: str = Field(
+    doc_snapshot_url: Optional[str] = Field(
+        default=None,
+        description="URL to fetch doc_snapshot.json from Epic-2 server"
+    )
+    impact_report_path: Optional[str] = Field(
+        default="inputs/impact_report.json",
+        description="Local path to impact_report.json (used if URL not provided)"
+    )
+    doc_snapshot_path: Optional[str] = Field(
         default="inputs/doc_snapshot.json",
-        description="Path to doc_snapshot.json from Epic-2"
+        description="Local path to doc_snapshot.json (used if URL not provided)"
     )
     output_report_path: str = Field(
         default="outputs/drift_report.json",
@@ -126,32 +136,65 @@ async def analyze_drift(request: DriftAnalysisRequest):
     """
     Trigger drift analysis.
 
-    Reads impact_report.json and doc_snapshot.json, retrieves documentation
+    Fetches or reads impact_report.json and doc_snapshot.json, retrieves documentation
     from R2 storage, performs drift detection, and generates drift_report.json.
     """
     try:
         logger.info(f"Received drift analysis request")
-        logger.info(f"Impact report: {request.impact_report_path}")
-        logger.info(f"Doc snapshot: {request.doc_snapshot_path}")
+
+        # Ensure inputs directory exists
+        os.makedirs("inputs", exist_ok=True)
+
+        # Handle impact_report - fetch from URL or use local file
+        if request.impact_report_url:
+            logger.info(f"Fetching impact report from: {request.impact_report_url}")
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.get(request.impact_report_url)
+                response.raise_for_status()
+                impact_data = response.json()
+
+            # Save to local file
+            impact_report_path = "inputs/impact_report.json"
+            with open(impact_report_path, 'w') as f:
+                json.dump(impact_data, f, indent=2)
+            logger.info(f"Saved impact report to {impact_report_path}")
+        else:
+            impact_report_path = request.impact_report_path
+            if not os.path.exists(impact_report_path):
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Impact report not found: {impact_report_path}"
+                )
+
+        # Handle doc_snapshot - fetch from URL or use local file
+        if request.doc_snapshot_url:
+            logger.info(f"Fetching doc snapshot from: {request.doc_snapshot_url}")
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.get(request.doc_snapshot_url)
+                response.raise_for_status()
+                doc_data = response.json()
+
+            # Save to local file
+            doc_snapshot_path = "inputs/doc_snapshot.json"
+            with open(doc_snapshot_path, 'w') as f:
+                json.dump(doc_data, f, indent=2)
+            logger.info(f"Saved doc snapshot to {doc_snapshot_path}")
+        else:
+            doc_snapshot_path = request.doc_snapshot_path
+            if request.use_r2_storage and not os.path.exists(doc_snapshot_path):
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Doc snapshot not found: {doc_snapshot_path}"
+                )
+
+        logger.info(f"Impact report: {impact_report_path}")
+        logger.info(f"Doc snapshot: {doc_snapshot_path}")
         logger.info(f"Use R2 storage: {request.use_r2_storage}")
-
-        # Validate input files exist
-        if not os.path.exists(request.impact_report_path):
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Impact report not found: {request.impact_report_path}"
-            )
-
-        if request.use_r2_storage and not os.path.exists(request.doc_snapshot_path):
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Doc snapshot not found: {request.doc_snapshot_path}"
-            )
 
         # Run drift analysis
         drift_report = run_drift_analysis(
-            impact_report_path=request.impact_report_path,
-            doc_snapshot_path=request.doc_snapshot_path,
+            impact_report_path=impact_report_path,
+            doc_snapshot_path=doc_snapshot_path,
             output_report_path=request.output_report_path,
             use_r2_storage=request.use_r2_storage
         )
