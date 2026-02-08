@@ -10,14 +10,53 @@ from src.parsers.java_parser import JavaParser
 from src.parsers.ts_parser import TSParser
 from src.parsers.schema_detector import SchemaDetector
 
+def _ask_new_user_interactive() -> bool:
+    """Ask on TTY if the user is new to the tool.
+
+    Returns True when the user confirms they are new. Defaults to False
+    when stdin is not a TTY or on empty input.
+    """
+    try:
+        if sys.stdin.isatty():
+            answer = input("Are you new to this tool? [y/N]: ").strip().lower()
+            return answer in ("y", "yes")
+    except Exception:
+        pass
+    return False
+
+
+def _is_new_user_flag(argv: list[str]) -> bool:
+    """Detect `--new-user` flag in argv or env var CODE_DETECT_NEW_USER.
+
+    Accepts values like: --new-user, --new-user=true, --new-user=yes.
+    Env var: CODE_DETECT_NEW_USER=1|true|yes
+    """
+    truthy = {"1", "true", "yes", "y"}
+    # Check CLI
+    for i, a in enumerate(argv):
+        if a == "--new-user":
+            return True
+        if a.startswith("--new-user="):
+            val = a.split("=", 1)[1].strip().lower()
+            return val in truthy
+    # Check env
+    env_val = os.environ.get("CODE_DETECT_NEW_USER", "").strip().lower()
+    return env_val in truthy
+
+
 def main():
     if len(sys.argv) < 2:
         print(json.dumps({"error": "Usage: python main.py <repo_path_or_url> [github_token] [branch]"}))
         sys.exit(1)
 
-    repo_path = sys.argv[1]
-    github_token = sys.argv[2] if len(sys.argv) > 2 else os.environ.get('GITHUB_TOKEN')
-    branch = sys.argv[3] if len(sys.argv) > 3 else "main"
+    # Extract positional args (ignore known flags we handle separately)
+    args = [a for a in sys.argv[1:] if not a.startswith("--new-user")]
+
+    repo_path = args[0]
+    github_token = args[1] if len(args) > 1 else os.environ.get('GITHUB_TOKEN')
+    branch = args[2] if len(args) > 2 else "main"
+
+    new_user = _is_new_user_flag(sys.argv[1:]) or _ask_new_user_interactive()
 
     report = {
         "meta": {
@@ -38,7 +77,8 @@ def main():
         with GitManager(repo_path, github_token, branch) as git_mgr:
             report["context"] = git_mgr.get_metadata()
 
-            changes_list = git_mgr.get_changed_files()
+            # New users: analyze the full repository once for baseline.
+            changes_list = git_mgr.list_all_files() if new_user else git_mgr.get_changed_files()
             report["analysis_summary"]["total_files"] = len(changes_list)
 
             severity_rank = {"PATCH": 1, "MINOR": 2, "MAJOR": 3}

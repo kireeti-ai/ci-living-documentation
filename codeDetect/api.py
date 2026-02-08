@@ -89,6 +89,9 @@ def analyze():
               type: string
               description: Branch to analyze
               default: main
+            new_user:
+              type: boolean
+              description: If true, perform a full-repo baseline scan
     responses:
       200:
         description: Analysis successful
@@ -118,12 +121,15 @@ def analyze():
 
         github_token = data.get('github_token', os.environ.get('GITHUB_TOKEN'))
         branch = data.get('branch', 'main')
+        new_user = bool(data.get('new_user', False))
 
         # Build command
         cmd = ['python', 'main.py', repo_url]
         if github_token:
             cmd.append(github_token)
         cmd.append(branch)
+        if new_user:
+            cmd.append('--new-user')
 
         # Run analysis with timeout
         result = subprocess.run(
@@ -192,6 +198,9 @@ def analyze_local():
               type: string
               description: Local path to the repository
               example: /path/to/local/repo
+            new_user:
+              type: boolean
+              description: If true, perform a full-repo baseline scan
     responses:
       200:
         description: Analysis successful
@@ -213,6 +222,7 @@ def analyze_local():
     try:
         data = request.json or {}
         repo_path = data.get('repo_path')
+        new_user = bool(data.get('new_user', False))
 
         if not repo_path:
             return jsonify({"error": "repo_path is required"}), 400
@@ -222,6 +232,8 @@ def analyze_local():
 
         # Build command
         cmd = ['python', 'main.py', repo_path]
+        if new_user:
+            cmd.append('--new-user')
 
         # Run analysis
         result = subprocess.run(

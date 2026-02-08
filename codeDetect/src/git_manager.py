@@ -208,6 +208,33 @@ class GitManager:
 
         return changes
 
+    def list_all_files(self) -> List[Dict[str, str]]:
+        """List all tracked files at HEAD as ADDED entries.
+
+        Useful for first-run bootstrap where we want to analyze the
+        entire repository rather than only diffs.
+
+        Returns:
+            List of dictionaries with 'path' and 'change_type' keys
+        """
+        files: List[Dict[str, str]] = []
+        try:
+            head_commit = self.repo.head.commit
+            for item in head_commit.tree.traverse():
+                if item.type == 'blob':
+                    files.append({
+                        "path": item.path,
+                        "change_type": "ADDED",
+                        "is_bootstrap": True
+                    })
+        except Exception as e:
+            files.append({
+                "path": "ERROR",
+                "change_type": "ERROR",
+                "error": str(e)
+            })
+        return files
+
     def get_file_content(self, file_path: str, ref: str = "HEAD") -> str:
         """
         Safely retrieve file content from a specific git reference.
