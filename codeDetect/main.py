@@ -196,6 +196,305 @@ def _calc_complexity_score(total_files: int,
         score += 0.1
     return round(min(1.0, score), 3)
 
+def _extract_markdown_sections(content: str) -> dict[str, list[str]]:
+    sections: dict[str, list[str]] = {}
+    current: Optional[str] = None
+    for line in content.splitlines():
+        heading = re.match(r'^\s{0,3}(#{1,6})\s+(.+)$', line)
+        if heading:
+            title = heading.group(2).strip().lower()
+            current = title
+            sections.setdefault(current, [])
+            continue
+        if current is not None:
+            sections[current].append(line.rstrip())
+    return sections
+
+
+def _normalize_section_items(lines: list[str]) -> list[str]:
+    items: list[str] = []
+    for line in lines:
+        raw = line.strip()
+        if not raw:
+            continue
+        bullet = re.match(r'^[-*+]\s+(.*)$', raw)
+        ordered = re.match(r'^\d+\.\s+(.*)$', raw)
+        if bullet:
+            items.append(bullet.group(1).strip())
+        elif ordered:
+            items.append(ordered.group(1).strip())
+        else:
+            items.append(raw)
+    return _dedupe_order(items)
+
+
+def _first_paragraph(lines: list[str]) -> Optional[str]:
+    buffer: list[str] = []
+    for line in lines:
+        raw = line.strip()
+        if not raw:
+            if buffer:
+                break
+            continue
+        buffer.append(raw)
+    if buffer:
+        return " ".join(buffer).strip()
+    return None
+
+
+def _detect_license_from_text(content: str) -> Optional[str]:
+    candidates = [
+        "MIT License", "Apache License", "GNU General Public License",
+        "Mozilla Public License", "BSD License", "ISC License"
+    ]
+    for name in candidates:
+        if name.lower() in content.lower():
+            return name
+    return None
+
+
+def _collect_documentation_context(git_mgr, additional_ignores: list[str], env_vars: list[str]) -> dict:
+    context: dict[str, object] = {}
+    files = git_mgr.list_all_files()
+    doc_files: list[str] = []
+    license_files: list[str] = []
+    for file_path in files:
+        lower = file_path.lower()
+        if FileFilter.should_exclude_from_analysis(file_path, additional_ignores):
+            continue
+        if os.path.basename(lower).startswith("readme") and lower.endswith((".md", ".rst", ".txt", ".adoc")):
+            doc_files.append(file_path)
+        elif "/docs/" in lower and lower.endswith((".md", ".rst", ".txt", ".adoc")):
+            doc_files.append(file_path)
+        elif os.path.basename(lower) in {"project_status.md", "documentation.md"}:
+            doc_files.append(file_path)
+        if os.path.basename(lower).startswith("license"):
+            license_files.append(file_path)
+
+    sections_map = {
+        "project_overview": ["overview", "about", "description"],
+        "installation": ["installation", "install", "setup", "getting started"],
+        "usage": ["usage", "quickstart", "quick start", "run"],
+        "features": ["features"],
+        "tech_stack": ["tech stack", "technology", "built with", "stack"],
+        "configuration": ["configuration", "config"],
+        "troubleshooting": ["troubleshooting", "faq"],
+        "contributing": ["contributing", "contribution", "contribute"],
+        "license": ["license"]
+    }
+
+    aggregated: dict[str, list[str]] = {k: [] for k in sections_map.keys()}
+    overview_paragraph: Optional[str] = None
+    license_value: Optional[str] = None
+
+    for file_path in doc_files:
+        content = git_mgr.get_file_content(file_path)
+        if not content:
+            continue
+        sections = _extract_markdown_sections(content)
+        if overview_paragraph is None:
+            # Use the first paragraph before any heading as fallback overview.
+            pre_heading_lines = []
+            for line in content.splitlines():
+                if re.match(r'^\s{0,3}#{1,6}\s+', line):
+                    break
+                pre_heading_lines.append(line)
+            overview_paragraph = _first_paragraph(pre_heading_lines)
+
+        for key, aliases in sections_map.items():
+            for title, lines in sections.items():
+                if any(alias in title for alias in aliases):
+                    items = _normalize_section_items(lines)
+                    aggregated[key].extend(items)
+                    if key == "license":
+                        if license_value is None:
+                            license_value = _first_paragraph(lines)
+                    if key == "project_overview" and overview_paragraph is None:
+                        overview_paragraph = _first_paragraph(lines)
+
+    if license_value is None:
+        for file_path in license_files:
+            content = git_mgr.get_file_content(file_path) or ""
+            detected = _detect_license_from_text(content)
+            if detected:
+                license_value = detected
+                break
+
+    if overview_paragraph:
+        context["project_overview"] = overview_paragraph
+    for key in ["installation", "usage", "features", "tech_stack", "configuration",
+                "troubleshooting", "contributing"]:
+        values = _dedupe_order([v for v in aggregated.get(key, []) if v])
+        if values:
+            context[key] = values
+    if env_vars:
+        context.setdefault("configuration", _dedupe_order(env_vars))
+    if license_value:
+        context["license"] = license_value
+    return context
+
+
+def _extract_route_params(path: str) -> list[str]:
+    params = []
+    for token in re.findall(r'<([^>]+)>', path):
+        params.append(token.strip())
+    for token in re.findall(r'\{([^}]+)\}', path):
+        params.append(token.strip())
+    for token in re.findall(r':([A-Za-z_][A-Za-z0-9_]*)', path):
+        params.append(token.strip())
+    return _dedupe_order(params)
+
+
+def _parse_swagger_docstring(doc: str) -> dict[str, list[str] | str]:
+    result: dict[str, list[str] | str] = {}
+    lines = doc.splitlines()
+    summary = None
+    for line in lines:
+        raw = line.strip()
+        if raw:
+            summary = raw
+            break
+    if summary:
+        result["summary"] = summary
+
+    params: list[str] = []
+    responses: list[str] = []
+    examples: list[str] = []
+    in_parameters = False
+    in_responses = False
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("parameters:"):
+            in_parameters = True
+            in_responses = False
+            continue
+        if stripped.startswith("responses:"):
+            in_responses = True
+            in_parameters = False
+            continue
+        if re.match(r'^\w+:', stripped) and not stripped.startswith(("-", "parameters:", "responses:")):
+            in_parameters = False
+            in_responses = False
+        if in_parameters:
+            name_match = re.match(r'^-\s*name:\s*(\w+)', stripped)
+            if name_match:
+                params.append(name_match.group(1))
+        if in_responses:
+            code_match = re.match(r'^(\d{3})\s*:', stripped)
+            if code_match:
+                responses.append(code_match.group(1))
+        example_match = re.match(r'^\s*example:\s*(.+)$', stripped)
+        if example_match:
+            examples.append(example_match.group(1).strip())
+
+    if params:
+        result["params"] = _dedupe_order(params)
+    if responses:
+        result["responses"] = _dedupe_order(responses)
+    if examples:
+        result["example"] = examples[0]
+    if "security:" in doc.lower() or "authorization" in doc.lower():
+        result["auth"] = "Authorization"
+    return result
+
+
+def _collect_api_details(git_mgr, additional_ignores: list[str]) -> list[dict]:
+    api_details: list[dict] = []
+    files = git_mgr.list_all_files()
+    for file_path in files:
+        lower = file_path.lower()
+        if FileFilter.should_exclude_from_analysis(file_path, additional_ignores):
+            continue
+        if not lower.endswith((".py", ".js", ".jsx", ".ts", ".tsx", ".java", ".kt")):
+            continue
+        if not any(token in lower for token in ["/api", "/routes", "/route", "/controller", "/controllers", "/server", "/app"]):
+            continue
+        content = git_mgr.get_file_content(file_path)
+        if not content:
+            continue
+
+        # Flask/FastAPI style routes
+        for match in re.finditer(r'@(\w+)\.route\(\s*[\'"]([^\'"]+)[\'"]\s*(?:,\s*methods\s*=\s*\[([^\]]+)\])?', content):
+            decorator, path, methods_block = match.groups()
+            methods = []
+            if methods_block:
+                methods = re.findall(r'[\'"](\w+)[\'"]', methods_block)
+            if not methods:
+                methods = ["GET"]
+            params = _extract_route_params(path)
+            for method in methods:
+                api_entry = {"method": method.upper(), "path": path}
+                if params:
+                    api_entry["params"] = [f"path:{p}" for p in params]
+                api_details.append(api_entry)
+
+        for match in re.finditer(r'@(\w+)\.(get|post|put|delete|patch)\(\s*[\'"]([^\'"]+)[\'"]', content):
+            decorator, method, path = match.groups()
+            params = _extract_route_params(path)
+            api_entry = {"method": method.upper(), "path": path}
+            if params:
+                api_entry["params"] = [f"path:{p}" for p in params]
+            api_details.append(api_entry)
+
+        # Express.js style routes
+        for match in re.finditer(r'\b(app|router|api|server)\.(get|post|put|delete|patch)\(\s*[\'"]([^\'"]+)[\'"]', content):
+            _, method, path = match.groups()
+            params = _extract_route_params(path)
+            api_entry = {"method": method.upper(), "path": path}
+            if params:
+                api_entry["params"] = [f"path:{p}" for p in params]
+            api_details.append(api_entry)
+        for match in re.finditer(r'\.route\(\s*[\'"]([^\'"]+)[\'"]\s*\)\s*\.(get|post|put|delete|patch)\b', content):
+            path, method = match.groups()
+            params = _extract_route_params(path)
+            api_entry = {"method": method.upper(), "path": path}
+            if params:
+                api_entry["params"] = [f"path:{p}" for p in params]
+            api_details.append(api_entry)
+
+        # Spring annotations
+        for match in re.finditer(r'@(GetMapping|PostMapping|PutMapping|DeleteMapping|PatchMapping)\(\s*[\'"]([^\'"]+)[\'"]', content):
+            mapping, path = match.groups()
+            method = mapping.replace("Mapping", "").upper()
+            params = _extract_route_params(path)
+            api_entry = {"method": method, "path": path}
+            if params:
+                api_entry["params"] = [f"path:{p}" for p in params]
+            api_details.append(api_entry)
+        for match in re.finditer(r'@RequestMapping\([^)]*method\s*=\s*RequestMethod\.(GET|POST|PUT|DELETE|PATCH)[^)]*', content):
+            method = match.group(1)
+            path_match = re.search(r'value\s*=\s*["\']([^"\']+)["\']', match.group(0))
+            if path_match:
+                path = path_match.group(1)
+                params = _extract_route_params(path)
+                api_entry = {"method": method, "path": path}
+                if params:
+                    api_entry["params"] = [f"path:{p}" for p in params]
+                api_details.append(api_entry)
+
+        # Swagger-style docstrings for Flask routes
+        for route_match in re.finditer(r'@app\.route\(\s*[\'"]([^\'"]+)[\'"][^)]*\)\s*\ndef\s+\w+\([^)]*\):\s*\n\s+("""|\'\'\')([\s\S]*?)\2', content):
+            path = route_match.group(1)
+            doc = route_match.group(3)
+            doc_info = _parse_swagger_docstring(doc)
+            methods_match = re.search(r'methods\s*=\s*\[([^\]]+)\]', route_match.group(0))
+            methods = re.findall(r'[\'"](\w+)[\'"]', methods_match.group(1)) if methods_match else ["GET"]
+            for method in methods:
+                api_entry = {"method": method.upper(), "path": path}
+                api_entry.update(doc_info)
+                api_details.append(api_entry)
+
+    # Deduplicate by method/path/summary
+    seen = set()
+    deduped: list[dict] = []
+    for item in api_details:
+        key = (item.get("method"), item.get("path"), item.get("summary"))
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(item)
+    return deduped
+
 def _ask_new_user_interactive() -> bool:
     """Ask on TTY if the user is new to the tool.
 
@@ -276,6 +575,59 @@ def _validate_report_schema(report: dict) -> tuple[bool, str]:
             return False, "Change syntax_error must be a boolean"
         if not isinstance(item["features"], dict):
             return False, "Change features must be an object"
+
+    # Optional documentation_context validation
+    if "documentation_context" in report:
+        doc_ctx = report["documentation_context"]
+        if not isinstance(doc_ctx, dict):
+            return False, "documentation_context must be an object"
+        allowed_doc_keys = {
+            "project_overview", "installation", "usage", "features", "tech_stack",
+            "configuration", "troubleshooting", "contributing", "license"
+        }
+        for key in doc_ctx.keys():
+            if key not in allowed_doc_keys:
+                return False, f"documentation_context contains invalid key: {key}"
+        string_keys = {"project_overview", "license"}
+        list_keys = allowed_doc_keys - string_keys
+        for key in string_keys:
+            if key in doc_ctx and not isinstance(doc_ctx[key], str):
+                return False, f"documentation_context.{key} must be a string"
+        for key in list_keys:
+            if key in doc_ctx:
+                if not isinstance(doc_ctx[key], list) or not all(isinstance(v, str) for v in doc_ctx[key]):
+                    return False, f"documentation_context.{key} must be an array of strings"
+
+    # Optional api_details validation
+    if "api_details" in report:
+        api_details = report["api_details"]
+        if not isinstance(api_details, list):
+            return False, "api_details must be an array"
+        allowed_api_keys = {
+            "method", "path", "summary", "auth", "params", "responses", "example"
+        }
+        for item in api_details:
+            if not isinstance(item, dict):
+                return False, "Each api_details entry must be an object"
+            for key in item.keys():
+                if key not in allowed_api_keys:
+                    return False, f"api_details contains invalid key: {key}"
+            if "method" not in item or not isinstance(item["method"], str):
+                return False, "api_details.method must be a string"
+            if "path" not in item or not isinstance(item["path"], str):
+                return False, "api_details.path must be a string"
+            if "summary" in item and not isinstance(item["summary"], str):
+                return False, "api_details.summary must be a string"
+            if "auth" in item and not isinstance(item["auth"], str):
+                return False, "api_details.auth must be a string"
+            if "example" in item and not isinstance(item["example"], str):
+                return False, "api_details.example must be a string"
+            if "params" in item:
+                if not isinstance(item["params"], list) or not all(isinstance(v, str) for v in item["params"]):
+                    return False, "api_details.params must be an array of strings"
+            if "responses" in item:
+                if not isinstance(item["responses"], list) or not all(isinstance(v, str) for v in item["responses"]):
+                    return False, "api_details.responses must be an array of strings"
 
     return True, ""
 
@@ -543,6 +895,14 @@ def main():
                 "requires_new_tests": False,
                 "test_files_changed": test_files_changed
             }
+
+            # Documentation context and API details (only include when evidence exists)
+            documentation_context = _collect_documentation_context(git_mgr, additional_ignores, env_vars)
+            if documentation_context:
+                report["documentation_context"] = documentation_context
+            api_details = _collect_api_details(git_mgr, additional_ignores)
+            if api_details:
+                report["api_details"] = api_details
 
             # Impact scope classification
             if security_features_detected:
