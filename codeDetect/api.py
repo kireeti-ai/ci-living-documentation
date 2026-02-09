@@ -13,6 +13,8 @@ from flask import Flask, request, jsonify
 from flasgger import Swagger
 import subprocess
 import sys
+import logging
+from typing import Optional
 
 app = Flask(__name__)
 swagger = Swagger(app, config={
@@ -33,6 +35,12 @@ swagger = Swagger(app, config={
 # Configuration
 REPORTS_DIR = Path('/tmp/code-detector-reports')
 REPORTS_DIR.mkdir(exist_ok=True)
+LOG = logging.getLogger("epic1.api")
+if not LOG.handlers:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(message)s"
+    )
 
 
 def _parse_boolean_field(data: dict, field_name: str, default: bool = False):
@@ -53,6 +61,43 @@ def _require_json_object():
     if not isinstance(data, dict):
         return False, None, (jsonify({"error": "Request body must be a JSON object"}), 400)
     return True, data, None
+
+
+def _load_report_from_file() -> Optional[dict]:
+    output_path = os.path.join(os.path.dirname(__file__), 'impact_report.json')
+    if os.path.exists(output_path):
+        try:
+            with open(output_path, 'r') as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            return None
+    return None
+
+
+def _parse_stdout_report(stdout_text: str) -> Optional[dict]:
+    text = stdout_text.strip()
+    if not text:
+        return None
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        return None
+
+
+def _error_response(stage: str,
+                    details: str,
+                    retry_possible: bool,
+                    report: Optional[dict] = None,
+                    status_code: int = 500):
+    payload = {
+        "error": "Analysis failed",
+        "stage": stage,
+        "details": details or "Unknown error",
+        "retry_possible": retry_possible
+    }
+    if report:
+        payload["report"] = report
+    return jsonify(payload), status_code
 
 @app.route('/health', methods=['GET'])
 def health_check():
@@ -175,32 +220,33 @@ def analyze():
         )
 
         if result.returncode != 0:
-            return jsonify({
-                "error": "Analysis failed",
-                "details": result.stderr
-            }), 500
+            report = _parse_stdout_report(result.stdout) or _load_report_from_file()
+            if report and report.get("status") == "error":
+                return _error_response(
+                    report.get("stage", "analysis"),
+                    report.get("details", result.stderr),
+                    bool(report.get("retry_possible", True)),
+                    _load_report_from_file()
+                )
+            if report and report.get("error"):
+                return _error_response(
+                    "analysis",
+                    report.get("error"),
+                    False,
+                    _load_report_from_file()
+                )
+            return _error_response(
+                "analysis",
+                (result.stderr or "Analysis process exited with non-zero status").strip(),
+                True,
+                report
+            )
 
         # Parse JSON output (prefer full stdout, fallback to impact_report.json)
-        report = None
-
-        stdout_text = result.stdout.strip()
-        if stdout_text:
-            try:
-                report = json.loads(stdout_text)
-            except json.JSONDecodeError:
-                report = None
+        report = _parse_stdout_report(result.stdout) or _load_report_from_file()
 
         if not report:
-            output_path = os.path.join(os.path.dirname(__file__), 'impact_report.json')
-            if os.path.exists(output_path):
-                try:
-                    with open(output_path, 'r') as f:
-                        report = json.load(f)
-                except json.JSONDecodeError:
-                    report = None
-
-        if not report:
-            return jsonify({"error": "Failed to parse analysis output"}), 500
+            return _error_response("analysis", "Failed to parse analysis output", True)
 
         return jsonify({
             "status": "success",
@@ -208,9 +254,9 @@ def analyze():
         })
 
     except subprocess.TimeoutExpired:
-        return jsonify({"error": "Analysis timeout (> 5 minutes)"}), 504
+        return _error_response("analysis", "Analysis timeout (> 5 minutes)", True, _load_report_from_file(), 504)
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return _error_response("analysis", str(e), True, _load_report_from_file())
 
 @app.route('/analyze/local', methods=['POST'])
 def analyze_local():
@@ -289,32 +335,33 @@ def analyze_local():
         )
 
         if result.returncode != 0:
-            return jsonify({
-                "error": "Analysis failed",
-                "details": result.stderr
-            }), 500
+            report = _parse_stdout_report(result.stdout) or _load_report_from_file()
+            if report and report.get("status") == "error":
+                return _error_response(
+                    report.get("stage", "analysis"),
+                    report.get("details", result.stderr),
+                    bool(report.get("retry_possible", True)),
+                    _load_report_from_file()
+                )
+            if report and report.get("error"):
+                return _error_response(
+                    "analysis",
+                    report.get("error"),
+                    False,
+                    _load_report_from_file()
+                )
+            return _error_response(
+                "analysis",
+                (result.stderr or "Analysis process exited with non-zero status").strip(),
+                True,
+                report
+            )
 
         # Parse JSON output (prefer full stdout, fallback to impact_report.json)
-        report = None
-
-        stdout_text = result.stdout.strip()
-        if stdout_text:
-            try:
-                report = json.loads(stdout_text)
-            except json.JSONDecodeError:
-                report = None
+        report = _parse_stdout_report(result.stdout) or _load_report_from_file()
 
         if not report:
-            output_path = os.path.join(os.path.dirname(__file__), 'impact_report.json')
-            if os.path.exists(output_path):
-                try:
-                    with open(output_path, 'r') as f:
-                        report = json.load(f)
-                except json.JSONDecodeError:
-                    report = None
-
-        if not report:
-            return jsonify({"error": "Failed to parse analysis output"}), 500
+            return _error_response("analysis", "Failed to parse analysis output", True)
 
         return jsonify({
             "status": "success",
@@ -322,9 +369,9 @@ def analyze_local():
         })
 
     except subprocess.TimeoutExpired:
-        return jsonify({"error": "Analysis timeout (> 5 minutes)"}), 504
+        return _error_response("analysis", "Analysis timeout (> 5 minutes)", True, _load_report_from_file(), 504)
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return _error_response("analysis", str(e), True, _load_report_from_file())
 
 @app.errorhandler(404)
 def not_found(e):

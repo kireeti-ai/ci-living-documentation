@@ -7,6 +7,7 @@ import os
 import datetime
 import tempfile
 import shutil
+import time
 from typing import List, Dict, Optional, Any
 from git import Repo, InvalidGitRepositoryError, GitCommandError
 
@@ -44,16 +45,27 @@ class GitManager:
             else:
                 auth_url = repo_path
 
-            try:
-                print(f"Cloning repository from {repo_path}...")
-                self.repo = Repo.clone_from(auth_url, self.temp_dir, branch=branch)
-                self.repo_path = self.temp_dir
-                print(f"Repository cloned to temporary directory: {self.temp_dir}")
-            except Exception as e:
+            last_error: Optional[Exception] = None
+            for attempt in range(1, 4):
+                try:
+                    print(f"Cloning repository from {repo_path} (attempt {attempt}/3)...")
+                    self.repo = Repo.clone_from(auth_url, self.temp_dir, branch=branch)
+                    self.repo_path = self.temp_dir
+                    print(f"Repository cloned to temporary directory: {self.temp_dir}")
+                    last_error = None
+                    break
+                except Exception as e:
+                    last_error = e
+                    if attempt < 3:
+                        time.sleep(1.5 * attempt)
+            if last_error is not None:
                 if self.temp_dir and os.path.exists(self.temp_dir):
                     shutil.rmtree(self.temp_dir)
+                error_text = str(last_error)
+                if github_token:
+                    error_text = error_text.replace(github_token, "***")
                 raise InvalidGitRepositoryError(
-                    f"Failed to clone repository from {repo_path}: {e}"
+                    f"Failed to clone repository from {repo_path}: {error_text}"
                 )
         else:
             # Local repository path
@@ -171,9 +183,18 @@ class GitManager:
             return changes
 
         # Compare against previous commit
-        try:
-            diffs = head_commit.diff(compare_with)
-        except GitCommandError as e:
+        diffs = None
+        last_error: Optional[Exception] = None
+        for attempt in range(1, 4):
+            try:
+                diffs = head_commit.diff(compare_with)
+                last_error = None
+                break
+            except GitCommandError as e:
+                last_error = e
+                if attempt < 3:
+                    time.sleep(0.8 * attempt)
+        if diffs is None:
             # Fallback: compare against the first parent
             try:
                 diffs = head_commit.diff(head_commit.parents[0])
@@ -181,7 +202,7 @@ class GitManager:
                 return [{
                     "path": "ERROR",
                     "change_type": "ERROR",
-                    "error": f"Failed to compute diff: {e}"
+                    "error": f"Failed to compute diff: {last_error}"
                 }]
 
         for diff in diffs:

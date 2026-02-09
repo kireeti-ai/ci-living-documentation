@@ -4,7 +4,11 @@ import os
 import datetime
 from typing import Optional, Union
 import re
+import subprocess
+import shutil
+import logging
 from src.git_manager import GitManager
+from git import InvalidGitRepositoryError
 from src.file_filter import FileFilter, ConfigLoader
 from src.scorers import SeverityCalculator
 from src.syntax_checker import SyntaxChecker
@@ -12,6 +16,119 @@ from src.parsers.java_parser import JavaParser
 from src.parsers.ts_parser import TSParser
 from src.parsers.schema_detector import SchemaDetector
 from src.parsers.python_parser import PythonParser
+
+LOG = logging.getLogger("epic1")
+if not LOG.handlers:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(message)s"
+    )
+
+
+class AnalysisError(Exception):
+    def __init__(self, stage: str, details: str, retry_possible: bool):
+        super().__init__(details)
+        self.stage = stage
+        self.details = details
+        self.retry_possible = retry_possible
+
+
+def _redact_token(token: Optional[str]) -> str:
+    if not token:
+        return ""
+    if len(token) <= 6:
+        return "***"
+    return f"{token[:3]}...{token[-3:]}"
+
+
+def _build_auth_url(repo_url: str, github_token: Optional[str]) -> str:
+    if github_token and repo_url.startswith("https://github.com/"):
+        return repo_url.replace("https://github.com/", f"https://{github_token}@github.com/")
+    return repo_url
+
+
+def _run_git_ls_remote(repo_url: str, github_token: Optional[str], branch: Optional[str]) -> subprocess.CompletedProcess:
+    auth_url = _build_auth_url(repo_url, github_token)
+    args = ["git", "ls-remote"]
+    if branch:
+        args.extend(["--heads", auth_url, branch])
+    else:
+        args.append(auth_url)
+    return subprocess.run(args, capture_output=True, text=True, timeout=15)
+
+
+def _validate_dependencies() -> None:
+    if not shutil.which("git"):
+        raise AnalysisError("analysis", "git is not installed or not on PATH", False)
+    try:
+        import yaml  # noqa: F401
+    except Exception:
+        raise AnalysisError("analysis", "python dependency PyYAML is missing", False)
+
+
+def _validate_remote_repo(repo_url: str, github_token: Optional[str], branch: str) -> None:
+    try:
+        proc = _run_git_ls_remote(repo_url, github_token, branch)
+    except Exception as e:
+        raise AnalysisError("clone", f"Failed to reach remote repository: {e}", True)
+
+    if proc.returncode != 0:
+        stderr = (proc.stderr or "").strip()
+        if github_token:
+            stderr = stderr.replace(github_token, "***")
+        redacted = _redact_token(github_token)
+        if "Authentication failed" in stderr or "fatal: could not read" in stderr or "403" in stderr:
+            raise AnalysisError(
+                "clone",
+                f"Git authentication failed for repo_url with token {redacted}",
+                False
+            )
+        raise AnalysisError("clone", f"Unable to access repository: {stderr or 'unknown error'}", True)
+
+    if not (proc.stdout or "").strip():
+        raise AnalysisError("clone", f"Branch '{branch}' does not exist on remote", False)
+
+
+def _validate_local_repo(repo_path: str) -> None:
+    if not os.path.exists(repo_path):
+        raise AnalysisError("clone", f"Repository path does not exist: {repo_path}", False)
+    if not os.path.isdir(repo_path):
+        raise AnalysisError("clone", f"Repository path is not a directory: {repo_path}", False)
+
+
+def _preflight_validate(repo_path_or_url: str, github_token: Optional[str], branch: str) -> None:
+    _validate_dependencies()
+    if repo_path_or_url.startswith(("http://", "https://", "git@")):
+        _validate_remote_repo(repo_path_or_url, github_token, branch)
+    else:
+        _validate_local_repo(repo_path_or_url)
+
+
+def _write_report(report: dict) -> None:
+    output_path = os.path.join(os.path.dirname(__file__), "impact_report.json")
+    with open(output_path, "w") as f:
+        json.dump(report, f, indent=2)
+
+
+def _build_fallback_report(repo_path_or_url: str,
+                           branch: str,
+                           failure_reason: str,
+                           context: Optional[dict] = None) -> dict:
+    return {
+        "repo": {
+            "path_or_url": repo_path_or_url,
+            "branch": branch
+        },
+        "context": context or {},
+        "analysis_summary": {
+            "total_files": 0,
+            "highest_severity": "UNKNOWN",
+            "breaking_changes_detected": False
+        },
+        "changes": [],
+        "analysis_status": "PARTIAL",
+        "failure_reason": failure_reason
+    }
 
 def _dedupe_order(items: list[str]) -> list[str]:
     seen = set()
@@ -258,7 +375,8 @@ def _collect_documentation_context(git_mgr, additional_ignores: list[str], env_v
     files = git_mgr.list_all_files()
     doc_files: list[str] = []
     license_files: list[str] = []
-    for file_path in files:
+    for entry in files:
+        file_path = entry["path"] if isinstance(entry, dict) else entry
         lower = file_path.lower()
         if FileFilter.should_exclude_from_analysis(file_path, additional_ignores):
             continue
@@ -401,7 +519,8 @@ def _parse_swagger_docstring(doc: str) -> dict[str, Union[list[str], str]]:
 def _collect_api_details(git_mgr, additional_ignores: list[str]) -> list[dict]:
     api_details: list[dict] = []
     files = git_mgr.list_all_files()
-    for file_path in files:
+    for entry in files:
+        file_path = entry["path"] if isinstance(entry, dict) else entry
         lower = file_path.lower()
         if FileFilter.should_exclude_from_analysis(file_path, additional_ignores):
             continue
@@ -646,8 +765,25 @@ def main():
         sys.exit(1)
 
     repo_path = args[0]
-    github_token = args[1] if len(args) > 1 else os.environ.get('GITHUB_TOKEN')
-    branch = args[2] if len(args) > 2 else "main"
+    github_token = None
+    branch = "main"
+
+    # Support optional --branch=NAME flag
+    branch_flag = next((a for a in sys.argv[1:] if a.startswith("--branch=")), None)
+    if branch_flag:
+        branch = branch_flag.split("=", 1)[1].strip() or branch
+
+    if len(args) > 1:
+        # If only one extra arg and it looks like a branch, treat it as branch
+        common_branches = {"main", "master", "dev", "develop", "staging", "prod", "production"}
+        if len(args) == 2 and args[1] in common_branches and not os.environ.get('GITHUB_TOKEN'):
+            branch = args[1]
+            github_token = os.environ.get('GITHUB_TOKEN')
+        else:
+            github_token = args[1]
+            branch = args[2] if len(args) > 2 else branch
+    else:
+        github_token = os.environ.get('GITHUB_TOKEN')
 
     new_user = _is_new_user_flag(sys.argv[1:]) or _ask_new_user_interactive()
 
@@ -699,175 +835,186 @@ def main():
     }
 
     try:
+        _preflight_validate(repo_path, github_token, branch)
         # Use context manager to ensure cleanup
-        with GitManager(repo_path, github_token, branch) as git_mgr:
-            report["context"] = git_mgr.get_metadata()
-            config_path = os.path.join(git_mgr.repo_path, "config.yaml")
-            config = ConfigLoader.load(config_path)
-            additional_ignores = config.get("ignore_patterns", [])
+        try:
+            with GitManager(repo_path, github_token, branch) as git_mgr:
+                report["context"] = git_mgr.get_metadata()
+                config_path = os.path.join(git_mgr.repo_path, "config.yaml")
+                config = ConfigLoader.load(config_path)
+                additional_ignores = config.get("ignore_patterns", [])
 
-            # New users: analyze the full repository once for baseline.
-            changes_list = git_mgr.list_all_files() if new_user else git_mgr.get_changed_files()
+                # New users: analyze the full repository once for baseline.
+                changes_list = git_mgr.list_all_files() if new_user else git_mgr.get_changed_files()
+                if changes_list and changes_list[0].get("change_type") == "ERROR":
+                    raise AnalysisError("diff", changes_list[0].get("error", "Failed to compute diff"), True)
 
-            severity_rank = {"PATCH": 1, "MINOR": 2, "MAJOR": 3}
-            max_severity = 0
-            api_summary = {"added": 0, "modified": 0, "removed": 0}
-            security_features_detected: list[str] = []
-            affected_packages: list[str] = []
-            component_distribution: dict[str, int] = {}
-            has_db_change = False
-            tables_affected: list[str] = []
-            doc_impact = {
-                "readme": False,
-                "api_docs": False,
-                "architecture": False,
-                "adr_required": False
-            }
-            config_build_files: list[str] = []
-            env_vars: list[str] = []
-            docker_changed = False
-            test_files_changed = 0
-            has_non_test_changes = False
-
-            for change in changes_list:
-                file_path = change["path"]
-                if FileFilter.should_exclude_from_analysis(file_path, additional_ignores):
-                    continue
-
-                record = {
-                    "file": file_path,
-                    "change_type": change["change_type"],
-                    "language": None,
-                    "severity": "PATCH",
-                    "is_binary": False,
-                    "syntax_error": False,
-                    "features": {},
-                    "component": _classify_component(file_path, None)
+                severity_rank = {"PATCH": 1, "MINOR": 2, "MAJOR": 3}
+                max_severity = 0
+                api_summary = {"added": 0, "modified": 0, "removed": 0}
+                security_features_detected: list[str] = []
+                affected_packages: list[str] = []
+                component_distribution: dict[str, int] = {}
+                has_db_change = False
+                tables_affected: list[str] = []
+                doc_impact = {
+                    "readme": False,
+                    "api_docs": False,
+                    "architecture": False,
+                    "adr_required": False
                 }
+                config_build_files: list[str] = []
+                env_vars: list[str] = []
+                docker_changed = False
+                test_files_changed = 0
+                has_non_test_changes = False
 
-                # A. Binary/Safety Check
-                if FileFilter.is_known_binary_extension(file_path):
-                    record["is_binary"] = True
-                    record["note"] = "Skipped binary file analysis"
-                    component_distribution[record["component"]] = component_distribution.get(record["component"], 0) + 1
-                    report["changes"].append(record)
-                    continue
+                for change in changes_list:
+                    file_path = change["path"]
+                    if FileFilter.should_exclude_from_analysis(file_path, additional_ignores):
+                        continue
 
-                # B. Read Content
-                content = git_mgr.get_file_content(file_path)
-                if content is None:
-                    record["is_binary"] = True
-                    record["note"] = "Skipped binary file analysis"
-                    component_distribution[record["component"]] = component_distribution.get(record["component"], 0) + 1
-                    report["changes"].append(record)
-                    continue
-                ext = os.path.splitext(file_path)[1].lower()
+                    record = {
+                        "file": file_path,
+                        "change_type": change["change_type"],
+                        "language": None,
+                        "severity": "PATCH",
+                        "is_binary": False,
+                        "syntax_error": False,
+                        "features": {},
+                        "component": _classify_component(file_path, None)
+                    }
 
-                # C. Syntax Check
-                if SyntaxChecker.check(file_path, content):
-                    record["syntax_error"] = True
-                    record["features"]["note"] = "Partial extraction due to syntax error"
+                    try:
+                        # A. Binary/Safety Check
+                        if FileFilter.is_known_binary_extension(file_path):
+                            record["is_binary"] = True
+                            record["note"] = "Skipped binary file analysis"
+                            component_distribution[record["component"]] = component_distribution.get(record["component"], 0) + 1
+                            report["changes"].append(record)
+                            continue
 
-                # D. Parse Features
-                features = {}
-                if ext == '.java':
-                    record["language"] = "java"
-                    features = JavaParser.analyze(content)
+                        # B. Read Content
+                        content = git_mgr.get_file_content(file_path)
+                        if content is None:
+                            record["is_binary"] = True
+                            record["note"] = "Skipped binary file analysis"
+                            component_distribution[record["component"]] = component_distribution.get(record["component"], 0) + 1
+                            report["changes"].append(record)
+                            continue
+                        ext = os.path.splitext(file_path)[1].lower()
 
-                # Handle JS and TS files using the TSParser
-                elif ext in ['.ts', '.tsx', '.js', '.jsx']:
-                    record["language"] = "typescript" if 'ts' in ext else "javascript"
-                    features = TSParser.analyze(content)
+                        # C. Syntax Check
+                        if SyntaxChecker.check(file_path, content):
+                            record["syntax_error"] = True
+                            record["features"]["note"] = "Partial extraction due to syntax error"
 
-                elif ext == '.py':
-                    record["language"] = "python"
-                    features = PythonParser.analyze(content)
+                        # D. Parse Features
+                        features = {}
+                        if ext == '.java':
+                            record["language"] = "java"
+                            features = JavaParser.analyze(content)
 
-                # Merge notes if syntax error existed
-                if record["syntax_error"]:
-                    features["note"] = record["features"]["note"]
+                        # Handle JS and TS files using the TSParser
+                        elif ext in ['.ts', '.tsx', '.js', '.jsx']:
+                            record["language"] = "typescript" if 'ts' in ext else "javascript"
+                            features = TSParser.analyze(content)
 
-                # Component refinement with content
-                record["component"] = _classify_component(file_path, content)
-                component_distribution[record["component"]] = component_distribution.get(record["component"], 0) + 1
+                        elif ext == '.py':
+                            record["language"] = "python"
+                            features = PythonParser.analyze(content)
 
-                # Security features detection
-                security_features = _detect_security_features(content)
-                if security_features:
-                    security_features_detected.extend(security_features)
+                        # Merge notes if syntax error existed
+                        if record["syntax_error"]:
+                            features["note"] = record["features"]["note"]
 
-                # Extract affected packages/services
-                pkgs = _extract_packages(file_path, content, record["language"])
-                if pkgs:
-                    affected_packages.extend(pkgs)
+                        # Component refinement with content
+                        record["component"] = _classify_component(file_path, content)
+                        component_distribution[record["component"]] = component_distribution.get(record["component"], 0) + 1
 
-                record["features"] = features
+                        # Security features detection
+                        security_features = _detect_security_features(content)
+                        if security_features:
+                            security_features_detected.extend(security_features)
 
-                # E. Schema & Scoring
-                schema_tags = SchemaDetector.analyze(file_path, content)
-                severity = SeverityCalculator.assess(ext, features, schema_tags)
+                        # Extract affected packages/services
+                        pkgs = _extract_packages(file_path, content, record["language"])
+                        if pkgs:
+                            affected_packages.extend(pkgs)
 
-                record["severity"] = severity
-                if schema_tags:
-                    has_db_change = True
-                    if ext == ".sql":
-                        tables_affected.extend(_extract_tables_from_sql(content))
-                    if ext == ".java":
-                        tables_affected.extend(_extract_table_annotations(content))
-                    for tag in schema_tags:
-                        if tag.startswith("MONGOOSE_MODEL:"):
-                            tables_affected.append(tag.split(":", 1)[1])
+                        record["features"] = features
 
-                # F. Update Summary Stats
-                if severity_rank[severity] > max_severity:
-                    max_severity = severity_rank[severity]
-                    report["analysis_summary"]["highest_severity"] = severity
+                        # E. Schema & Scoring
+                        schema_tags = SchemaDetector.analyze(file_path, content)
+                        severity = SeverityCalculator.assess(ext, features, schema_tags)
 
-                if severity == "MAJOR":
-                    report["analysis_summary"]["breaking_changes_detected"] = True
+                        record["severity"] = severity
+                        if schema_tags:
+                            has_db_change = True
+                            if ext == ".sql":
+                                tables_affected.extend(_extract_tables_from_sql(content))
+                            if ext == ".java":
+                                tables_affected.extend(_extract_table_annotations(content))
+                            for tag in schema_tags:
+                                if tag.startswith("MONGOOSE_MODEL:"):
+                                    tables_affected.append(tag.split(":", 1)[1])
 
-                # API summary aggregation
-                api_endpoints = features.get("api_endpoints", [])
-                if isinstance(api_endpoints, list) and api_endpoints:
-                    if change["change_type"] == "ADDED":
-                        api_summary["added"] += len(api_endpoints)
-                    elif change["change_type"] == "DELETED":
-                        api_summary["removed"] += len(api_endpoints)
-                    else:
-                        api_summary["modified"] += len(api_endpoints)
+                        # F. Update Summary Stats
+                        if severity_rank[severity] > max_severity:
+                            max_severity = severity_rank[severity]
+                            report["analysis_summary"]["highest_severity"] = severity
 
-                # Documentation impact signals
-                impact = _detect_doc_impact(file_path, api_summary, has_db_change)
-                doc_impact["readme"] = doc_impact["readme"] or impact["readme"]
-                doc_impact["api_docs"] = doc_impact["api_docs"] or impact["api_docs"]
-                doc_impact["architecture"] = doc_impact["architecture"] or impact["architecture"]
-                doc_impact["adr_required"] = doc_impact["adr_required"] or impact["adr_required"]
+                        if severity == "MAJOR":
+                            report["analysis_summary"]["breaking_changes_detected"] = True
 
-                # Configuration/build detection
-                path_lower = file_path.lower()
-                if os.path.basename(path_lower) in {"dockerfile", "docker-compose.yml", "docker-compose.yaml"}:
-                    docker_changed = True
-                if os.path.basename(path_lower) in {
-                    "pom.xml", "build.gradle", "build.gradle.kts", "package.json",
-                    "pyproject.toml", "requirements.txt", "makefile"
-                }:
-                    config_build_files.append(os.path.basename(path_lower))
-                if path_lower.endswith((".env", ".yml", ".yaml", ".json", ".toml", ".ini")):
-                    env_vars.extend(_extract_env_vars(content))
+                        # API summary aggregation
+                        api_endpoints = features.get("api_endpoints", [])
+                        if isinstance(api_endpoints, list) and api_endpoints:
+                            if change["change_type"] == "ADDED":
+                                api_summary["added"] += len(api_endpoints)
+                            elif change["change_type"] == "DELETED":
+                                api_summary["removed"] += len(api_endpoints)
+                            else:
+                                api_summary["modified"] += len(api_endpoints)
 
-                # Test impact signals
-                is_test_file = (
-                    "/test" in path_lower or "/tests" in path_lower or
-                    path_lower.endswith("_test.py") or path_lower.endswith(".spec.ts") or
-                    path_lower.endswith(".test.ts") or path_lower.endswith(".spec.js") or
-                    path_lower.endswith(".test.js")
-                )
-                if is_test_file:
-                    test_files_changed += 1
-                else:
-                    has_non_test_changes = True
+                        # Documentation impact signals
+                        impact = _detect_doc_impact(file_path, api_summary, has_db_change)
+                        doc_impact["readme"] = doc_impact["readme"] or impact["readme"]
+                        doc_impact["api_docs"] = doc_impact["api_docs"] or impact["api_docs"]
+                        doc_impact["architecture"] = doc_impact["architecture"] or impact["architecture"]
+                        doc_impact["adr_required"] = doc_impact["adr_required"] or impact["adr_required"]
 
-                report["changes"].append(record)
+                        # Configuration/build detection
+                        path_lower = file_path.lower()
+                        if os.path.basename(path_lower) in {"dockerfile", "docker-compose.yml", "docker-compose.yaml"}:
+                            docker_changed = True
+                        if os.path.basename(path_lower) in {
+                            "pom.xml", "build.gradle", "build.gradle.kts", "package.json",
+                            "pyproject.toml", "requirements.txt", "makefile"
+                        }:
+                            config_build_files.append(os.path.basename(path_lower))
+                        if path_lower.endswith((".env", ".yml", ".yaml", ".json", ".toml", ".ini")):
+                            env_vars.extend(_extract_env_vars(content))
+
+                        # Test impact signals
+                        is_test_file = (
+                            "/test" in path_lower or "/tests" in path_lower or
+                            path_lower.endswith("_test.py") or path_lower.endswith(".spec.ts") or
+                            path_lower.endswith(".test.ts") or path_lower.endswith(".spec.js") or
+                            path_lower.endswith(".test.js")
+                        )
+                        if is_test_file:
+                            test_files_changed += 1
+                        else:
+                            has_non_test_changes = True
+
+                        report["changes"].append(record)
+                    except Exception as e:
+                        LOG.exception("Per-file analysis failed for %s", file_path)
+                        record["syntax_error"] = True
+                        record["features"] = {"note": f"Partial extraction due to parser error: {e}"}
+                        report["changes"].append(record)
+                        continue
 
             report["analysis_summary"]["total_files"] = len(report["changes"])
 
@@ -984,21 +1131,33 @@ def main():
                 raise ValueError(f"Report validation failed: {validation_error}")
 
             # Save to file
-            output_path = os.path.join(os.path.dirname(__file__), 'impact_report.json')
-            with open(output_path, 'w') as f:
-                json.dump(report, f, indent=2)
+            _write_report(report)
 
             # Print to stdout
             print(json.dumps(report, indent=2))
+        except InvalidGitRepositoryError as e:
+            raise AnalysisError("clone", str(e), True)
 
     except Exception as e:
-        error_report = {"status": "error", "message": str(e)}
+        if isinstance(e, AnalysisError):
+            error_details = e.details
+            stage = e.stage
+            retry_possible = e.retry_possible
+        else:
+            error_details = str(e)
+            stage = "analysis"
+            retry_possible = True
 
-        # Save error to file
-        output_path = os.path.join(os.path.dirname(__file__), 'impact_report.json')
-        with open(output_path, 'w') as f:
-            json.dump(error_report, f, indent=2)
-
+        LOG.exception("Analysis failed at stage=%s", stage)
+        fallback = _build_fallback_report(repo_path, branch, error_details, report.get("context"))
+        _write_report(fallback)
+        error_report = {
+            "status": "error",
+            "error": "Analysis failed",
+            "stage": stage,
+            "details": error_details,
+            "retry_possible": retry_possible
+        }
         print(json.dumps(error_report))
         sys.exit(1)
 
