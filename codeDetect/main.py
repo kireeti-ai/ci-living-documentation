@@ -2,7 +2,7 @@ import sys
 import json
 import os
 import datetime
-from typing import Optional
+from typing import Optional, Union
 import re
 from src.git_manager import GitManager
 from src.file_filter import FileFilter, ConfigLoader
@@ -345,7 +345,7 @@ def _extract_route_params(path: str) -> list[str]:
     return _dedupe_order(params)
 
 
-def _parse_swagger_docstring(doc: str) -> dict[str, list[str] | str]:
+def _parse_swagger_docstring(doc: str) -> dict[str, Union[list[str], str]]:
     result: dict[str, list[str] | str] = {}
     lines = doc.splitlines()
     summary = None
