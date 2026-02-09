@@ -9,6 +9,7 @@ import requests
 import subprocess
 from flask import Flask, request, jsonify
 from pathlib import Path
+from flask_swagger_ui import get_swaggerui_blueprint
 
 app = Flask(__name__)
 
@@ -18,6 +19,121 @@ ALLOW_EPIC1_FETCH = os.getenv("ALLOW_EPIC1_FETCH", "false").lower() == "true"
 INPUT_DIR = "sprint1/input"
 INPUT_FILE = f"{INPUT_DIR}/impact_report.json"
 EPIC2_RUNNER = os.path.join(os.path.dirname(__file__), "..", "sprint1", "src", "run_epic2.py")
+
+SWAGGER_URL = "/docs"
+OPENAPI_URL = "/openapi.json"
+
+swaggerui_blueprint = get_swaggerui_blueprint(
+    SWAGGER_URL,
+    OPENAPI_URL,
+    config={"app_name": "EPIC-2 Documentation Generation Service"}
+)
+app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
+
+
+@app.route(OPENAPI_URL, methods=["GET"])
+def openapi_spec():
+    """
+    OpenAPI 3 spec for Swagger UI.
+    """
+    return jsonify({
+        "openapi": "3.0.3",
+        "info": {
+            "title": "EPIC-2 Documentation Generation API",
+            "version": "1.0.0",
+            "description": "Generates docs artifacts from impact reports using project_id + commit_hash contract."
+        },
+        "servers": [
+            {"url": "/"}
+        ],
+        "paths": {
+            "/health": {
+                "get": {
+                    "summary": "Health check",
+                    "responses": {
+                        "200": {"description": "Service health"}
+                    }
+                }
+            },
+            "/impact-report": {
+                "post": {
+                    "summary": "Fetch impact report from EPIC-1",
+                    "requestBody": {
+                        "required": True,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": ["repo_url"],
+                                    "properties": {
+                                        "repo_url": {"type": "string", "example": "https://github.com/kireeti-ai/snap-dish"},
+                                        "branch": {"type": "string", "example": "main"}
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "responses": {
+                        "200": {"description": "Impact report response from EPIC-1"},
+                        "400": {"description": "Validation error"},
+                        "502": {"description": "EPIC-1 fetch failure"}
+                    }
+                }
+            },
+            "/generate-docs": {
+                "post": {
+                    "summary": "Generate documentation artifacts and snapshot",
+                    "requestBody": {
+                        "required": True,
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": ["project_id", "commit_hash"],
+                                    "properties": {
+                                        "project_id": {"type": "string", "example": "proj_10234"},
+                                        "commit_hash": {"type": "string", "example": "63d36c2b"},
+                                        "repo_url": {"type": "string", "example": "https://github.com/kireeti-ai/quizora-ai"},
+                                        "branch": {"type": "string", "example": "main"},
+                                        "impact_report": {"type": "object"}
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "responses": {
+                        "200": {
+                            "description": "Documentation generated",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "type": "object",
+                                        "properties": {
+                                            "status": {"type": "string", "example": "success"},
+                                            "doc_snapshot": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "snapshot_id": {"type": "string"},
+                                                    "project_id": {"type": "string"},
+                                                    "commit": {"type": "string"},
+                                                    "docs_bucket_path": {"type": "string", "example": "proj_10234/63d36c2b/docs/"},
+                                                    "generated_files": {"type": "array", "items": {"type": "object"}},
+                                                    "generated_at": {"type": "string"}
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "400": {"description": "Validation error"},
+                        "500": {"description": "Generation failure"},
+                        "504": {"description": "Generation timeout"}
+                    }
+                }
+            }
+        }
+    })
 
 @app.route("/health", methods=["GET"])
 def health():

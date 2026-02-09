@@ -4,6 +4,7 @@
 # Web Framework
 flask==3.0.0
 gunicorn==22.0.0
+flask-swagger-ui==4.11.1
 
 # HTTP Requests
 requests==2.31.0
