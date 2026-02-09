@@ -1,0 +1,21 @@
+.git
+.gitignore
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+node_modules/
+.DS_Store
+
+# Local env/secrets
+.env
+**/.env
+
+# Generated artifacts/logs
+sprint1/artifacts/
+backend/sprint1/artifacts/
+*.log

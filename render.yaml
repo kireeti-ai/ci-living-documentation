@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: epic2-doc-generation
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    plan: free
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: ALLOW_EPIC1_FETCH
+        value: "true"
+      - key: EPIC1_URL
+        value: "https://code-detect.onrender.com/analyze"
+      - key: R2_BUCKET_NAME
+        sync: false
+      - key: R2_ENDPOINT
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
