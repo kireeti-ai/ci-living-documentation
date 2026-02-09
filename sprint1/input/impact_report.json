@@ -1,41 +1,8 @@
 {
-    "report": {
-        "analysis_summary": {
-            "breaking_changes_detected": false,
-            "highest_severity": "PATCH",
-            "total_files": 1
-        },
-        "changes": [
-            {
-                "change_type": "DELETED",
-                "features": {},
-                "file": "README.md",
-                "is_binary": false,
-                "language": null,
-                "severity": "PATCH",
-                "syntax_error": false
-            }
-        ],
-        "context": {
-            "author": "kalyan-4406",
-            "author_email": "kalyanchalla44@gmail.com",
-            "branch": "main",
-            "commit_sha": "2b4f5451",
-            "full_sha": "2b4f5451aa9860c305198b889585748344e4ef93",
-            "intent": {
-                "message": "Merge branch 'main' of https://github.com/Kalyan-4406/test-repo",
-                "timestamp": "2026-02-08T16:42:17"
-            },
-            "repository": "git_clone_yxjf4rpm",
-            "stats": {
-                "is_first_commit": false,
-                "total_commits": 3
-            }
-        },
-        "meta": {
-            "generated_at": "2026-02-08T17:06:52.293536Z",
-            "tool_version": "1.0.0"
-        }
-    },
-    "status": "success"
+  "analysis_summary": {},
+  "changes": [],
+  "context": {
+    "commit_sha": "old",
+    "repository": "repo"
+  }
 }

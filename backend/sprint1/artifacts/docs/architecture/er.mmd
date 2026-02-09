@@ -1,0 +1,54 @@
+erDiagram
+    REPOSITORY ||--o{ BRANCH : contains
+    BRANCH ||--o{ COMMIT : contains
+    COMMIT ||--o{ FILE_CHANGE : includes
+    FILE_CHANGE ||--o{ CODE_FEATURE : has
+    
+    REPOSITORY {
+        string name
+        string url
+        string owner
+    }
+    
+    BRANCH {
+        string name
+        string ref
+        boolean is_default
+    }
+    
+    COMMIT {
+        string sha
+        string author
+        datetime timestamp
+        string message
+    }
+    
+    FILE_CHANGE {
+        string file_path
+        string language
+        string change_type
+        string severity
+    }
+    
+    CODE_FEATURE {
+        string type
+        string name
+        string description
+    }
+    
+    COMMIT ||--o{ IMPACT_REPORT : generates
+    IMPACT_REPORT ||--o{ DOCUMENTATION : produces
+    
+    IMPACT_REPORT {
+        string commit_sha
+        string severity
+        boolean breaking_changes
+        json analysis_summary
+    }
+    
+    DOCUMENTATION {
+        string type
+        string filename
+        datetime generated_at
+        string content
+    }

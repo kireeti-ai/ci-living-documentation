@@ -29,7 +29,7 @@ def system_diagram():
     end
     
     subgraph "Outputs"
-        README[README.md]
+        README[README.generated.md]
         API[API Docs]
         ADR[ADR]
         Diagrams[Diagrams]

@@ -1,0 +1,1627 @@
+{
+  "snapshot_id": "06e2966d2bf0bad5",
+  "project_id": "proj_snap_dish",
+  "commit": "8cf84334",
+  "generated_at": "1970-01-01T00:00:00Z",
+  "docs_bucket_path": "proj_snap_dish/8cf84334/docs/",
+  "generated_files": [
+    {
+      "file": "README.generated.md",
+      "type": "markdown",
+      "description": "Auto-generated repository README"
+    },
+    {
+      "file": "api/api-reference.md",
+      "type": "markdown",
+      "description": "API endpoint documentation"
+    },
+    {
+      "file": "adr/ADR-001.md",
+      "type": "markdown",
+      "description": "Architecture Decision Record"
+    },
+    {
+      "file": "architecture/system.mmd",
+      "type": "mermaid",
+      "description": "System architecture diagram"
+    },
+    {
+      "file": "architecture/sequence.mmd",
+      "type": "mermaid",
+      "description": "Process sequence diagram"
+    },
+    {
+      "file": "architecture/er.mmd",
+      "type": "mermaid",
+      "description": "Entity-relationship diagram"
+    },
+    {
+      "file": "tree.txt",
+      "type": "text",
+      "description": "Hierarchical file tree"
+    },
+    {
+      "file": "architecture/architecture.md",
+      "type": "markdown",
+      "description": "Architecture documentation text"
+    },
+    {
+      "file": "doc_snapshot.json",
+      "type": "json",
+      "description": "Documentation generation metadata"
+    },
+    {
+      "file": "documentation-health.md",
+      "type": "markdown",
+      "description": "Documentation health report"
+    }
+  ],
+  "documentation_health": {
+    "missing_sections": [],
+    "template_followed": true
+  },
+  "author": "kireeti-ai",
+  "analysis": {
+    "severity": "MAJOR",
+    "breaking_changes": true,
+    "files_changed": 309
+  },
+  "errors": [],
+  "statistics": {
+    "total_files": 309,
+    "total_documents": 10,
+    "diagram_count": 3
+  },
+  "repo": {
+    "name": "git_clone_hwf81j48",
+    "branch": "main",
+    "commit": "8cf84334"
+  },
+  "changed_files": [
+    {
+      "path": "LICENSE",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "README.md",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "SECURITY_DOCUMENTATION.md",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "SnapDish.pdf",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "logo-snapdish.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "readme.txt",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Back/.env.example",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Back/package.json",
+      "language": null,
+      "severity": "MINOR"
+    },
+    {
+      "path": "Back/server.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "DeliveryAgent/.env.production",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "DeliveryAgent/.svc",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "DeliveryAgent/README.md",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "DeliveryAgent/eslint.config.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "DeliveryAgent/index.html",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "DeliveryAgent/package.json",
+      "language": null,
+      "severity": "MINOR"
+    },
+    {
+      "path": "DeliveryAgent/vite.config.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/README.md",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/eslint.config.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/header.jpeg",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/index.html",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/package.json",
+      "language": null,
+      "severity": "MINOR"
+    },
+    {
+      "path": "Food/table-2.jpg",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/table.jpg",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/vite.config.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "admin/README.md",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "admin/eslint.config.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "admin/index.html",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "admin/package.json",
+      "language": null,
+      "severity": "MINOR"
+    },
+    {
+      "path": "admin/vite.config.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "restaurant-admin/.env.production",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "restaurant-admin/README.md",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "restaurant-admin/eslint.config.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "restaurant-admin/index.html",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "restaurant-admin/package.json",
+      "language": null,
+      "severity": "MINOR"
+    },
+    {
+      "path": "restaurant-admin/vite.config.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "Back/config/cloudinary.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "Back/config/db.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Back/controllers/addressController.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Back/controllers/adminController.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Back/controllers/creatorApplicationController.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Back/controllers/deliveryController.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Back/controllers/menuItemController.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Back/controllers/orderController.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Back/controllers/restaurantController.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Back/controllers/restaurantDashboardController.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Back/controllers/userController.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Back/middleware/authMiddleware.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Back/middleware/csrfMiddleware.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "Back/middleware/serverMiddleware.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Back/middleware/uploadMiddleware.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Back/models/addressModel.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "Back/models/creatorApplicationModel.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "Back/models/menuItemModel.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "Back/models/orderModel.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "Back/models/restaurantModel.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "Back/models/settingsModel.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "Back/models/userModel.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "Back/routes/addressRoutes.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "Back/routes/adminRoutes.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "Back/routes/creatorApplicationRoutes.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "Back/routes/dashboardRoutes.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "Back/routes/deliveryRoute.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "Back/routes/menuItemRoutes.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "Back/routes/orderRoute.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "Back/routes/restaurantDashboardRoutes.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "Back/routes/restaurantRoutes.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "Back/routes/userRoutes.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "Back/utils/cloudinary.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Back/utils/security.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Back/utils/sendEmail.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "DeliveryAgent/public/vite.svg",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "DeliveryAgent/src/App.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "DeliveryAgent/src/App.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "DeliveryAgent/src/index.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "DeliveryAgent/src/main.jsx",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/App.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/App.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Food/src/index.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/main.jsx",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "admin/public/vite.svg",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "admin/src/App.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "admin/src/App.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "admin/src/index.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "admin/src/main.jsx",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "restaurant-admin/src/App.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "restaurant-admin/src/App.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "restaurant-admin/src/index.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "restaurant-admin/src/main.jsx",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "restaurant-admin/src/tailwind.config.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "Back/uploads/avatars/1758173712276.jpeg",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Back/uploads/avatars/1758173848085.jpg",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Back/uploads/avatars/1758173866712.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Back/uploads/avatars/1758173963597.jpeg",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Back/uploads/avatars/1758180630468.jpg",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Back/uploads/avatars/1758195554100.jpg",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Back/uploads/avatars/1758197945761.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Back/uploads/avatars/1758215370241_agent-2.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Back/uploads/foods/1758194130922_agent.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Back/uploads/foods/1758194140361_agent.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Back/uploads/foods/1758194837608_agent.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Back/uploads/foods/1758195092708_FileUploadServlet.jpeg",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Back/uploads/foods/1758197972239_agent-2.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "DeliveryAgent/src/components/ActiveOrder.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "DeliveryAgent/src/components/ActiveOrder.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "DeliveryAgent/src/components/BottomNav.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "DeliveryAgent/src/components/BottomNav.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "DeliveryAgent/src/components/Header.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "DeliveryAgent/src/components/Header.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "DeliveryAgent/src/components/Layout.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "DeliveryAgent/src/components/OrderNotification.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "DeliveryAgent/src/components/OrderNotification.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "DeliveryAgent/src/context/AuthContext.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "DeliveryAgent/src/context/OrderContext.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "DeliveryAgent/src/pages/DashboardPage.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "DeliveryAgent/src/pages/DashboardPage.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "DeliveryAgent/src/pages/EarningsPage.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "DeliveryAgent/src/pages/EarningsPage.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "DeliveryAgent/src/pages/LoginPage.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "DeliveryAgent/src/pages/LoginPage.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "DeliveryAgent/src/pages/OrderHistoryPage.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "DeliveryAgent/src/pages/OrderHistoryPage.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "DeliveryAgent/src/pages/ProfilePage.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "DeliveryAgent/src/pages/ProfilePage.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "DeliveryAgent/src/pages/SSOHandler.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Food/src/Context/StoreContext.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Food/src/assets/add_icon_green.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/add_icon_white.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/agent-2.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/app_store.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/assets.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/bag_icon.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/basket_icon.svg",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/biryani.png.avif",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/burger-2.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/burger.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/checked.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/chicken.png.avif",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/cross_icon.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/facebook_icon.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_1.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_10.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_11.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_12.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_13.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_14.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_15.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_16.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_17.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_18.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_19.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_2.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_20.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_21.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_22.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_23.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_24.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_25.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_26.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_27.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_28.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_29.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_3.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_30.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_31.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_32.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_4.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_5.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_6.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_7.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_8.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/food_9.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/fried rice.png.avif",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/header.jpeg",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/header_img.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/heart_outline.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/heart_solid.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/hourglass.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/linkedin_icon.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/loading-bar.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/logo-snapdish.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/logo.svg",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/logout_icon.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/magnifying-glass.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/map.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/menu_1.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/menu_2.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/menu_3.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/menu_4.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/menu_5.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/menu_6.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/menu_7.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/menu_8.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/offer.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/paratha.png.avif",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/parcel_icon.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/parota.jpg.avif",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/pin.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/pizza.png.avif",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/play_store.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/profile_icon.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/rating_starts.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/react.svg",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/remove.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/remove_icon_red.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/restaurant.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/review.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/save-1.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/save.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/search_icon.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/selector_icon.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/star.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/trash-can.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/twitter_icon.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/un_checked.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/assets/user.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "admin/src/assets/add_icon.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "admin/src/assets/assets.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "admin/src/assets/booking.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "admin/src/assets/logo-snapdish.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "admin/src/assets/logo.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "admin/src/assets/order_icon.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "admin/src/assets/plus.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "admin/src/assets/profile_image.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "admin/src/assets/react.svg",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "admin/src/assets/search.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "admin/src/assets/user.png",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "admin/src/components/Dashboard.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "admin/src/components/Dashboard.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "admin/src/components/ErrorBoundary.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "admin/src/components/ErrorBoundary.jsx",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "admin/src/components/LoginPage.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "admin/src/components/ManageCreators.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "admin/src/components/ManageCreators.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "admin/src/components/ManageCustomers.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "admin/src/components/ManageDeliveryPartners.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "admin/src/components/ManageRestaurants.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "admin/src/components/ManageUsers.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "admin/src/components/Settings.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "admin/src/components/Sidebar.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "admin/src/components/ViewOrders.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "restaurant-admin/src/components/ChartCard.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "restaurant-admin/src/components/DataTable.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "restaurant-admin/src/components/Navbar.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "restaurant-admin/src/components/RevenueOrdersChart.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "restaurant-admin/src/components/Sidebar.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "restaurant-admin/src/components/StatsCard.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "restaurant-admin/src/context/AuthContext.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "restaurant-admin/src/pages/Dashboard.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "restaurant-admin/src/pages/Login.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "restaurant-admin/src/pages/Menu.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "restaurant-admin/src/pages/Orders.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "restaurant-admin/src/pages/Reports.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "restaurant-admin/src/pages/Restaurants.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "restaurant-admin/src/pages/SSOHandler.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "restaurant-admin/src/pages/Settings.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "restaurant-admin/src/pages/Users.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "restaurant-admin/src/utils/api.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/components/Addresses/Address.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/components/Addresses/Address.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Food/src/components/Addresses/AddressManager.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/components/Addresses/AddressManager.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Food/src/components/FoodItem/FoodItem.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/components/FoodItem/FoodItem.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Food/src/components/Footer/Footer.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/components/Footer/Footer.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Food/src/components/Header/Header.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/components/Header/Header.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Food/src/components/LocationModel/LocationModel.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/components/LocationModel/LocationModel.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Food/src/components/LoginPopup/LoginPopup.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/components/LoginPopup/LoginPopup.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Food/src/components/MyReviews/MyReviews.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/components/MyReviews/MyReviews.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Food/src/components/OrderStatusTracker/OrderStatusTracker.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/components/OrderStatusTracker/OrderStatusTracker.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Food/src/components/RestaurantChangePrompt/RestaurantChangePrompt.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/components/RestaurantChangePrompt/RestaurantChangePrompt.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Food/src/components/RestaurantDisplay/RestaurantDisplay.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/components/RestaurantDisplay/RestaurantDisplay.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Food/src/components/RestaurantItem/RestaurantItem.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/components/RestaurantItem/RestaurantItem.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Food/src/components/Reviews/Reviews.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/components/Reviews/Reviews.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Food/src/components/navbar/navbar.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/components/navbar/navbar.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Food/src/pages/Affiliate/CreatorCommunity.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/pages/Affiliate/CreatorCommunity.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Food/src/pages/ManageResturant/ManageRestaurant.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/pages/ManageResturant/ManageResturant.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Food/src/pages/MyOrders/MyOrders.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/pages/MyOrders/MyOrders.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Food/src/pages/MyReviews/MyReviews.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/pages/MyReviews/MyReviews.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Food/src/pages/OrderSuccess/OrderSuccess.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/pages/OrderSuccess/OrderSuccess.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Food/src/pages/RestaurantDetail/RestaurantDetail.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/pages/RestaurantDetail/RestaurantDetail.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Food/src/pages/SearchPage/SearchPage.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/pages/SearchPage/SearchPage.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Food/src/pages/WishList/WishList.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/pages/WishList/WishList.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Food/src/pages/cart/Cart.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Food/src/pages/cart/cart.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/pages/home/Home.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/pages/home/Home.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Food/src/pages/placeOrder/PlaceOrder.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Food/src/pages/placeOrder/placeOrder.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/pages/profile/profile.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Food/src/pages/profile/profile.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    }
+  ]
+}

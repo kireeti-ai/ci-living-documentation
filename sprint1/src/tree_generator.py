@@ -15,7 +15,7 @@ def generate_tree(report):
         str: Tree representation of the file structure
     """
     # Extract all changed files
-    files = [change["file"] for change in report.get("changes", [])]
+    files = [change.get("file", "unknown") for change in report.get("changes", [])]
     
     if not files:
         return "No files changed"
