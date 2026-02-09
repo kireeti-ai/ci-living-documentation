@@ -2,15 +2,16 @@
 
 ## Status
 
-PASS
+FAIL
 
 ## Template Compliance
 
-Template followed: `True`.
+Template followed: `False`.
 
 ## Missing Sections
 
-- None
+- README.generated.md
+- adr/ADR-001.md
 
 ## Recommendations
 

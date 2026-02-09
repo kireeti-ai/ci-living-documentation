@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides captions and explanations for generated architecture diagrams for `git_clone_hwf81j48` at `main` (`8cf84334`).
+This document provides captions and explanations for generated architecture diagrams for `git_clone_p9xpke17` at `main` (`8cf84334`).
 
 ## System Diagram
 

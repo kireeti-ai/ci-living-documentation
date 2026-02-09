@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from sprint1.src.ci.r2_uploader import upload_docs_to_r2
 from sprint1.src.loader import load_impact_report
 from sprint1.src.readme_generator import generate_readme
-from sprint1.src.api_generator import generate_api_docs
+from sprint1.src.api_generator import generate_api_docs, generate_api_descriptions_json
 from sprint1.src.adr_generator import generate_adr
 from sprint1.src.diagram_generator import system_diagram, sequence_diagram, er_diagram
 from sprint1.src.tree_generator import generate_tree
@@ -90,7 +90,13 @@ def generate_all_docs(report, project_id, commit_hash, generated_at, docs_bucket
         f"{OUTPUT_BASE}/api/api-reference.md",
         "markdown",
         "API endpoint documentation",
-        lambda: generate_api_docs(report)
+        lambda: generate_api_docs(report, rag_context=rag_context)
+    )
+    attempt(
+        f"{OUTPUT_BASE}/api/api-descriptions.json",
+        "json",
+        "API endpoint descriptions map",
+        lambda: generate_api_descriptions_json(report, rag_context=rag_context)
     )
     attempt(
         f"{OUTPUT_BASE}/adr/ADR-001.md",

@@ -1,22 +1,10 @@
 # API Reference
 
-**Total Endpoints:** 10
+**Total Endpoints:** 8
 
 ---
 
 ## Endpoints by File
-
-### `Back/server.js`
-
-**Language:** javascript
-
-- **Method:** GET
-  **Path:** `/`
-  **Summary:** Detected API endpoint from impact analysis of code changes.
-  **Authentication:** Not detected in impact report
-  **Parameters:** Not detected in impact report
-  **Responses:** Not detected in impact report
-  **Examples:** Not detected in impact report
 
 ### `Back/middleware/csrfMiddleware.js`
 
@@ -24,77 +12,89 @@
 
 - **Method:** GET
   **Path:** `/api/csrf-token`
-  **Summary:** Detected API endpoint from impact analysis of code changes.
-  **Authentication:** Not detected in impact report
-  **Parameters:** Not detected in impact report
-  **Responses:** Not detected in impact report
-  **Examples:** Not detected in impact report
+  **Summary:** Retrieve api data.
+  **Authentication:** Public endpoint (authentication may not be required)
+  **Parameters:** Path params: none detected
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
+  **Examples:** `curl -X GET "<base-url>/api/csrf-token"`
 
 ### `Back/routes/addressRoutes.js`
 
 **Language:** javascript
 
-- **Method:** GET
-  **Path:** `/`
-  **Summary:** Detected API endpoint from impact analysis of code changes.
-  **Authentication:** Not detected in impact report
-  **Parameters:** Not detected in impact report
-  **Responses:** Not detected in impact report
-  **Examples:** Not detected in impact report
-- **Method:** POST
-  **Path:** `/`
-  **Summary:** Detected API endpoint from impact analysis of code changes.
-  **Authentication:** Not detected in impact report
-  **Parameters:** Not detected in impact report
-  **Responses:** Not detected in impact report
-  **Examples:** Not detected in impact report
-- **Method:** PUT
-  **Path:** `/:id`
-  **Summary:** Detected API endpoint from impact analysis of code changes.
-  **Authentication:** Not detected in impact report
-  **Parameters:** Not detected in impact report
-  **Responses:** Not detected in impact report
-  **Examples:** Not detected in impact report
 - **Method:** DELETE
   **Path:** `/:id`
-  **Summary:** Detected API endpoint from impact analysis of code changes.
-  **Authentication:** Not detected in impact report
-  **Parameters:** Not detected in impact report
-  **Responses:** Not detected in impact report
-  **Examples:** Not detected in impact report
+  **Summary:** Delete :id.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: id
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
+  **Examples:** `curl -X DELETE "<base-url>/:id"`
+- **Method:** GET
+  **Path:** `/`
+  **Summary:** Retrieve resource data.
+  **Authentication:** Public endpoint (authentication may not be required)
+  **Parameters:** Path params: none detected
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
+  **Examples:** `curl -X GET "<base-url>/"`
 - **Method:** PATCH
   **Path:** `/:id/default`
-  **Summary:** Detected API endpoint from impact analysis of code changes.
-  **Authentication:** Not detected in impact report
-  **Parameters:** Not detected in impact report
-  **Responses:** Not detected in impact report
-  **Examples:** Not detected in impact report
+  **Summary:** Partially update :id.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: id
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 500 Server Error
+  **Examples:** `curl -X PATCH "<base-url>/:id/default"`
+- **Method:** POST
+  **Path:** `/`
+  **Summary:** Create resource.
+  **Authentication:** Public endpoint (authentication may not be required)
+  **Parameters:** Path params: none detected
+  **Responses:** 201 Created (or 200 OK), 400 Bad Request, 401/403 Unauthorized, 500 Server Error
+  **Examples:** `curl -X POST "<base-url>/"`
+- **Method:** PUT
+  **Path:** `/:id`
+  **Summary:** Update :id.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: id
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
+  **Examples:** `curl -X PUT "<base-url>/:id"`
 
 ### `Back/routes/creatorApplicationRoutes.js`
 
 **Language:** javascript
 
-- **Method:** POST
-  **Path:** `/submit`
-  **Summary:** Detected API endpoint from impact analysis of code changes.
-  **Authentication:** Not detected in impact report
-  **Parameters:** Not detected in impact report
-  **Responses:** Not detected in impact report
-  **Examples:** Not detected in impact report
 - **Method:** GET
   **Path:** `/`
-  **Summary:** Detected API endpoint from impact analysis of code changes.
-  **Authentication:** Not detected in impact report
-  **Parameters:** Not detected in impact report
-  **Responses:** Not detected in impact report
-  **Examples:** Not detected in impact report
+  **Summary:** Retrieve resource data.
+  **Authentication:** Public endpoint (authentication may not be required)
+  **Parameters:** Path params: none detected
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
+  **Examples:** `curl -X GET "<base-url>/"`
 - **Method:** PATCH
   **Path:** `/:id/status`
-  **Summary:** Detected API endpoint from impact analysis of code changes.
-  **Authentication:** Not detected in impact report
-  **Parameters:** Not detected in impact report
-  **Responses:** Not detected in impact report
-  **Examples:** Not detected in impact report
+  **Summary:** Partially update :id.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: id
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 500 Server Error
+  **Examples:** `curl -X PATCH "<base-url>/:id/status"`
+- **Method:** POST
+  **Path:** `/submit`
+  **Summary:** Create submit.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: none detected
+  **Responses:** 201 Created (or 200 OK), 400 Bad Request, 401/403 Unauthorized, 500 Server Error
+  **Examples:** `curl -X POST "<base-url>/submit"`
+
+### `Back/server.js`
+
+**Language:** javascript
+
+- **Method:** GET
+  **Path:** `/`
+  **Summary:** Retrieve resource data.
+  **Authentication:** Public endpoint (authentication may not be required)
+  **Parameters:** Path params: none detected
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
+  **Examples:** `curl -X GET "<base-url>/"`
 
 ---
 
@@ -113,6 +113,7 @@
 
 ## Notes
 
-- This documentation was automatically generated from impact analysis
-- Endpoints are extracted based on detected API patterns
+- This documentation was generated from detected endpoint patterns with inferred metadata
+- LLM enrichment was enabled where available using local RAG context
+- Review source controllers/routes for exact auth and payload schemas
 - For detailed implementation, refer to the source files

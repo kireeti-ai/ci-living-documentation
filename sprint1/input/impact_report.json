@@ -1,8 +1,1474 @@
 {
-  "analysis_summary": {},
-  "changes": [],
-  "context": {
-    "commit_sha": "old",
-    "repository": "repo"
-  }
+    "report": {
+        "affected_packages": [
+            "@eslint/js",
+            "globals",
+            "eslint-plugin-react-hooks",
+            "eslint-plugin-react-refresh",
+            "eslint/config",
+            "vite",
+            "@vitejs/plugin-react",
+            "react-router-dom",
+            "./pages/Auth/Auth",
+            "./pages/Faculty/FacultyDashboard",
+            "./pages/Faculty/QuestionBank",
+            "./pages/Student/StudentDashboard",
+            "./pages/Student/QuizPlayer",
+            "./pages/Student/ResultPage",
+            "./pages/Faculty/AIQuestionGenerator",
+            "./pages/Profile/Profile",
+            "react",
+            "react-dom/client",
+            "./App.jsx",
+            "../services/quizService",
+            "axios",
+            "lucide-react",
+            "react-router-dom'; // Added for redirection",
+            "../../components/Sidebar/Sidebar",
+            "../../services/quizService",
+            "../../components/CreateQuizModal",
+            "../../components/QuizResultsModal",
+            "com.exl.quizapp",
+            "com.exl.quizapp.config",
+            "com.exl.quizapp.controller",
+            "com.exl.quizapp.dao",
+            "com.exl.quizapp.model",
+            "com.exl.quizapp.service"
+        ],
+        "analysis_summary": {
+            "breaking_changes_detected": true,
+            "highest_severity": "MAJOR",
+            "total_files": 65
+        },
+        "api_summary": {
+            "added": 20,
+            "modified": 0,
+            "removed": 0
+        },
+        "breaking_change_details": [
+            "Database schema changes detected",
+            "Major severity changes detected"
+        ],
+        "change_complexity_score": 1.0,
+        "change_summary": "Merge pull request #1 from kireeti-ai/add-security-features. Adds security enhancements; includes database schema changes; updates API endpoints; touches quiz, frontend, database components.",
+        "changes": [
+            {
+                "change_type": "ADDED",
+                "component": "other",
+                "features": {},
+                "file": "README.md",
+                "is_binary": false,
+                "language": null,
+                "severity": "PATCH",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "other",
+                "features": {},
+                "file": "SECURITY_FEATURES.md",
+                "is_binary": false,
+                "language": null,
+                "severity": "PATCH",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "other",
+                "features": {
+                    "api_endpoints": [],
+                    "classes": [],
+                    "exported_classes": [],
+                    "exported_functions": [],
+                    "functions": []
+                },
+                "file": "Frontend/eslint.config.js",
+                "is_binary": false,
+                "language": "javascript",
+                "severity": "PATCH",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "other",
+                "features": {},
+                "file": "Frontend/index.html",
+                "is_binary": false,
+                "language": null,
+                "severity": "PATCH",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "other",
+                "features": {},
+                "file": "Frontend/package.json",
+                "is_binary": false,
+                "language": null,
+                "severity": "MINOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "other",
+                "features": {
+                    "api_endpoints": [],
+                    "classes": [],
+                    "exported_classes": [],
+                    "exported_functions": [],
+                    "functions": []
+                },
+                "file": "Frontend/vite.config.js",
+                "is_binary": false,
+                "language": "javascript",
+                "severity": "PATCH",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "other",
+                "features": {},
+                "file": "backend/.dockerignore",
+                "is_binary": false,
+                "language": null,
+                "severity": "PATCH",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "other",
+                "features": {},
+                "file": "backend/Dockerfile",
+                "is_binary": false,
+                "language": null,
+                "severity": "PATCH",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "other",
+                "features": {},
+                "file": "backend/mvnw",
+                "is_binary": false,
+                "language": null,
+                "severity": "PATCH",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "other",
+                "features": {},
+                "file": "backend/mvnw.cmd",
+                "is_binary": false,
+                "language": null,
+                "severity": "PATCH",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "other",
+                "features": {},
+                "file": "backend/pom.xml",
+                "is_binary": false,
+                "language": null,
+                "severity": "PATCH",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "quiz",
+                "features": {},
+                "file": "backend/quiz.pem",
+                "is_binary": false,
+                "language": null,
+                "severity": "PATCH",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "other",
+                "features": {},
+                "file": "Frontend/src/App.css",
+                "is_binary": false,
+                "language": null,
+                "severity": "PATCH",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "other",
+                "features": {
+                    "api_endpoints": [],
+                    "classes": [],
+                    "exported_classes": [],
+                    "exported_functions": [],
+                    "functions": [
+                        "App"
+                    ]
+                },
+                "file": "Frontend/src/App.jsx",
+                "is_binary": false,
+                "language": "javascript",
+                "severity": "MINOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "other",
+                "features": {},
+                "file": "Frontend/src/index.css",
+                "is_binary": false,
+                "language": null,
+                "severity": "PATCH",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "other",
+                "features": {
+                    "api_endpoints": [],
+                    "classes": [],
+                    "exported_classes": [],
+                    "exported_functions": [],
+                    "functions": []
+                },
+                "file": "Frontend/src/main.jsx",
+                "is_binary": false,
+                "language": "javascript",
+                "severity": "PATCH",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "frontend",
+                "features": {
+                    "api_endpoints": [],
+                    "classes": [],
+                    "exported_classes": [],
+                    "exported_functions": [],
+                    "functions": [
+                        "CreateQuizModal",
+                        "handleSubmit"
+                    ]
+                },
+                "file": "Frontend/src/components/CreateQuizModal.jsx",
+                "is_binary": false,
+                "language": "javascript",
+                "severity": "MINOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "frontend",
+                "features": {
+                    "api_endpoints": [],
+                    "classes": [],
+                    "exported_classes": [],
+                    "exported_functions": [],
+                    "functions": [
+                        "QuizResultsModal",
+                        "fetchResults"
+                    ]
+                },
+                "file": "Frontend/src/components/QuizResultsModal.jsx",
+                "is_binary": false,
+                "language": "javascript",
+                "severity": "MINOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "quiz",
+                "features": {
+                    "api_endpoints": [],
+                    "classes": [],
+                    "exported_classes": [],
+                    "exported_functions": [
+                        "createQuiz",
+                        "getMyQuizzes",
+                        "togglePublishQuiz"
+                    ],
+                    "functions": [
+                        "getAuthHeaders",
+                        "createQuiz",
+                        "getMyQuizzes",
+                        "togglePublishQuiz"
+                    ]
+                },
+                "file": "Frontend/src/services/quizService.js",
+                "is_binary": false,
+                "language": "javascript",
+                "severity": "MINOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "frontend",
+                "features": {
+                    "api_endpoints": [],
+                    "classes": [],
+                    "exported_classes": [],
+                    "exported_functions": [],
+                    "functions": [
+                        "Sidebar",
+                        "handleLogout"
+                    ]
+                },
+                "file": "Frontend/src/components/Sidebar/Sidebar.jsx",
+                "is_binary": false,
+                "language": "javascript",
+                "severity": "MINOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "authentication",
+                "features": {},
+                "file": "Frontend/src/pages/Auth/Auth.css",
+                "is_binary": false,
+                "language": null,
+                "severity": "PATCH",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "authentication",
+                "features": {
+                    "api_endpoints": [],
+                    "classes": [],
+                    "exported_classes": [],
+                    "exported_functions": [],
+                    "functions": [
+                        "Auth",
+                        "parseJwt",
+                        "handleSubmit",
+                        "handleOtpSubmit"
+                    ]
+                },
+                "file": "Frontend/src/pages/Auth/Auth.jsx",
+                "is_binary": false,
+                "language": "javascript",
+                "severity": "MINOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "frontend",
+                "features": {
+                    "api_endpoints": [],
+                    "classes": [],
+                    "exported_classes": [],
+                    "exported_functions": [],
+                    "functions": [
+                        "AIQuestionGenerator",
+                        "handleFileChange",
+                        "handleGenerate"
+                    ],
+                    "note": "Partial extraction due to syntax error"
+                },
+                "file": "Frontend/src/pages/Faculty/AIQuestionGenerator.jsx",
+                "is_binary": false,
+                "language": "javascript",
+                "severity": "MINOR",
+                "syntax_error": true
+            },
+            {
+                "change_type": "ADDED",
+                "component": "frontend",
+                "features": {},
+                "file": "Frontend/src/pages/Faculty/Faculty.css",
+                "is_binary": false,
+                "language": null,
+                "severity": "PATCH",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "frontend",
+                "features": {
+                    "api_endpoints": [],
+                    "classes": [],
+                    "exported_classes": [],
+                    "exported_functions": [],
+                    "functions": [
+                        "FacultyDashboard",
+                        "fetchQuizzes",
+                        "handlePublishToggle",
+                        "handleDelete",
+                        "copyToClipboard"
+                    ]
+                },
+                "file": "Frontend/src/pages/Faculty/FacultyDashboard.jsx",
+                "is_binary": false,
+                "language": "javascript",
+                "severity": "MINOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "frontend",
+                "features": {
+                    "api_endpoints": [],
+                    "classes": [],
+                    "exported_classes": [],
+                    "exported_functions": [],
+                    "functions": [
+                        "QuestionBank",
+                        "getAuthHeaders",
+                        "fetchQuestions",
+                        "validateForm",
+                        "handleSubmit",
+                        "handleEdit",
+                        "handleDelete",
+                        "handleChange",
+                        "handleCloseModal"
+                    ]
+                },
+                "file": "Frontend/src/pages/Faculty/QuestionBank.jsx",
+                "is_binary": false,
+                "language": "javascript",
+                "severity": "MINOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "frontend",
+                "features": {},
+                "file": "Frontend/src/pages/Profile/Profile.css",
+                "is_binary": false,
+                "language": null,
+                "severity": "PATCH",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "frontend",
+                "features": {
+                    "api_endpoints": [],
+                    "classes": [],
+                    "exported_classes": [],
+                    "exported_functions": [],
+                    "functions": [
+                        "Profile",
+                        "fetchProfile",
+                        "fetchQrCode",
+                        "handleBack"
+                    ]
+                },
+                "file": "Frontend/src/pages/Profile/Profile.jsx",
+                "is_binary": false,
+                "language": "javascript",
+                "severity": "MINOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "frontend",
+                "features": {
+                    "api_endpoints": [],
+                    "classes": [],
+                    "exported_classes": [],
+                    "exported_functions": [],
+                    "functions": [
+                        "QuizPlayer",
+                        "formatTime",
+                        "handleOptionSelect",
+                        "handleSubmit"
+                    ]
+                },
+                "file": "Frontend/src/pages/Student/QuizPlayer.jsx",
+                "is_binary": false,
+                "language": "javascript",
+                "severity": "MINOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "frontend",
+                "features": {
+                    "api_endpoints": [],
+                    "classes": [],
+                    "exported_classes": [],
+                    "exported_functions": [],
+                    "functions": [
+                        "ResultPage",
+                        "fetchResult"
+                    ]
+                },
+                "file": "Frontend/src/pages/Student/ResultPage.jsx",
+                "is_binary": false,
+                "language": "javascript",
+                "severity": "MINOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "frontend",
+                "features": {},
+                "file": "Frontend/src/pages/Student/Student.css",
+                "is_binary": false,
+                "language": null,
+                "severity": "PATCH",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "frontend",
+                "features": {
+                    "api_endpoints": [],
+                    "classes": [],
+                    "exported_classes": [],
+                    "exported_functions": [],
+                    "functions": [
+                        "StudentDashboard",
+                        "fetchHistory",
+                        "handleJoin",
+                        "handleLogout"
+                    ]
+                },
+                "file": "Frontend/src/pages/Student/StudentDashboard.jsx",
+                "is_binary": false,
+                "language": "javascript",
+                "severity": "MINOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "other",
+                "features": {},
+                "file": "backend/src/main/resources/application.properties.example",
+                "is_binary": false,
+                "language": null,
+                "severity": "PATCH",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "quiz",
+                "features": {
+                    "annotations": [
+                        "@SpringBootApplication"
+                    ],
+                    "api_endpoints": [],
+                    "classes": [
+                        "QuizAppApplication"
+                    ],
+                    "methods": []
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/QuizAppApplication.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "PATCH",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "quiz",
+                "features": {
+                    "annotations": [
+                        "@Test",
+                        "@SpringBootTest"
+                    ],
+                    "api_endpoints": [],
+                    "classes": [
+                        "QuizAppApplicationTests"
+                    ],
+                    "methods": []
+                },
+                "file": "backend/src/test/java/com/exl/quizapp/QuizAppApplicationTests.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "PATCH",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "quiz",
+                "features": {
+                    "annotations": [
+                        "@Bean",
+                        "@Configuration",
+                        "@Override"
+                    ],
+                    "api_endpoints": [],
+                    "classes": [
+                        "CorsConfig"
+                    ],
+                    "methods": [
+                        "corsConfigurer",
+                        "addCorsMappings"
+                    ]
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/config/CorsConfig.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "MINOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "authentication",
+                "features": {
+                    "annotations": [
+                        "@Component",
+                        "@Override"
+                    ],
+                    "api_endpoints": [],
+                    "classes": [
+                        "JwtFilter"
+                    ],
+                    "methods": []
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/config/JwtFilter.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "PATCH",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "security",
+                "features": {
+                    "annotations": [
+                        "@Bean",
+                        "@Configuration",
+                        "@Lazy",
+                        "@EnableWebSecurity"
+                    ],
+                    "api_endpoints": [],
+                    "classes": [
+                        "SecurityConfig"
+                    ],
+                    "methods": [
+                        "securityFilterChain",
+                        "corsConfigurationSource",
+                        "authenticationProvider",
+                        "authenticationManager",
+                        "passwordEncoder"
+                    ]
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/config/SecurityConfig.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "MINOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "quiz",
+                "features": {
+                    "annotations": [
+                        "@RestController",
+                        "@PostMapping",
+                        "@Autowired",
+                        "@RequestMapping",
+                        "@RequestParam",
+                        "@CrossOrigin"
+                    ],
+                    "api_endpoints": [
+                        {
+                            "line": 34,
+                            "route": "ai/generate",
+                            "verb": "POST"
+                        }
+                    ],
+                    "classes": [
+                        "AIController"
+                    ],
+                    "methods": []
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/controller/AIController.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "MAJOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "quiz",
+                "features": {
+                    "annotations": [
+                        "@RestController",
+                        "@RequestBody",
+                        "@PutMapping",
+                        "@PostMapping",
+                        "@DeleteMapping",
+                        "@PathVariable",
+                        "@Autowired",
+                        "@RequestMapping",
+                        "@CrossOrigin",
+                        "@GetMapping"
+                    ],
+                    "api_endpoints": [
+                        {
+                            "line": 25,
+                            "route": "questionmy-questions",
+                            "verb": "GET"
+                        },
+                        {
+                            "line": 31,
+                            "route": "question/category/{category}",
+                            "verb": "GET"
+                        },
+                        {
+                            "line": 37,
+                            "route": "questionadd-batch",
+                            "verb": "POST"
+                        },
+                        {
+                            "line": 44,
+                            "route": "questionadd",
+                            "verb": "POST"
+                        },
+                        {
+                            "line": 50,
+                            "route": "questionupdate/{id}",
+                            "verb": "PUT"
+                        },
+                        {
+                            "line": 55,
+                            "route": "questiondelete/{id}",
+                            "verb": "DELETE"
+                        }
+                    ],
+                    "classes": [
+                        "QuestionController"
+                    ],
+                    "methods": [
+                        "getMyQuestions",
+                        "getQuestionByCategory",
+                        "addQuestions",
+                        "addQuestion",
+                        "updateQuestion",
+                        "deleteQuestion"
+                    ]
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/controller/QuestionController.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "MAJOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "quiz",
+                "features": {
+                    "annotations": [
+                        "@RestController",
+                        "@PatchMapping",
+                        "@RequestBody",
+                        "@PostMapping",
+                        "@PathVariable",
+                        "@Autowired",
+                        "@RequestMapping",
+                        "@RequestParam",
+                        "@CrossOrigin",
+                        "@GetMapping"
+                    ],
+                    "api_endpoints": [
+                        {
+                            "line": 25,
+                            "route": "quizcreate",
+                            "verb": "POST"
+                        },
+                        {
+                            "line": 41,
+                            "route": "quizget/{id}",
+                            "verb": "GET"
+                        },
+                        {
+                            "line": 46,
+                            "route": "quizcode/{code}",
+                            "verb": "GET"
+                        },
+                        {
+                            "line": 51,
+                            "route": "quizsubmit/{id}",
+                            "verb": "POST"
+                        },
+                        {
+                            "line": 57,
+                            "route": "quizresult/{id}",
+                            "verb": "GET"
+                        },
+                        {
+                            "line": 62,
+                            "route": "quizall",
+                            "verb": "GET"
+                        },
+                        {
+                            "line": 68,
+                            "route": "quizmy-quizzes",
+                            "verb": "GET"
+                        }
+                    ],
+                    "classes": [
+                        "QuizController"
+                    ],
+                    "methods": [
+                        "createQuiz",
+                        "getQuizQuestions",
+                        "getQuizByCode",
+                        "submitQuiz",
+                        "getResult",
+                        "getAllQuizzes",
+                        "getMyQuizzes",
+                        "togglePublish"
+                    ]
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/controller/QuizController.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "MAJOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "quiz",
+                "features": {
+                    "annotations": [
+                        "@RestController",
+                        "@RequestBody",
+                        "@PostMapping",
+                        "@Autowired",
+                        "@GetMapping"
+                    ],
+                    "api_endpoints": [
+                        {
+                            "line": 25,
+                            "route": "/register",
+                            "verb": "POST"
+                        },
+                        {
+                            "line": 30,
+                            "route": "/login",
+                            "verb": "POST"
+                        },
+                        {
+                            "line": 35,
+                            "route": "/verify-otp",
+                            "verb": "POST"
+                        },
+                        {
+                            "line": 47,
+                            "route": "/api/user/profile",
+                            "verb": "GET"
+                        },
+                        {
+                            "line": 56,
+                            "route": "/api/user/qr-code",
+                            "verb": "GET"
+                        },
+                        {
+                            "line": 72,
+                            "route": "/hello",
+                            "verb": "GET"
+                        }
+                    ],
+                    "classes": [
+                        "UserController"
+                    ],
+                    "methods": [
+                        "register",
+                        "greet"
+                    ]
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/controller/UserController.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "MAJOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "quiz",
+                "features": {
+                    "annotations": [
+                        "@Repository"
+                    ],
+                    "api_endpoints": [],
+                    "classes": [],
+                    "methods": []
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/dao/AttemptDao.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "PATCH",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "quiz",
+                "features": {
+                    "annotations": [
+                        "@Query",
+                        "@Repository"
+                    ],
+                    "api_endpoints": [],
+                    "classes": [],
+                    "methods": []
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/dao/QuestionDao.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "PATCH",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "quiz",
+                "features": {
+                    "annotations": [
+                        "@Repository"
+                    ],
+                    "api_endpoints": [],
+                    "classes": [],
+                    "methods": []
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/dao/QuizDao.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "PATCH",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "quiz",
+                "features": {
+                    "annotations": [
+                        "@Repository"
+                    ],
+                    "api_endpoints": [],
+                    "classes": [],
+                    "methods": []
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/dao/UserRepo.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "PATCH",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "database",
+                "features": {
+                    "annotations": [
+                        "@Id",
+                        "@Entity",
+                        "@GeneratedValue",
+                        "@Data"
+                    ],
+                    "api_endpoints": [],
+                    "classes": [
+                        "Attempt"
+                    ],
+                    "methods": []
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/model/Attempt.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "MAJOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "database",
+                "features": {
+                    "annotations": [
+                        "@Entity",
+                        "@Table",
+                        "@Column",
+                        "@Id",
+                        "@GeneratedValue",
+                        "@Data"
+                    ],
+                    "api_endpoints": [],
+                    "classes": [
+                        "Question"
+                    ],
+                    "methods": []
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/model/Question.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "MAJOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "database",
+                "features": {
+                    "annotations": [
+                        "@Data"
+                    ],
+                    "api_endpoints": [],
+                    "classes": [
+                        "QuestionWrapper"
+                    ],
+                    "methods": []
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/model/QuestionWrapper.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "PATCH",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "database",
+                "features": {
+                    "annotations": [
+                        "@Entity",
+                        "@ManyToMany",
+                        "@Id",
+                        "@GeneratedValue",
+                        "@Data"
+                    ],
+                    "api_endpoints": [],
+                    "classes": [
+                        "Quiz"
+                    ],
+                    "methods": []
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/model/Quiz.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "MAJOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "database",
+                "features": {
+                    "annotations": [
+                        "@Data"
+                    ],
+                    "api_endpoints": [],
+                    "classes": [
+                        "QuizStartResponse"
+                    ],
+                    "methods": []
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/model/QuizStartResponse.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "PATCH",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "database",
+                "features": {
+                    "annotations": [
+                        "@Data"
+                    ],
+                    "api_endpoints": [],
+                    "classes": [
+                        "Response"
+                    ],
+                    "methods": []
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/model/Response.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "PATCH",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "database",
+                "features": {
+                    "annotations": [
+                        "@Override",
+                        "@Nullable"
+                    ],
+                    "api_endpoints": [],
+                    "classes": [
+                        "UserPrinicipal"
+                    ],
+                    "methods": [
+                        "getUsername",
+                        "isAccountNonExpired",
+                        "isAccountNonLocked",
+                        "isCredentialsNonExpired",
+                        "isEnabled"
+                    ]
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/model/UserPrinicipal.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "MINOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "database",
+                "features": {
+                    "annotations": [
+                        "@Id",
+                        "@Entity",
+                        "@GeneratedValue",
+                        "@Override"
+                    ],
+                    "api_endpoints": [],
+                    "classes": [
+                        "Users"
+                    ],
+                    "methods": [
+                        "setName",
+                        "setRole",
+                        "getName",
+                        "getRole",
+                        "toString",
+                        "setId",
+                        "setUsername",
+                        "setPassword",
+                        "getId",
+                        "getUsername",
+                        "getPassword",
+                        "getEmail",
+                        "setEmail"
+                    ]
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/model/Users.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "MAJOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "quiz",
+                "features": {
+                    "annotations": [
+                        "@Service"
+                    ],
+                    "api_endpoints": [],
+                    "classes": [
+                        "AIService"
+                    ],
+                    "methods": [
+                        "generateQuestions"
+                    ]
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/service/AIService.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "MINOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "quiz",
+                "features": {
+                    "annotations": [
+                        "@Autowired",
+                        "@Service"
+                    ],
+                    "api_endpoints": [],
+                    "classes": [
+                        "EmailService"
+                    ],
+                    "methods": [
+                        "sendOtpEmail"
+                    ]
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/service/EmailService.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "MINOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "security",
+                "features": {
+                    "annotations": [
+                        "@Value",
+                        "@Service"
+                    ],
+                    "api_endpoints": [],
+                    "classes": [
+                        "EncryptionService"
+                    ],
+                    "methods": [
+                        "encrypt",
+                        "decrypt"
+                    ]
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/service/EncryptionService.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "MINOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "authentication",
+                "features": {
+                    "annotations": [
+                        "@Service"
+                    ],
+                    "api_endpoints": [],
+                    "classes": [
+                        "JWTService"
+                    ],
+                    "methods": [
+                        "generateToken",
+                        "extractUsername",
+                        "validateToken"
+                    ]
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/service/JWTService.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "MINOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "quiz",
+                "features": {
+                    "annotations": [
+                        "@Override",
+                        "@Autowired",
+                        "@Service"
+                    ],
+                    "api_endpoints": [],
+                    "classes": [
+                        "MyUserDetailsService"
+                    ],
+                    "methods": [
+                        "loadUserByUsername"
+                    ]
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/service/MyUserDetailsService.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "MINOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "quiz",
+                "features": {
+                    "annotations": [
+                        "@Service"
+                    ],
+                    "api_endpoints": [],
+                    "classes": [
+                        "OtpService",
+                        "to",
+                        "OtpData"
+                    ],
+                    "methods": [
+                        "generateOtp",
+                        "getOtp",
+                        "getExpiryTime"
+                    ]
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/service/OtpService.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "MINOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "quiz",
+                "features": {
+                    "annotations": [
+                        "@Service"
+                    ],
+                    "api_endpoints": [],
+                    "classes": [
+                        "PdfService"
+                    ],
+                    "methods": [
+                        "extractTextFromPdf"
+                    ]
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/service/PdfService.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "MINOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "quiz",
+                "features": {
+                    "annotations": [
+                        "@Service"
+                    ],
+                    "api_endpoints": [],
+                    "classes": [
+                        "QrCodeService"
+                    ],
+                    "methods": [
+                        "generateQrCode"
+                    ]
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/service/QrCodeService.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "MINOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "quiz",
+                "features": {
+                    "annotations": [
+                        "@Autowired",
+                        "@Service"
+                    ],
+                    "api_endpoints": [],
+                    "classes": [
+                        "QuestionService"
+                    ],
+                    "methods": [
+                        "getQuestionsByFaculty",
+                        "getQuestionsByCategory",
+                        "addQuestions",
+                        "addQuestion",
+                        "updateQuestion",
+                        "deleteQuestion"
+                    ]
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/service/QuestionService.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "MINOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "quiz",
+                "features": {
+                    "annotations": [
+                        "@Autowired",
+                        "@Service"
+                    ],
+                    "api_endpoints": [],
+                    "classes": [
+                        "QuizService"
+                    ],
+                    "methods": [
+                        "getQuizByCode",
+                        "generateQuizCode",
+                        "createQuiz",
+                        "getQuizQuestions",
+                        "getAttemptById",
+                        "calculateResult",
+                        "getAllQuizzes",
+                        "getQuizzesByFaculty",
+                        "togglePublish"
+                    ]
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/service/QuizService.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "MINOR",
+                "syntax_error": false
+            },
+            {
+                "change_type": "ADDED",
+                "component": "quiz",
+                "features": {
+                    "annotations": [
+                        "@Autowired",
+                        "@Service"
+                    ],
+                    "api_endpoints": [],
+                    "classes": [
+                        "UserService"
+                    ],
+                    "methods": [
+                        "register",
+                        "verifyOtp"
+                    ]
+                },
+                "file": "backend/src/main/java/com/exl/quizapp/service/UserService.java",
+                "is_binary": false,
+                "language": "java",
+                "severity": "MINOR",
+                "syntax_error": false
+            }
+        ],
+        "component_distribution": {
+            "authentication": 4,
+            "database": 8,
+            "frontend": 13,
+            "other": 16,
+            "quiz": 22,
+            "security": 2
+        },
+        "configuration_changes": {
+            "build_files": [
+                "package.json",
+                "pom.xml"
+            ],
+            "docker": true,
+            "environment_variables": []
+        },
+        "context": {
+            "author": "Kireeti",
+            "author_email": "kireetiv2005@gmail.com",
+            "branch": "main",
+            "commit_sha": "63d36c2b",
+            "full_sha": "63d36c2bceb6575930f19d50e9a6ceb4f5294618",
+            "intent": {
+                "message": "Merge pull request #1 from kireeti-ai/add-security-features\n\nAdd multi-factor authentication, AES-256 encryption, and QR code identity verification",
+                "timestamp": "2026-01-27T13:31:15"
+            },
+            "repository": "git_clone_7wkko8dk",
+            "stats": {
+                "is_first_commit": false,
+                "total_commits": 33
+            }
+        },
+        "database_impact": {
+            "schema_changed": true,
+            "tables_affected": [
+                "question"
+            ]
+        },
+        "documentation_impact": {
+            "adr_required": true,
+            "api_docs": true,
+            "architecture": false,
+            "readme": true
+        },
+        "feature_tags": [
+            "Security",
+            "Authentication",
+            "API",
+            "Database",
+            "Deployment",
+            "Quiz",
+            "Frontend"
+        ],
+        "impact_scope": "SECURITY_CHANGE",
+        "intent_classification": "SECURITY",
+        "meta": {
+            "generated_at": "2026-02-09T17:17:04.366298Z",
+            "tool_version": "1.0.0"
+        },
+        "security_features_detected": [
+            "MFA",
+            "JWT Authentication",
+            "AES-256 Encryption",
+            "Encryption",
+            "Password Hashing",
+            "TLS/SSL",
+            "OAuth",
+            "Web Vulnerability Mitigation"
+        ],
+        "test_impact": {
+            "requires_new_tests": false,
+            "test_files_changed": 1
+        }
+    },
+    "status": "success"
 }

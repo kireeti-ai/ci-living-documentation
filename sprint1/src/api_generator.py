@@ -4,9 +4,16 @@ API Documentation Generator
 Extracts and documents API endpoints from code changes
 """
 import re
+import json
+import os
+from collections import defaultdict
+from typing import Dict, Any, Optional
+
+from sprint1.src.groq_client import GroqClient, llm_available
 
 
 HTTP_METHODS = {"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"}
+IDEMPOTENT_METHODS = {"GET", "PUT", "DELETE", "HEAD", "OPTIONS"}
 
 
 def _controller_base_path(file_path: str) -> str:
@@ -39,42 +46,151 @@ def _normalize_route(route: str, file_path: str = "") -> str:
     return route
 
 
-def _endpoint_to_string(endpoint) -> str:
+def _endpoint_to_tuple(endpoint, file_path: str = ""):
     """
-    Convert an endpoint to a string representation.
-    Handles both string and dict endpoints.
+    Convert endpoint objects to (method, path) tuple.
     """
     if isinstance(endpoint, str):
-        return endpoint
-    elif isinstance(endpoint, dict):
-        # Handle dict endpoints like {"line": 135, "route": "/", "verb": "GET"}
-        verb = endpoint.get("verb", endpoint.get("method", ""))
-        route = endpoint.get("route", endpoint.get("path", ""))
-        if verb:
-            verb = str(verb).upper()
-        route = _normalize_route(route)
-        if verb and route:
-            return f"{verb} {route}"
-        elif route:
-            return route
-        else:
-            return str(endpoint)
-    else:
-        return str(endpoint)
+        return _parse_endpoint(endpoint, file_path)
+
+    if isinstance(endpoint, dict):
+        verb = str(endpoint.get("verb", endpoint.get("method", ""))).upper().strip()
+        route = _normalize_route(endpoint.get("route", endpoint.get("path", "")), file_path=file_path)
+        if verb not in HTTP_METHODS:
+            verb = "GET"
+        return verb, route
+
+    return None, ""
 
 
-def _describe_endpoint(endpoint: str) -> str:
-    return "Detected API endpoint from impact analysis of code changes."
-
-
-def _parse_endpoint(endpoint: str):
+def _parse_endpoint(endpoint: str, file_path: str = ""):
     parts = (endpoint or "").strip().split(None, 1)
     if len(parts) == 2 and parts[0].upper() in HTTP_METHODS:
-        return parts[0].upper(), parts[1]
-    return None, (endpoint or "").strip()
+        return parts[0].upper(), _normalize_route(parts[1], file_path=file_path)
+    return None, _normalize_route((endpoint or "").strip(), file_path=file_path)
 
 
-def generate_api_docs(report):
+def _infer_summary(method: str, path: str) -> str:
+    noun = path.strip("/").split("/")[0] if path else "resource"
+    noun = noun.replace("-", " ") or "resource"
+    if method == "GET":
+        return f"Retrieve {noun} data."
+    if method == "POST":
+        return f"Create {noun}."
+    if method == "PUT":
+        return f"Update {noun}."
+    if method == "PATCH":
+        return f"Partially update {noun}."
+    if method == "DELETE":
+        return f"Delete {noun}."
+    return f"Handle {noun} operation."
+
+
+def _infer_auth(path: str) -> str:
+    public_paths = {"/", "/health", "/login", "/register", "/verify-otp", "/api/csrf-token"}
+    if path in public_paths:
+        return "Public endpoint (authentication may not be required)"
+    return "Likely requires authentication/authorization middleware"
+
+
+def _infer_parameters(path: str) -> str:
+    params = re.findall(r"\{([^}]+)\}|:([A-Za-z0-9_]+)", path or "")
+    names = [a or b for a, b in params if (a or b)]
+    if not names:
+        return "Path params: none detected"
+    return "Path params: " + ", ".join(names)
+
+
+def _infer_response(method: str) -> str:
+    if method == "POST":
+        return "201 Created (or 200 OK), 400 Bad Request, 401/403 Unauthorized, 500 Server Error"
+    if method in IDEMPOTENT_METHODS:
+        return "200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error"
+    return "200 OK, 400 Bad Request, 401/403 Unauthorized, 500 Server Error"
+
+
+def _infer_example(method: str, path: str) -> str:
+    return f"`curl -X {method} \"<base-url>{path}\"`"
+
+
+def _extract_json_object(text: str) -> Optional[Dict[str, Any]]:
+    if not text:
+        return None
+    text = text.strip()
+    try:
+        return json.loads(text)
+    except Exception:
+        pass
+
+    start = text.find("{")
+    end = text.rfind("}")
+    if start == -1 or end == -1 or end <= start:
+        return None
+    try:
+        return json.loads(text[start:end + 1])
+    except Exception:
+        return None
+
+
+def _llm_enrich_endpoint(
+    report: Dict[str, Any],
+    file_path: str,
+    language: str,
+    method: str,
+    path: str,
+    rag_context: Optional[Dict[str, str]] = None
+) -> Optional[Dict[str, str]]:
+    use_llm = os.getenv("API_DOCS_USE_LLM", "true").lower() == "true"
+    if not use_llm or not llm_available():
+        return None
+
+    client = GroqClient.from_env()
+    if not client:
+        return None
+
+    context = report.get("context", {})
+    rag_keys = sorted((rag_context or {}).keys())[:6]
+    system = (
+        "You generate API documentation metadata only from provided facts. "
+        "Do not invent endpoint behavior. "
+        "Return strict JSON object with keys: summary, authentication, parameters, responses, example."
+    )
+    user = (
+        "Endpoint metadata request:\n"
+        f"- repository: {context.get('repository', 'unknown')}\n"
+        f"- file: {file_path}\n"
+        f"- language: {language}\n"
+        f"- method: {method}\n"
+        f"- path: {path}\n"
+        f"- available_rag_docs: {rag_keys}\n"
+        "Rules:\n"
+        "1) Keep summary under 18 words.\n"
+        "2) If unknown, state concise assumption with 'Likely'.\n"
+        "3) parameters should include path params if any.\n"
+        "4) responses should list common HTTP outcomes in one line.\n"
+        "5) example must be a curl command.\n"
+    )
+
+    try:
+        raw = client.chat(system=system, user=user, temperature=0.0, max_tokens=220, seed=42)
+        data = _extract_json_object(raw)
+        if not isinstance(data, dict):
+            return None
+        enriched = {
+            "summary": str(data.get("summary", "")).strip(),
+            "authentication": str(data.get("authentication", "")).strip(),
+            "parameters": str(data.get("parameters", "")).strip(),
+            "responses": str(data.get("responses", "")).strip(),
+            "example": str(data.get("example", "")).strip(),
+        }
+        if not all(enriched.values()):
+            return None
+        return enriched
+    except Exception:
+        return None
+
+
+def generate_api_docs(report, rag_context: Optional[Dict[str, str]] = None):
     """
     Generate API documentation from impact report
     
@@ -86,9 +202,8 @@ def generate_api_docs(report):
     """
     changes = report.get("changes", [])
     
-    # Extract all API endpoints from all changed files
     api_endpoints = []
-    files_with_apis = []
+    files_with_apis = defaultdict(list)
     
     for change in changes:
         features = change.get("features", {})
@@ -96,22 +211,15 @@ def generate_api_docs(report):
         
         if endpoints:
             file_path = change.get("file", "unknown")
-            # Convert endpoints to strings for consistent handling
-            string_endpoints = []
             for ep in endpoints:
-                endpoint_str = _endpoint_to_string(ep)
-                method, path = _parse_endpoint(endpoint_str)
-                if method:
-                    path = _normalize_route(path, file_path=file_path)
-                    string_endpoints.append(f"{method} {path}")
-                else:
-                    string_endpoints.append(_normalize_route(path, file_path=file_path))
-            files_with_apis.append({
-                "file": file_path,
-                "endpoints": string_endpoints,
-                "language": change.get("language", "unknown")
-            })
-            api_endpoints.extend(string_endpoints)
+                method, path = _endpoint_to_tuple(ep, file_path=file_path)
+                if not path:
+                    continue
+                if not method:
+                    method = "GET"
+                entry = (method, path, change.get("language", "unknown"))
+                files_with_apis[file_path].append(entry)
+                api_endpoints.append((method, path))
     
     # Build documentation
     doc = "# API Reference\n\n"
@@ -120,37 +228,43 @@ def generate_api_docs(report):
         doc += "No API endpoints detected in the analyzed code changes.\n"
         return doc
     
-    doc += f"**Total Endpoints:** {len(api_endpoints)}\n\n"
+    unique_endpoints = sorted(set(api_endpoints))
+    doc += f"**Total Endpoints:** {len(unique_endpoints)}\n\n"
     doc += "---\n\n"
     
     # Group endpoints by file
     doc += "## Endpoints by File\n\n"
     
-    for file_info in files_with_apis:
-        file_path = file_info["file"]
-        endpoints = file_info["endpoints"]
-        language = file_info["language"]
+    for file_path in sorted(files_with_apis.keys()):
+        endpoints = sorted(set((m, p) for m, p, _ in files_with_apis[file_path]))
+        language = files_with_apis[file_path][0][2]
         
         doc += f"### `{file_path}`\n\n"
         doc += f"**Language:** {language}\n\n"
         
-        for endpoint in endpoints:
-            method, path = _parse_endpoint(endpoint)
-            if method:
-                doc += f"- **Method:** {method}\n"
-                doc += f"  **Path:** `{path}`\n"
-                doc += f"  **Summary:** {_describe_endpoint(endpoint)}\n"
-                doc += "  **Authentication:** Not detected in impact report\n"
-                doc += "  **Parameters:** Not detected in impact report\n"
-                doc += "  **Responses:** Not detected in impact report\n"
-                doc += "  **Examples:** Not detected in impact report\n"
-            else:
-                doc += f"- **Path:** `{endpoint}`\n"
-                doc += f"  **Summary:** {_describe_endpoint(endpoint)}\n"
-                doc += "  **Authentication:** Not detected in impact report\n"
-                doc += "  **Parameters:** Not detected in impact report\n"
-                doc += "  **Responses:** Not detected in impact report\n"
-                doc += "  **Examples:** Not detected in impact report\n"
+        for method, path in endpoints:
+            llm_meta = _llm_enrich_endpoint(
+                report=report,
+                file_path=file_path,
+                language=language,
+                method=method,
+                path=path,
+                rag_context=rag_context
+            )
+
+            summary = llm_meta["summary"] if llm_meta else _infer_summary(method, path)
+            auth = llm_meta["authentication"] if llm_meta else _infer_auth(path)
+            params = llm_meta["parameters"] if llm_meta else _infer_parameters(path)
+            responses = llm_meta["responses"] if llm_meta else _infer_response(method)
+            example = llm_meta["example"] if llm_meta else _infer_example(method, path)
+
+            doc += f"- **Method:** {method}\n"
+            doc += f"  **Path:** `{path}`\n"
+            doc += f"  **Summary:** {summary}\n"
+            doc += f"  **Authentication:** {auth}\n"
+            doc += f"  **Parameters:** {params}\n"
+            doc += f"  **Responses:** {responses}\n"
+            doc += f"  **Examples:** {example}\n"
         
         doc += "\n"
     
@@ -159,14 +273,56 @@ def generate_api_docs(report):
     # List all unique endpoints (using string representation)
     doc += "## All Endpoints\n\n"
     
-    unique_endpoints = sorted(set(api_endpoints))
-    for endpoint in unique_endpoints:
-        doc += f"- `{endpoint}`\n"
+    for method, path in unique_endpoints:
+        doc += f"- `{method} {path}`\n"
     
     doc += "\n---\n\n"
     doc += "## Notes\n\n"
-    doc += "- This documentation was automatically generated from impact analysis\n"
-    doc += "- Endpoints are extracted based on detected API patterns\n"
+    doc += "- This documentation was generated from detected endpoint patterns with inferred metadata\n"
+    if llm_available() and os.getenv("API_DOCS_USE_LLM", "true").lower() == "true":
+        doc += "- LLM enrichment was enabled where available using local RAG context\n"
+    doc += "- Review source controllers/routes for exact auth and payload schemas\n"
     doc += "- For detailed implementation, refer to the source files\n"
     
     return doc
+
+
+def generate_api_descriptions_json(report, rag_context: Optional[Dict[str, str]] = None) -> str:
+    """
+    Generate API descriptions as JSON map:
+    {
+      "METHOD /path": "description"
+    }
+    """
+    changes = report.get("changes", [])
+    endpoint_map: Dict[str, str] = {}
+
+    for change in changes:
+        features = change.get("features", {})
+        endpoints = features.get("api_endpoints", [])
+        if not endpoints:
+            continue
+
+        file_path = change.get("file", "unknown")
+        language = change.get("language", "unknown")
+
+        for ep in endpoints:
+            method, path = _endpoint_to_tuple(ep, file_path=file_path)
+            if not path:
+                continue
+            if not method:
+                method = "GET"
+
+            llm_meta = _llm_enrich_endpoint(
+                report=report,
+                file_path=file_path,
+                language=language,
+                method=method,
+                path=path,
+                rag_context=rag_context
+            )
+            summary = llm_meta["summary"] if llm_meta else _infer_summary(method, path)
+            endpoint_map[f"{method} {path}"] = summary
+
+    ordered = {k: endpoint_map[k] for k in sorted(endpoint_map.keys())}
+    return json.dumps(ordered, indent=2, ensure_ascii=False)

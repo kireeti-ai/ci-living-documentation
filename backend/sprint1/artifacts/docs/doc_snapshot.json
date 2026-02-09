@@ -6,19 +6,9 @@
   "docs_bucket_path": "proj_snap_dish/8cf84334/docs/",
   "generated_files": [
     {
-      "file": "README.generated.md",
-      "type": "markdown",
-      "description": "Auto-generated repository README"
-    },
-    {
       "file": "api/api-reference.md",
       "type": "markdown",
       "description": "API endpoint documentation"
-    },
-    {
-      "file": "adr/ADR-001.md",
-      "type": "markdown",
-      "description": "Architecture Decision Record"
     },
     {
       "file": "architecture/system.mmd",
@@ -57,8 +47,11 @@
     }
   ],
   "documentation_health": {
-    "missing_sections": [],
-    "template_followed": true
+    "missing_sections": [
+      "README.generated.md",
+      "adr/ADR-001.md"
+    ],
+    "template_followed": false
   },
   "author": "kireeti-ai",
   "analysis": {
@@ -66,14 +59,23 @@
     "breaking_changes": true,
     "files_changed": 309
   },
-  "errors": [],
+  "errors": [
+    {
+      "path": "sprint1/artifacts/docs/README.generated.md",
+      "error": "400 Client Error: Bad Request for url: https://api.groq.com/openai/v1/chat/completions"
+    },
+    {
+      "path": "sprint1/artifacts/docs/adr/ADR-001.md",
+      "error": "400 Client Error: Bad Request for url: https://api.groq.com/openai/v1/chat/completions"
+    }
+  ],
   "statistics": {
     "total_files": 309,
-    "total_documents": 10,
+    "total_documents": 8,
     "diagram_count": 3
   },
   "repo": {
-    "name": "git_clone_hwf81j48",
+    "name": "git_clone_p9xpke17",
     "branch": "main",
     "commit": "8cf84334"
   },

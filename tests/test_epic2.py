@@ -277,6 +277,26 @@ class TestApiGenerator(unittest.TestCase):
         self.assertIn("GET /question/my-questions", docs)
         self.assertIn("POST /question/add", docs)
 
+    def test_replaces_placeholder_text_with_inferred_metadata(self):
+        report = {
+            "changes": [
+                {
+                    "file": "Back/routes/addressRoutes.js",
+                    "language": "javascript",
+                    "features": {
+                        "api_endpoints": [
+                            {"verb": "PATCH", "route": "/:id/default"}
+                        ]
+                    }
+                }
+            ]
+        }
+        docs = api_generator.generate_api_docs(report)
+        self.assertNotIn("Not detected in impact report", docs)
+        self.assertNotIn("Detected API endpoint from impact analysis of code changes.", docs)
+        self.assertIn("Path params: id", docs)
+        self.assertIn("curl -X PATCH", docs)
+
 
 class TestAdrGenerator(unittest.TestCase):
     """Test ADR generation."""
