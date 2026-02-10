@@ -150,6 +150,9 @@ def analyze():
             github_token:
               type: string
               description: GitHub Personal Access Token (optional)
+            project_id:
+              type: string
+              description: External project identifier for client-side correlation (optional)
             branch:
               type: string
               description: Branch to analyze
@@ -188,6 +191,12 @@ def analyze():
             return jsonify({"error": "repo_url is required"}), 400
 
         repo_url = repo_url.strip()
+        project_id = data.get('project_id')
+        if project_id is not None:
+            if not isinstance(project_id, str) or not project_id.strip():
+                return jsonify({"error": "project_id must be a non-empty string"}), 400
+            project_id = project_id.strip()
+
         github_token = data.get('github_token', os.environ.get('GITHUB_TOKEN'))
         if github_token is not None and not isinstance(github_token, str):
             return jsonify({"error": "github_token must be a string"}), 400
@@ -248,10 +257,13 @@ def analyze():
         if not report:
             return _error_response("analysis", "Failed to parse analysis output", True)
 
-        return jsonify({
+        payload = {
             "status": "success",
             "report": report
-        })
+        }
+        if project_id is not None:
+            payload["project_id"] = project_id
+        return jsonify(payload)
 
     except subprocess.TimeoutExpired:
         return _error_response("analysis", "Analysis timeout (> 5 minutes)", True, _load_report_from_file(), 504)
@@ -278,6 +290,9 @@ def analyze_local():
               type: string
               description: Local path to the repository
               example: /path/to/local/repo
+            project_id:
+              type: string
+              description: External project identifier for client-side correlation (optional)
             new_user:
               type: boolean
               description: If true, perform a full-repo baseline scan
@@ -306,6 +321,12 @@ def analyze_local():
             return body, status_code
 
         repo_path = data.get('repo_path')
+        project_id = data.get('project_id')
+        if project_id is not None:
+            if not isinstance(project_id, str) or not project_id.strip():
+                return jsonify({"error": "project_id must be a non-empty string"}), 400
+            project_id = project_id.strip()
+
         ok, new_user, error = _parse_boolean_field(data, 'new_user', default=False)
         if not ok:
             body, status_code = error
@@ -363,10 +384,13 @@ def analyze_local():
         if not report:
             return _error_response("analysis", "Failed to parse analysis output", True)
 
-        return jsonify({
+        payload = {
             "status": "success",
             "report": report
-        })
+        }
+        if project_id is not None:
+            payload["project_id"] = project_id
+        return jsonify(payload)
 
     except subprocess.TimeoutExpired:
         return _error_response("analysis", "Analysis timeout (> 5 minutes)", True, _load_report_from_file(), 504)
