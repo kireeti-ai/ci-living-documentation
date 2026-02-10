@@ -7,6 +7,23 @@ import remarkGfm from 'remark-gfm'
 
 type Tab = 'summary' | 'apis' | 'settings'
 
+// API Endpoint structure from the docs JSON
+interface ApiEndpoint {
+  summary: string
+  params?: Array<{
+    name: string
+    type?: string
+    required?: boolean
+    description?: string
+  }>
+  responses?: Record<string, {
+    description?: string
+    schema?: any
+  }>
+}
+
+type ApiDocs = Record<string, ApiEndpoint>
+
 const DocumentViewer = () => {
   const { id, commit } = useParams<{ id: string; commit: string }>()
   const navigate = useNavigate()
@@ -15,6 +32,7 @@ const DocumentViewer = () => {
   const [activeTab, setActiveTab] = useState<Tab>('summary')
   const [summaryContent, setSummaryContent] = useState<string | null>(null)
   const [apiContent, setApiContent] = useState<string | null>(null)
+  const [apiDocs, setApiDocs] = useState<ApiDocs | null>(null)
   const [metadata, setMetadata] = useState<DocumentMetadata | null>(null)
   const [projectName, setProjectName] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)
@@ -22,8 +40,7 @@ const DocumentViewer = () => {
 
   // Search state (for APIs tab)
   const [searchQuery, setSearchQuery] = useState('')
-  const [currentMatchIndex, setCurrentMatchIndex] = useState(0)
-  const [matches, setMatches] = useState<number[]>([])
+  const [expandedApis, setExpandedApis] = useState<Set<string>>(new Set())
 
   // Settings state
   const [editableTags, setEditableTags] = useState<string[]>([])
@@ -48,6 +65,16 @@ const DocumentViewer = () => {
 
         setSummaryContent(summaryRes.data.content)
         setApiContent(apiRes.data.content)
+        
+        // Try to parse API content as JSON
+        try {
+          const parsed = JSON.parse(apiRes.data.content)
+          setApiDocs(parsed)
+        } catch {
+          // If not valid JSON, keep as markdown
+          setApiDocs(null)
+        }
+        
         setMetadata(metadataRes.data)
         setProjectName(apiRes.data.projectName)
         
@@ -64,50 +91,53 @@ const DocumentViewer = () => {
     loadDocument()
   }, [id, commit])
 
-  // Highlight search matches in API content
-  const highlightedContent = useMemo(() => {
-    if (!apiContent || !searchQuery.trim()) return apiContent
-
+  // Filter APIs based on search query
+  const filteredApis = useMemo(() => {
+    if (!apiDocs) return null
+    if (!searchQuery.trim()) return Object.entries(apiDocs)
+    
     const query = searchQuery.trim().toLowerCase()
-    const contentLower = apiContent.toLowerCase()
-    const matchIndices: number[] = []
-    
-    let pos = 0
-    while (true) {
-      const idx = contentLower.indexOf(query, pos)
-      if (idx === -1) break
-      matchIndices.push(idx)
-      pos = idx + 1
-    }
-    
-    setMatches(matchIndices)
-    return apiContent
-  }, [apiContent, searchQuery])
+    return Object.entries(apiDocs).filter(([path, endpoint]) => {
+      // Search in path
+      if (path.toLowerCase().includes(query)) return true
+      // Search in summary
+      if (endpoint.summary?.toLowerCase().includes(query)) return true
+      // Search in params
+      if (endpoint.params?.some(p => 
+        p.name?.toLowerCase().includes(query) || 
+        p.description?.toLowerCase().includes(query)
+      )) return true
+      return false
+    })
+  }, [apiDocs, searchQuery])
 
-  // Navigate through matches
-  const goToMatch = useCallback((direction: 'prev' | 'next') => {
-    if (matches.length === 0) return
+  // Toggle API expansion
+  const toggleApi = useCallback((path: string) => {
+    setExpandedApis(prev => {
+      const next = new Set(prev)
+      if (next.has(path)) {
+        next.delete(path)
+      } else {
+        next.add(path)
+      }
+      return next
+    })
+  }, [])
 
-    let newIndex = currentMatchIndex
-    if (direction === 'next') {
-      newIndex = (currentMatchIndex + 1) % matches.length
-    } else {
-      newIndex = currentMatchIndex === 0 ? matches.length - 1 : currentMatchIndex - 1
+  // Expand all / Collapse all
+  const expandAll = useCallback(() => {
+    if (filteredApis) {
+      setExpandedApis(new Set(filteredApis.map(([path]) => path)))
     }
-    setCurrentMatchIndex(newIndex)
+  }, [filteredApis])
 
-    // Scroll to match
-    const matchElement = document.querySelector(`[data-match-index="${newIndex}"]`)
-    if (matchElement) {
-      matchElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    }
-  }, [currentMatchIndex, matches.length])
+  const collapseAll = useCallback(() => {
+    setExpandedApis(new Set())
+  }, [])
 
   // Clear search
   const clearSearch = () => {
     setSearchQuery('')
-    setMatches([])
-    setCurrentMatchIndex(0)
   }
 
   // Handle keyboard navigation
@@ -117,9 +147,6 @@ const DocumentViewer = () => {
         e.preventDefault()
         document.getElementById('doc-search-input')?.focus()
       }
-      if (activeTab === 'apis' && searchQuery && e.key === 'Enter') {
-        goToMatch(e.shiftKey ? 'prev' : 'next')
-      }
       if (e.key === 'Escape') {
         clearSearch()
       }
@@ -127,16 +154,110 @@ const DocumentViewer = () => {
 
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [activeTab, searchQuery, goToMatch])
+  }, [activeTab])
 
-  // Render content with highlighted search matches
+  // Get HTTP method from path (if included) or default
+  const getMethodFromPath = (path: string): string => {
+    const methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
+    for (const method of methods) {
+      if (path.toUpperCase().startsWith(method + ' ')) {
+        return method
+      }
+    }
+    return 'GET'
+  }
+
+  // Get method color class
+  const getMethodColor = (method: string): string => {
+    switch (method.toUpperCase()) {
+      case 'GET': return 'method-get'
+      case 'POST': return 'method-post'
+      case 'PUT': return 'method-put'
+      case 'DELETE': return 'method-delete'
+      case 'PATCH': return 'method-patch'
+      default: return 'method-get'
+    }
+  }
+
+  // Render API card
+  const renderApiCard = (path: string, endpoint: ApiEndpoint) => {
+    const isExpanded = expandedApis.has(path)
+    const method = getMethodFromPath(path)
+    const cleanPath = path.replace(/^(GET|POST|PUT|DELETE|PATCH)\s+/i, '')
+
+    return (
+      <div key={path} className="api-card">
+        <div 
+          className="api-card-header"
+          onClick={() => toggleApi(path)}
+        >
+          <div className="api-card-title">
+            <span className={`api-method ${getMethodColor(method)}`}>
+              {method}
+            </span>
+            <code className="api-path">{cleanPath}</code>
+          </div>
+          <div className="api-card-summary">
+            {endpoint.summary}
+          </div>
+          <span className="api-expand-icon">{isExpanded ? '▼' : '▶'}</span>
+        </div>
+        
+        {isExpanded && (
+          <div className="api-card-body">
+            {/* Parameters */}
+            {endpoint.params && endpoint.params.length > 0 && (
+              <div className="api-section">
+                <h4>Parameters</h4>
+                <div className="api-params">
+                  {endpoint.params.map((param, idx) => (
+                    <div key={idx} className="api-param">
+                      <div className="param-header">
+                        <code className="param-name">{param.name}</code>
+                        {param.type && <span className="param-type">{param.type}</span>}
+                        {param.required && <span className="param-required">required</span>}
+                      </div>
+                      {param.description && (
+                        <p className="param-description">{param.description}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Responses */}
+            {endpoint.responses && Object.keys(endpoint.responses).length > 0 && (
+              <div className="api-section">
+                <h4>Responses</h4>
+                <div className="api-responses">
+                  {Object.entries(endpoint.responses).map(([code, response]) => (
+                    <div key={code} className="api-response">
+                      <span className={`response-code ${code.startsWith('2') ? 'success' : code.startsWith('4') || code.startsWith('5') ? 'error' : 'info'}`}>
+                        {code}
+                      </span>
+                      <span className="response-description">
+                        {response.description || 'No description'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // Render markdown content with search highlighting (fallback for non-JSON)
   const renderHighlightedContent = () => {
-    if (!highlightedContent) return null
+    if (!apiContent) return null
     
     if (!searchQuery.trim()) {
       return (
         <ReactMarkdown remarkPlugins={[remarkGfm]}>
-          {highlightedContent}
+          {apiContent}
         </ReactMarkdown>
       )
     }
@@ -144,22 +265,15 @@ const DocumentViewer = () => {
     const parts: JSX.Element[] = []
     const query = searchQuery.trim()
     const regex = new RegExp(`(${escapeRegex(query)})`, 'gi')
-    const splitContent = highlightedContent.split(regex)
+    const splitContent = apiContent.split(regex)
     
-    let matchCount = 0
     splitContent.forEach((part, i) => {
       if (part.toLowerCase() === query.toLowerCase()) {
-        const isCurrentMatch = matchCount === currentMatchIndex
         parts.push(
-          <mark 
-            key={i} 
-            data-match-index={matchCount}
-            className={`search-highlight ${isCurrentMatch ? 'current' : ''}`}
-          >
+          <mark key={i} className="search-highlight current">
             {part}
           </mark>
         )
-        matchCount++
       } else {
         parts.push(<span key={i}>{part}</span>)
       }
@@ -346,44 +460,48 @@ const DocumentViewer = () => {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search in API documentation (Ctrl+F)..."
+                  placeholder="Search APIs by path, name, or description (Ctrl+F)..."
                   className="search-input"
                 />
                 {searchQuery && (
                   <>
                     <span className="match-count">
-                      {matches.length > 0 
-                        ? `${currentMatchIndex + 1} of ${matches.length}` 
+                      {filteredApis 
+                        ? `${filteredApis.length} result${filteredApis.length !== 1 ? 's' : ''}` 
                         : 'No matches'}
                     </span>
-                    <button 
-                      className="btn-icon" 
-                      onClick={() => goToMatch('prev')}
-                      disabled={matches.length === 0}
-                      title="Previous match (Shift+Enter)"
-                    >
-                      ↑
-                    </button>
-                    <button 
-                      className="btn-icon" 
-                      onClick={() => goToMatch('next')}
-                      disabled={matches.length === 0}
-                      title="Next match (Enter)"
-                    >
-                      ↓
-                    </button>
                     <button className="btn-icon" onClick={clearSearch} title="Clear (Esc)">
                       ×
                     </button>
                   </>
                 )}
               </div>
+              {apiDocs && (
+                <div className="search-actions">
+                  <button className="btn btn-sm btn-secondary" onClick={expandAll}>
+                    Expand All
+                  </button>
+                  <button className="btn btn-sm btn-secondary" onClick={collapseAll}>
+                    Collapse All
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* API Content */}
-            <div className="document-content markdown-content">
-              {apiContent ? (
-                renderHighlightedContent()
+            <div className="document-content">
+              {apiDocs && filteredApis ? (
+                <div className="api-cards">
+                  {filteredApis.length > 0 ? (
+                    filteredApis.map(([path, endpoint]) => renderApiCard(path, endpoint))
+                  ) : (
+                    <p className="no-results">No APIs found matching "{searchQuery}"</p>
+                  )}
+                </div>
+              ) : apiContent ? (
+                <div className="markdown-content">
+                  {renderHighlightedContent()}
+                </div>
               ) : (
                 <p>No API documentation available for this commit.</p>
               )}

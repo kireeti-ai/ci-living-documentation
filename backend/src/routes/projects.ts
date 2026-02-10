@@ -158,12 +158,13 @@ router.post('/', async (req: AuthRequest, res: Response) => {
     })
 
     // Create project folder in R2 bucket
-    try {
-      await createProjectFolder(newProject.id)
-    } catch (bucketError) {
-      console.warn('Could not create project folder in bucket:', bucketError)
-      // Don't fail project creation if bucket operation fails
-    }
+    // NOTE: Commented out - not needed for now
+    // try {
+    //   await createProjectFolder(newProject.id)
+    // } catch (bucketError) {
+    //   console.warn('Could not create project folder in bucket:', bucketError)
+    //   // Don't fail project creation if bucket operation fails
+    // }
 
     return res.status(201).json({
       ...newProject,
