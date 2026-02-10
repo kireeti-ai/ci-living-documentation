@@ -1,0 +1,185 @@
+{
+  "total_endpoints": 20,
+  "endpoints": [
+    {
+      "key": "POST /ai/generate",
+      "method": "POST",
+      "path": "/ai/generate",
+      "source_file": "backend/src/main/java/com/exl/quizapp/controller/AIController.java",
+      "summary": "Create ai.",
+      "parameters": "Path params: none detected",
+      "responses": "201 Created (or 200 OK), 400 Bad Request, 401/403 Unauthorized, 500 Server Error"
+    },
+    {
+      "key": "GET /question/my-questions",
+      "method": "GET",
+      "path": "/question/my-questions",
+      "source_file": "backend/src/main/java/com/exl/quizapp/controller/QuestionController.java",
+      "summary": "Retrieve question data.",
+      "parameters": "Path params: none detected",
+      "responses": "200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error"
+    },
+    {
+      "key": "GET /question/category/{category}",
+      "method": "GET",
+      "path": "/question/category/{category}",
+      "source_file": "backend/src/main/java/com/exl/quizapp/controller/QuestionController.java",
+      "summary": "Retrieve question data.",
+      "parameters": "Path params: category",
+      "responses": "200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error"
+    },
+    {
+      "key": "POST /question/add-batch",
+      "method": "POST",
+      "path": "/question/add-batch",
+      "source_file": "backend/src/main/java/com/exl/quizapp/controller/QuestionController.java",
+      "summary": "Create question.",
+      "parameters": "Path params: none detected",
+      "responses": "201 Created (or 200 OK), 400 Bad Request, 401/403 Unauthorized, 500 Server Error"
+    },
+    {
+      "key": "POST /question/add",
+      "method": "POST",
+      "path": "/question/add",
+      "source_file": "backend/src/main/java/com/exl/quizapp/controller/QuestionController.java",
+      "summary": "Create question.",
+      "parameters": "Path params: none detected",
+      "responses": "201 Created (or 200 OK), 400 Bad Request, 401/403 Unauthorized, 500 Server Error"
+    },
+    {
+      "key": "PUT /question/update/{id}",
+      "method": "PUT",
+      "path": "/question/update/{id}",
+      "source_file": "backend/src/main/java/com/exl/quizapp/controller/QuestionController.java",
+      "summary": "Update question.",
+      "parameters": "Path params: id",
+      "responses": "200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error"
+    },
+    {
+      "key": "DELETE /question/delete/{id}",
+      "method": "DELETE",
+      "path": "/question/delete/{id}",
+      "source_file": "backend/src/main/java/com/exl/quizapp/controller/QuestionController.java",
+      "summary": "Delete question.",
+      "parameters": "Path params: id",
+      "responses": "200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error"
+    },
+    {
+      "key": "POST /quiz/create",
+      "method": "POST",
+      "path": "/quiz/create",
+      "source_file": "backend/src/main/java/com/exl/quizapp/controller/QuizController.java",
+      "summary": "Create quiz.",
+      "parameters": "Path params: none detected",
+      "responses": "201 Created (or 200 OK), 400 Bad Request, 401/403 Unauthorized, 500 Server Error"
+    },
+    {
+      "key": "GET /quiz/get/{id}",
+      "method": "GET",
+      "path": "/quiz/get/{id}",
+      "source_file": "backend/src/main/java/com/exl/quizapp/controller/QuizController.java",
+      "summary": "Retrieve quiz data.",
+      "parameters": "Path params: id",
+      "responses": "200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error"
+    },
+    {
+      "key": "GET /quiz/code/{code}",
+      "method": "GET",
+      "path": "/quiz/code/{code}",
+      "source_file": "backend/src/main/java/com/exl/quizapp/controller/QuizController.java",
+      "summary": "Retrieve quiz data.",
+      "parameters": "Path params: code",
+      "responses": "200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error"
+    },
+    {
+      "key": "POST /quiz/submit/{id}",
+      "method": "POST",
+      "path": "/quiz/submit/{id}",
+      "source_file": "backend/src/main/java/com/exl/quizapp/controller/QuizController.java",
+      "summary": "Create quiz.",
+      "parameters": "Path params: id",
+      "responses": "201 Created (or 200 OK), 400 Bad Request, 401/403 Unauthorized, 500 Server Error"
+    },
+    {
+      "key": "GET /quiz/result/{id}",
+      "method": "GET",
+      "path": "/quiz/result/{id}",
+      "source_file": "backend/src/main/java/com/exl/quizapp/controller/QuizController.java",
+      "summary": "Retrieve quiz data.",
+      "parameters": "Path params: id",
+      "responses": "200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error"
+    },
+    {
+      "key": "GET /quiz/all",
+      "method": "GET",
+      "path": "/quiz/all",
+      "source_file": "backend/src/main/java/com/exl/quizapp/controller/QuizController.java",
+      "summary": "Retrieve quiz data.",
+      "parameters": "Path params: none detected",
+      "responses": "200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error"
+    },
+    {
+      "key": "GET /quiz/my-quizzes",
+      "method": "GET",
+      "path": "/quiz/my-quizzes",
+      "source_file": "backend/src/main/java/com/exl/quizapp/controller/QuizController.java",
+      "summary": "Retrieve quiz data.",
+      "parameters": "Path params: none detected",
+      "responses": "200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error"
+    },
+    {
+      "key": "POST /register",
+      "method": "POST",
+      "path": "/register",
+      "source_file": "backend/src/main/java/com/exl/quizapp/controller/UserController.java",
+      "summary": "Create register.",
+      "parameters": "Path params: none detected",
+      "responses": "201 Created (or 200 OK), 400 Bad Request, 401/403 Unauthorized, 500 Server Error"
+    },
+    {
+      "key": "POST /login",
+      "method": "POST",
+      "path": "/login",
+      "source_file": "backend/src/main/java/com/exl/quizapp/controller/UserController.java",
+      "summary": "Create login.",
+      "parameters": "Path params: none detected",
+      "responses": "201 Created (or 200 OK), 400 Bad Request, 401/403 Unauthorized, 500 Server Error"
+    },
+    {
+      "key": "POST /verify-otp",
+      "method": "POST",
+      "path": "/verify-otp",
+      "source_file": "backend/src/main/java/com/exl/quizapp/controller/UserController.java",
+      "summary": "Create verify otp.",
+      "parameters": "Path params: none detected",
+      "responses": "201 Created (or 200 OK), 400 Bad Request, 401/403 Unauthorized, 500 Server Error"
+    },
+    {
+      "key": "GET /api/user/profile",
+      "method": "GET",
+      "path": "/api/user/profile",
+      "source_file": "backend/src/main/java/com/exl/quizapp/controller/UserController.java",
+      "summary": "Retrieve api data.",
+      "parameters": "Path params: none detected",
+      "responses": "200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error"
+    },
+    {
+      "key": "GET /api/user/qr-code",
+      "method": "GET",
+      "path": "/api/user/qr-code",
+      "source_file": "backend/src/main/java/com/exl/quizapp/controller/UserController.java",
+      "summary": "Retrieve api data.",
+      "parameters": "Path params: none detected",
+      "responses": "200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error"
+    },
+    {
+      "key": "GET /hello",
+      "method": "GET",
+      "path": "/hello",
+      "source_file": "backend/src/main/java/com/exl/quizapp/controller/UserController.java",
+      "summary": "Retrieve hello data.",
+      "parameters": "Path params: none detected",
+      "responses": "200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error"
+    }
+  ]
+}

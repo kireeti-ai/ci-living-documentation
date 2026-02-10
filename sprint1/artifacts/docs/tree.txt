@@ -1,368 +1,94 @@
 .
-├── Back
-│   ├── .env.example
-│   ├── config
-│   │   ├── cloudinary.js
-│   │   └── db.js
-│   ├── controllers
-│   │   ├── addressController.js
-│   │   ├── adminController.js
-│   │   ├── creatorApplicationController.js
-│   │   ├── deliveryController.js
-│   │   ├── menuItemController.js
-│   │   ├── orderController.js
-│   │   ├── restaurantController.js
-│   │   ├── restaurantDashboardController.js
-│   │   └── userController.js
-│   ├── middleware
-│   │   ├── authMiddleware.js
-│   │   ├── csrfMiddleware.js
-│   │   ├── serverMiddleware.js
-│   │   └── uploadMiddleware.js
-│   ├── models
-│   │   ├── addressModel.js
-│   │   ├── creatorApplicationModel.js
-│   │   ├── menuItemModel.js
-│   │   ├── orderModel.js
-│   │   ├── restaurantModel.js
-│   │   ├── settingsModel.js
-│   │   └── userModel.js
-│   ├── package.json
-│   ├── routes
-│   │   ├── addressRoutes.js
-│   │   ├── adminRoutes.js
-│   │   ├── creatorApplicationRoutes.js
-│   │   ├── dashboardRoutes.js
-│   │   ├── deliveryRoute.js
-│   │   ├── menuItemRoutes.js
-│   │   ├── orderRoute.js
-│   │   ├── restaurantDashboardRoutes.js
-│   │   ├── restaurantRoutes.js
-│   │   └── userRoutes.js
-│   ├── server.js
-│   ├── uploads
-│   │   ├── avatars
-│   │   │   ├── 1758173712276.jpeg
-│   │   │   ├── 1758173848085.jpg
-│   │   │   ├── 1758173866712.png
-│   │   │   ├── 1758173963597.jpeg
-│   │   │   ├── 1758180630468.jpg
-│   │   │   ├── 1758195554100.jpg
-│   │   │   ├── 1758197945761.png
-│   │   │   └── 1758215370241_agent-2.png
-│   │   └── foods
-│   │       ├── 1758194130922_agent.png
-│   │       ├── 1758194140361_agent.png
-│   │       ├── 1758194837608_agent.png
-│   │       ├── 1758195092708_FileUploadServlet.jpeg
-│   │       └── 1758197972239_agent-2.png
-│   └── utils
-│       ├── cloudinary.js
-│       ├── security.js
-│       └── sendEmail.js
-├── DeliveryAgent
-│   ├── .env.production
-│   ├── .svc
-│   ├── README.md
-│   ├── eslint.config.js
-│   ├── index.html
-│   ├── package.json
-│   ├── public
-│   │   └── vite.svg
-│   ├── src
-│   │   ├── App.css
-│   │   ├── App.jsx
-│   │   ├── components
-│   │   │   ├── ActiveOrder.css
-│   │   │   ├── ActiveOrder.jsx
-│   │   │   ├── BottomNav.css
-│   │   │   ├── BottomNav.jsx
-│   │   │   ├── Header.css
-│   │   │   ├── Header.jsx
-│   │   │   ├── Layout.jsx
-│   │   │   ├── OrderNotification.css
-│   │   │   └── OrderNotification.jsx
-│   │   ├── context
-│   │   │   ├── AuthContext.jsx
-│   │   │   └── OrderContext.jsx
-│   │   ├── index.css
-│   │   ├── main.jsx
-│   │   └── pages
-│   │       ├── DashboardPage.css
-│   │       ├── DashboardPage.jsx
-│   │       ├── EarningsPage.css
-│   │       ├── EarningsPage.jsx
-│   │       ├── LoginPage.css
-│   │       ├── LoginPage.jsx
-│   │       ├── OrderHistoryPage.css
-│   │       ├── OrderHistoryPage.jsx
-│   │       ├── ProfilePage.css
-│   │       ├── ProfilePage.jsx
-│   │       └── SSOHandler.jsx
-│   └── vite.config.js
-├── Food
-│   ├── README.md
-│   ├── eslint.config.js
-│   ├── header.jpeg
-│   ├── index.html
-│   ├── package.json
-│   ├── src
-│   │   ├── App.css
-│   │   ├── App.jsx
-│   │   ├── Context
-│   │   │   └── StoreContext.jsx
-│   │   ├── assets
-│   │   │   ├── add_icon_green.png
-│   │   │   ├── add_icon_white.png
-│   │   │   ├── agent-2.png
-│   │   │   ├── app_store.png
-│   │   │   ├── assets.js
-│   │   │   ├── bag_icon.png
-│   │   │   ├── basket_icon.svg
-│   │   │   ├── biryani.png.avif
-│   │   │   ├── burger-2.png
-│   │   │   ├── burger.png
-│   │   │   ├── checked.png
-│   │   │   ├── chicken.png.avif
-│   │   │   ├── cross_icon.png
-│   │   │   ├── facebook_icon.png
-│   │   │   ├── food_1.png
-│   │   │   ├── food_10.png
-│   │   │   ├── food_11.png
-│   │   │   ├── food_12.png
-│   │   │   ├── food_13.png
-│   │   │   ├── food_14.png
-│   │   │   ├── food_15.png
-│   │   │   ├── food_16.png
-│   │   │   ├── food_17.png
-│   │   │   ├── food_18.png
-│   │   │   ├── food_19.png
-│   │   │   ├── food_2.png
-│   │   │   ├── food_20.png
-│   │   │   ├── food_21.png
-│   │   │   ├── food_22.png
-│   │   │   ├── food_23.png
-│   │   │   ├── food_24.png
-│   │   │   ├── food_25.png
-│   │   │   ├── food_26.png
-│   │   │   ├── food_27.png
-│   │   │   ├── food_28.png
-│   │   │   ├── food_29.png
-│   │   │   ├── food_3.png
-│   │   │   ├── food_30.png
-│   │   │   ├── food_31.png
-│   │   │   ├── food_32.png
-│   │   │   ├── food_4.png
-│   │   │   ├── food_5.png
-│   │   │   ├── food_6.png
-│   │   │   ├── food_7.png
-│   │   │   ├── food_8.png
-│   │   │   ├── food_9.png
-│   │   │   ├── fried rice.png.avif
-│   │   │   ├── header.jpeg
-│   │   │   ├── header_img.png
-│   │   │   ├── heart_outline.png
-│   │   │   ├── heart_solid.png
-│   │   │   ├── hourglass.png
-│   │   │   ├── linkedin_icon.png
-│   │   │   ├── loading-bar.png
-│   │   │   ├── logo-snapdish.png
-│   │   │   ├── logo.svg
-│   │   │   ├── logout_icon.png
-│   │   │   ├── magnifying-glass.png
-│   │   │   ├── map.png
-│   │   │   ├── menu_1.png
-│   │   │   ├── menu_2.png
-│   │   │   ├── menu_3.png
-│   │   │   ├── menu_4.png
-│   │   │   ├── menu_5.png
-│   │   │   ├── menu_6.png
-│   │   │   ├── menu_7.png
-│   │   │   ├── menu_8.png
-│   │   │   ├── offer.png
-│   │   │   ├── paratha.png.avif
-│   │   │   ├── parcel_icon.png
-│   │   │   ├── parota.jpg.avif
-│   │   │   ├── pin.png
-│   │   │   ├── pizza.png.avif
-│   │   │   ├── play_store.png
-│   │   │   ├── profile_icon.png
-│   │   │   ├── rating_starts.png
-│   │   │   ├── react.svg
-│   │   │   ├── remove.png
-│   │   │   ├── remove_icon_red.png
-│   │   │   ├── restaurant.png
-│   │   │   ├── review.png
-│   │   │   ├── save-1.png
-│   │   │   ├── save.png
-│   │   │   ├── search_icon.png
-│   │   │   ├── selector_icon.png
-│   │   │   ├── star.png
-│   │   │   ├── trash-can.png
-│   │   │   ├── twitter_icon.png
-│   │   │   ├── un_checked.png
-│   │   │   └── user.png
-│   │   ├── components
-│   │   │   ├── Addresses
-│   │   │   │   ├── Address.css
-│   │   │   │   ├── Address.jsx
-│   │   │   │   ├── AddressManager.css
-│   │   │   │   └── AddressManager.jsx
-│   │   │   ├── FoodItem
-│   │   │   │   ├── FoodItem.css
-│   │   │   │   └── FoodItem.jsx
-│   │   │   ├── Footer
-│   │   │   │   ├── Footer.css
-│   │   │   │   └── Footer.jsx
-│   │   │   ├── Header
-│   │   │   │   ├── Header.css
-│   │   │   │   └── Header.jsx
-│   │   │   ├── LocationModel
-│   │   │   │   ├── LocationModel.css
-│   │   │   │   └── LocationModel.jsx
-│   │   │   ├── LoginPopup
-│   │   │   │   ├── LoginPopup.css
-│   │   │   │   └── LoginPopup.jsx
-│   │   │   ├── MyReviews
-│   │   │   │   ├── MyReviews.css
-│   │   │   │   └── MyReviews.jsx
-│   │   │   ├── OrderStatusTracker
-│   │   │   │   ├── OrderStatusTracker.css
-│   │   │   │   └── OrderStatusTracker.jsx
-│   │   │   ├── RestaurantChangePrompt
-│   │   │   │   ├── RestaurantChangePrompt.css
-│   │   │   │   └── RestaurantChangePrompt.jsx
-│   │   │   ├── RestaurantDisplay
-│   │   │   │   ├── RestaurantDisplay.css
-│   │   │   │   └── RestaurantDisplay.jsx
-│   │   │   ├── RestaurantItem
-│   │   │   │   ├── RestaurantItem.css
-│   │   │   │   └── RestaurantItem.jsx
-│   │   │   ├── Reviews
-│   │   │   │   ├── Reviews.css
-│   │   │   │   └── Reviews.jsx
-│   │   │   └── navbar
-│   │   │       ├── navbar.css
-│   │   │       └── navbar.jsx
-│   │   ├── index.css
-│   │   ├── main.jsx
-│   │   └── pages
-│   │       ├── Affiliate
-│   │       │   ├── CreatorCommunity.css
-│   │       │   └── CreatorCommunity.jsx
-│   │       ├── ManageResturant
-│   │       │   ├── ManageRestaurant.css
-│   │       │   └── ManageResturant.jsx
-│   │       ├── MyOrders
-│   │       │   ├── MyOrders.css
-│   │       │   └── MyOrders.jsx
-│   │       ├── MyReviews
-│   │       │   ├── MyReviews.css
-│   │       │   └── MyReviews.jsx
-│   │       ├── OrderSuccess
-│   │       │   ├── OrderSuccess.css
-│   │       │   └── OrderSuccess.jsx
-│   │       ├── RestaurantDetail
-│   │       │   ├── RestaurantDetail.css
-│   │       │   └── RestaurantDetail.jsx
-│   │       ├── SearchPage
-│   │       │   ├── SearchPage.css
-│   │       │   └── SearchPage.jsx
-│   │       ├── WishList
-│   │       │   ├── WishList.css
-│   │       │   └── WishList.jsx
-│   │       ├── cart
-│   │       │   ├── Cart.jsx
-│   │       │   └── cart.css
-│   │       ├── home
-│   │       │   ├── Home.css
-│   │       │   └── Home.jsx
-│   │       ├── placeOrder
-│   │       │   ├── PlaceOrder.jsx
-│   │       │   └── placeOrder.css
-│   │       └── profile
-│   │           ├── profile.css
-│   │           └── profile.jsx
-│   ├── table-2.jpg
-│   ├── table.jpg
-│   └── vite.config.js
-├── LICENSE
-├── README.md
-├── SECURITY_DOCUMENTATION.md
-├── SnapDish.pdf
-├── admin
-│   ├── README.md
-│   ├── eslint.config.js
-│   ├── index.html
-│   ├── package.json
-│   ├── public
-│   │   └── vite.svg
-│   ├── src
-│   │   ├── App.css
-│   │   ├── App.jsx
-│   │   ├── assets
-│   │   │   ├── add_icon.png
-│   │   │   ├── assets.js
-│   │   │   ├── booking.png
-│   │   │   ├── logo-snapdish.png
-│   │   │   ├── logo.png
-│   │   │   ├── order_icon.png
-│   │   │   ├── plus.png
-│   │   │   ├── profile_image.png
-│   │   │   ├── react.svg
-│   │   │   ├── search.png
-│   │   │   └── user.png
-│   │   ├── components
-│   │   │   ├── Dashboard.css
-│   │   │   ├── Dashboard.jsx
-│   │   │   ├── ErrorBoundary.css
-│   │   │   ├── ErrorBoundary.jsx
-│   │   │   ├── LoginPage.jsx
-│   │   │   ├── ManageCreators.css
-│   │   │   ├── ManageCreators.jsx
-│   │   │   ├── ManageCustomers.jsx
-│   │   │   ├── ManageDeliveryPartners.jsx
-│   │   │   ├── ManageRestaurants.jsx
-│   │   │   ├── ManageUsers.jsx
-│   │   │   ├── Settings.jsx
-│   │   │   ├── Sidebar.jsx
-│   │   │   └── ViewOrders.jsx
-│   │   ├── index.css
-│   │   └── main.jsx
-│   └── vite.config.js
-├── logo-snapdish.png
-├── readme.txt
-└── restaurant-admin
-    ├── .env.production
-    ├── README.md
-    ├── eslint.config.js
-    ├── index.html
-    ├── package.json
-    ├── src
-    │   ├── App.css
-    │   ├── App.jsx
-    │   ├── components
-    │   │   ├── ChartCard.jsx
-    │   │   ├── DataTable.jsx
-    │   │   ├── Navbar.jsx
-    │   │   ├── RevenueOrdersChart.jsx
-    │   │   ├── Sidebar.jsx
-    │   │   └── StatsCard.jsx
-    │   ├── context
-    │   │   └── AuthContext.jsx
-    │   ├── index.css
-    │   ├── main.jsx
-    │   ├── pages
-    │   │   ├── Dashboard.jsx
-    │   │   ├── Login.jsx
-    │   │   ├── Menu.jsx
-    │   │   ├── Orders.jsx
-    │   │   ├── Reports.jsx
-    │   │   ├── Restaurants.jsx
-    │   │   ├── SSOHandler.jsx
-    │   │   ├── Settings.jsx
-    │   │   └── Users.jsx
-    │   ├── tailwind.config.js
-    │   └── utils
-    │       └── api.js
-    └── vite.config.js
+|-- Frontend
+|   |-- eslint.config.js
+|   |-- index.html
+|   |-- package.json
+|   |-- src
+|   |   |-- App.css
+|   |   |-- App.jsx
+|   |   |-- components
+|   |   |   |-- CreateQuizModal.jsx
+|   |   |   |-- QuizResultsModal.jsx
+|   |   |   `-- Sidebar
+|   |   |       `-- Sidebar.jsx
+|   |   |-- index.css
+|   |   |-- main.jsx
+|   |   |-- pages
+|   |   |   |-- Auth
+|   |   |   |   |-- Auth.css
+|   |   |   |   `-- Auth.jsx
+|   |   |   |-- Faculty
+|   |   |   |   |-- AIQuestionGenerator.jsx
+|   |   |   |   |-- Faculty.css
+|   |   |   |   |-- FacultyDashboard.jsx
+|   |   |   |   `-- QuestionBank.jsx
+|   |   |   |-- Profile
+|   |   |   |   |-- Profile.css
+|   |   |   |   `-- Profile.jsx
+|   |   |   `-- Student
+|   |   |       |-- QuizPlayer.jsx
+|   |   |       |-- ResultPage.jsx
+|   |   |       |-- Student.css
+|   |   |       `-- StudentDashboard.jsx
+|   |   `-- services
+|   |       `-- quizService.js
+|   `-- vite.config.js
+|-- README.md
+|-- SECURITY_FEATURES.md
+`-- backend
+    |-- .dockerignore
+    |-- Dockerfile
+    |-- mvnw
+    |-- mvnw.cmd
+    |-- pom.xml
+    |-- quiz.pem
+    `-- src
+        |-- main
+        |   |-- java
+        |   |   `-- com
+        |   |       `-- exl
+        |   |           `-- quizapp
+        |   |               |-- QuizAppApplication.java
+        |   |               |-- config
+        |   |               |   |-- CorsConfig.java
+        |   |               |   |-- JwtFilter.java
+        |   |               |   `-- SecurityConfig.java
+        |   |               |-- controller
+        |   |               |   |-- AIController.java
+        |   |               |   |-- QuestionController.java
+        |   |               |   |-- QuizController.java
+        |   |               |   `-- UserController.java
+        |   |               |-- dao
+        |   |               |   |-- AttemptDao.java
+        |   |               |   |-- QuestionDao.java
+        |   |               |   |-- QuizDao.java
+        |   |               |   `-- UserRepo.java
+        |   |               |-- model
+        |   |               |   |-- Attempt.java
+        |   |               |   |-- Question.java
+        |   |               |   |-- QuestionWrapper.java
+        |   |               |   |-- Quiz.java
+        |   |               |   |-- QuizStartResponse.java
+        |   |               |   |-- Response.java
+        |   |               |   |-- UserPrinicipal.java
+        |   |               |   `-- Users.java
+        |   |               `-- service
+        |   |                   |-- AIService.java
+        |   |                   |-- EmailService.java
+        |   |                   |-- EncryptionService.java
+        |   |                   |-- JWTService.java
+        |   |                   |-- MyUserDetailsService.java
+        |   |                   |-- OtpService.java
+        |   |                   |-- PdfService.java
+        |   |                   |-- QrCodeService.java
+        |   |                   |-- QuestionService.java
+        |   |                   |-- QuizService.java
+        |   |                   `-- UserService.java
+        |   `-- resources
+        |       `-- application.properties.example
+        `-- test
+            `-- java
+                `-- com
+                    `-- exl
+                        `-- quizapp
+                            `-- QuizAppApplicationTests.java

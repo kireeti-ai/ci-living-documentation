@@ -64,6 +64,30 @@ class TestInputValidation(unittest.TestCase):
         is_valid, errors, warnings = validate_impact_report_input(legacy_input)
         self.assertTrue(is_valid, f"Expected valid input, got errors: {errors}")
         self.assertIn("Using legacy schema format", warnings[0])
+
+    def test_valid_wrapped_legacy_schema_input(self):
+        """Test validation of wrapped schema format report.report."""
+        wrapped_input = {
+            "report": {
+                "meta": {"generated_at": "2026-02-10T09:10:45.954361Z"},
+                "report": {
+                    "context": {
+                        "repository": "test-repo",
+                        "branch": "main",
+                        "commit_sha": "abc123",
+                        "author": "tester"
+                    },
+                    "changes": [],
+                    "analysis_summary": {}
+                },
+                "schema_version": "epic1-impact/v3",
+                "status": "success"
+            },
+            "status": "success"
+        }
+        is_valid, errors, warnings = validate_impact_report_input(wrapped_input)
+        self.assertTrue(is_valid, f"Expected valid wrapped input, got errors: {errors}")
+        self.assertIn("Using legacy schema format", warnings[0])
     
     def test_reject_malformed_json(self):
         """Test that non-dict inputs are rejected."""
@@ -383,6 +407,34 @@ class TestLoader(unittest.TestCase):
                 loaded = result
             self.assertIn("context", loaded)
             self.assertIn("repository", loaded["context"])
+        finally:
+            os.unlink(temp_path)
+
+    def test_normalizes_wrapped_report(self):
+        """Test loader handles report.report envelope."""
+        report = {
+            "report": {
+                "meta": {"generated_at": "2026-02-10T09:10:45.954361Z"},
+                "report": {
+                    "context": {"repository": "test"},
+                    "changes": []
+                },
+                "schema_version": "epic1-impact/v3",
+                "status": "success"
+            },
+            "status": "success"
+        }
+
+        import tempfile
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            json.dump(report, f)
+            temp_path = f.name
+
+        try:
+            loaded, warnings = loader.load_impact_report(temp_path)
+            self.assertIn("context", loaded)
+            self.assertEqual(loaded["context"]["repository"], "test")
+            self.assertIsInstance(warnings, list)
         finally:
             os.unlink(temp_path)
 

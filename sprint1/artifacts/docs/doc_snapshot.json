@@ -1,1 +1,414 @@
-{"snapshot_id": "id", "project_id": "proj_10234", "commit": "63d36c2b", "docs_bucket_path": "proj_10234/63d36c2b/docs/", "generated_files": [], "generated_at": "2025-01-01T00:00:00Z", "documentation_health": {"missing_sections": [], "template_followed": true}}
+{
+  "snapshot_id": "13859c50731df84e",
+  "project_id": "proj_10234",
+  "commit": "edb75298",
+  "generated_at": "1970-01-01T00:00:00Z",
+  "docs_bucket_path": "proj_10234/edb75298/docs/",
+  "generated_files": [
+    {
+      "file": "api/api-reference.md",
+      "type": "markdown",
+      "description": "API endpoint documentation"
+    },
+    {
+      "file": "api/api-descriptions.json",
+      "type": "json",
+      "description": "API endpoint descriptions map"
+    },
+    {
+      "file": "architecture/system.mmd",
+      "type": "mermaid",
+      "description": "System architecture diagram"
+    },
+    {
+      "file": "architecture/sequence.mmd",
+      "type": "mermaid",
+      "description": "Process sequence diagram"
+    },
+    {
+      "file": "architecture/er.mmd",
+      "type": "mermaid",
+      "description": "Entity-relationship diagram"
+    },
+    {
+      "file": "tree.txt",
+      "type": "text",
+      "description": "Hierarchical file tree"
+    },
+    {
+      "file": "architecture/architecture.md",
+      "type": "markdown",
+      "description": "Architecture documentation text"
+    },
+    {
+      "file": "doc_snapshot.json",
+      "type": "json",
+      "description": "Documentation generation metadata"
+    },
+    {
+      "file": "documentation-health.md",
+      "type": "markdown",
+      "description": "Documentation health report"
+    }
+  ],
+  "documentation_health": {
+    "missing_sections": [
+      "README.generated.md",
+      "adr/ADR-001.md"
+    ],
+    "template_followed": false
+  },
+  "author": "Kireeti",
+  "analysis": {
+    "severity": "MAJOR",
+    "breaking_changes": true,
+    "files_changed": 65
+  },
+  "errors": [
+    {
+      "path": "sprint1/artifacts/docs/README.generated.md",
+      "error": "HTTPSConnectionPool(host='api.groq.com', port=443): Max retries exceeded with url: /openai/v1/chat/completions (Caused by NameResolutionError(\"<urllib3.connection.HTTPSConnection object at 0x10b1f21d0>: Failed to resolve 'api.groq.com' ([Errno 8] nodename nor servname provided, or not known)\"))"
+    },
+    {
+      "path": "sprint1/artifacts/docs/adr/ADR-001.md",
+      "error": "HTTPSConnectionPool(host='api.groq.com', port=443): Max retries exceeded with url: /openai/v1/chat/completions (Caused by NameResolutionError(\"<urllib3.connection.HTTPSConnection object at 0x10b32dc00>: Failed to resolve 'api.groq.com' ([Errno 8] nodename nor servname provided, or not known)\"))"
+    }
+  ],
+  "statistics": {
+    "total_files": 65,
+    "total_documents": 9,
+    "diagram_count": 3
+  },
+  "repo": {
+    "name": "git_clone_7wkko8dk",
+    "branch": "main",
+    "commit": "63d36c2b"
+  },
+  "changed_files": [
+    {
+      "path": "README.md",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "SECURITY_FEATURES.md",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Frontend/eslint.config.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "Frontend/index.html",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Frontend/package.json",
+      "language": null,
+      "severity": "MINOR"
+    },
+    {
+      "path": "Frontend/vite.config.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/.dockerignore",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/Dockerfile",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/mvnw",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/mvnw.cmd",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/pom.xml",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/quiz.pem",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Frontend/src/App.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Frontend/src/App.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Frontend/src/index.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Frontend/src/main.jsx",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "Frontend/src/components/CreateQuizModal.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Frontend/src/components/QuizResultsModal.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Frontend/src/services/quizService.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Frontend/src/components/Sidebar/Sidebar.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Frontend/src/pages/Auth/Auth.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Frontend/src/pages/Auth/Auth.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Frontend/src/pages/Faculty/AIQuestionGenerator.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Frontend/src/pages/Faculty/Faculty.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Frontend/src/pages/Faculty/FacultyDashboard.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Frontend/src/pages/Faculty/QuestionBank.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Frontend/src/pages/Profile/Profile.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Frontend/src/pages/Profile/Profile.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Frontend/src/pages/Student/QuizPlayer.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Frontend/src/pages/Student/ResultPage.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "Frontend/src/pages/Student/Student.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "Frontend/src/pages/Student/StudentDashboard.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/main/resources/application.properties.example",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/QuizAppApplication.java",
+      "language": "java",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/test/java/com/exl/quizapp/QuizAppApplicationTests.java",
+      "language": "java",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/config/CorsConfig.java",
+      "language": "java",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/config/JwtFilter.java",
+      "language": "java",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/config/SecurityConfig.java",
+      "language": "java",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/controller/AIController.java",
+      "language": "java",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/controller/QuestionController.java",
+      "language": "java",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/controller/QuizController.java",
+      "language": "java",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/controller/UserController.java",
+      "language": "java",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/dao/AttemptDao.java",
+      "language": "java",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/dao/QuestionDao.java",
+      "language": "java",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/dao/QuizDao.java",
+      "language": "java",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/dao/UserRepo.java",
+      "language": "java",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/model/Attempt.java",
+      "language": "java",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/model/Question.java",
+      "language": "java",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/model/QuestionWrapper.java",
+      "language": "java",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/model/Quiz.java",
+      "language": "java",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/model/QuizStartResponse.java",
+      "language": "java",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/model/Response.java",
+      "language": "java",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/model/UserPrinicipal.java",
+      "language": "java",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/model/Users.java",
+      "language": "java",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/service/AIService.java",
+      "language": "java",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/service/EmailService.java",
+      "language": "java",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/service/EncryptionService.java",
+      "language": "java",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/service/JWTService.java",
+      "language": "java",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/service/MyUserDetailsService.java",
+      "language": "java",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/service/OtpService.java",
+      "language": "java",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/service/PdfService.java",
+      "language": "java",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/service/QrCodeService.java",
+      "language": "java",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/service/QuestionService.java",
+      "language": "java",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/service/QuizService.java",
+      "language": "java",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/main/java/com/exl/quizapp/service/UserService.java",
+      "language": "java",
+      "severity": "MINOR"
+    }
+  ]
+}

@@ -63,6 +63,16 @@ def validate_impact_report_input(report: dict) -> Tuple[bool, List[str], List[st
     
     if not isinstance(report, dict):
         return False, ["Impact report must be a JSON object"], []
+
+    # Normalize envelope formats before schema validation.
+    # Supports payloads like:
+    # {"report": {"report": {...}}} or {"report": {...}}
+    if isinstance(report.get("report"), dict):
+        nested = report["report"]
+        if isinstance(nested.get("report"), dict):
+            report = nested["report"]
+        else:
+            report = nested
     
     # Check for required fields (support both old and new schema)
     # New schema: repo, files, severity, intent_context

@@ -31,6 +31,20 @@ swaggerui_blueprint = get_swaggerui_blueprint(
 app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
 
 
+def _extract_impact_report(payload):
+    if not isinstance(payload, dict):
+        return payload
+
+    current = payload
+    if isinstance(current.get("report"), dict):
+        nested = current["report"]
+        if isinstance(nested.get("report"), dict):
+            current = nested["report"]
+        else:
+            current = nested
+    return current
+
+
 @app.route(OPENAPI_URL, methods=["GET"])
 def openapi_spec():
     """
@@ -175,9 +189,7 @@ def generate_docs():
         repo_url = payload.get("repo_url")
         branch = payload.get("branch", "main")
         
-        impact_report = payload.get("impact_report")
-        if isinstance(impact_report, dict) and "report" in impact_report and "context" in impact_report.get("report", {}):
-            impact_report = impact_report["report"]
+        impact_report = _extract_impact_report(payload.get("impact_report"))
         if not impact_report:
             # Call EPIC-1 backend only when enabled and repo_url is provided.
             if ALLOW_EPIC1_FETCH and repo_url:
@@ -201,7 +213,7 @@ def generate_docs():
                     }), 502
             elif os.path.exists(INPUT_FILE):
                 with open(INPUT_FILE, "r", encoding="utf-8") as f:
-                    impact_report = json.load(f)
+                    impact_report = _extract_impact_report(json.load(f))
             else:
                 # Fallback minimal impact report to preserve generation flow.
                 impact_report = {

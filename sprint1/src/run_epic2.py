@@ -23,9 +23,6 @@ from sprint1.src.health_report_generator import generate_health_report
 INPUT_PATH = "sprint1/input/impact_report.json"
 OUTPUT_BASE = "sprint1/artifacts/docs"
 
-PROJECT_ID = os.getenv("PROJECT_ID")
-COMMIT_HASH = os.getenv("COMMIT_HASH")
-
 
 def ensure_directories():
     for d in [
@@ -53,6 +50,28 @@ def write_file(path, content):
     with open(path, "w", encoding="utf-8") as f:
         f.write(content)
     print(f"✅ Generated {path}")
+
+
+def _load_env_files():
+    """Load key=value pairs from .env files if variables are not already exported."""
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    env_files = [
+        os.path.join(repo_root, ".env"),
+        os.path.join(repo_root, "backend", ".env"),
+    ]
+    for env_path in env_files:
+        if not os.path.exists(env_path):
+            continue
+        with open(env_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, value = line.split("=", 1)
+                key = key.strip()
+                value = value.strip().strip('"').strip("'")
+                if key and key not in os.environ:
+                    os.environ[key] = value
 
 
 def _derive_generated_at(report):
@@ -163,26 +182,34 @@ def generate_all_docs(report, project_id, commit_hash, generated_at, docs_bucket
 
 
 def main():
-    if not PROJECT_ID:
+    _load_env_files()
+    project_id = os.getenv("PROJECT_ID")
+    commit_hash = os.getenv("COMMIT_HASH")
+
+    if not project_id:
         raise RuntimeError("Missing required env var: PROJECT_ID")
-    if not COMMIT_HASH:
+    if not commit_hash:
         raise RuntimeError("Missing required env var: COMMIT_HASH")
 
     ensure_directories()
     report = get_impact_report()
     bucket = os.environ["R2_BUCKET_NAME"]
-    prefix = f"{PROJECT_ID}/{COMMIT_HASH}/docs"
-    docs_bucket_path = f"{PROJECT_ID}/{COMMIT_HASH}/docs/"
+    prefix = f"{project_id}/{commit_hash}/docs"
+    docs_bucket_path = f"{project_id}/{commit_hash}/docs/"
     generated_at = _derive_generated_at(report)
 
-    generate_all_docs(report, PROJECT_ID, COMMIT_HASH, generated_at, docs_bucket_path)
+    generate_all_docs(report, project_id, commit_hash, generated_at, docs_bucket_path)
 
-    print("☁️ Uploading docs to R2...")
-    upload_docs_to_r2(
-        local_dir="sprint1/artifacts/docs",
-        bucket=bucket,
-        prefix=prefix
-    )
+    skip_upload = os.getenv("SKIP_R2_UPLOAD", "false").lower() == "true"
+    if skip_upload:
+        print("⏭️ SKIP_R2_UPLOAD=true; skipping R2 upload")
+    else:
+        print("☁️ Uploading docs to R2...")
+        upload_docs_to_r2(
+            local_dir="sprint1/artifacts/docs",
+            bucket=bucket,
+            prefix=prefix
+        )
 
     print("✅ EPIC-2 completed")
 

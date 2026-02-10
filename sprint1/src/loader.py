@@ -4,10 +4,28 @@ import os
 REQUIRED_CONTEXT_FIELDS = ["repository", "commit_sha", "branch"]
 
 
+def _extract_core_report(payload):
+    if not isinstance(payload, dict):
+        raise ValueError("impact_report.json must be a JSON object")
+
+    current = payload
+
+    # Handle envelopes like:
+    # {"report": {"report": {...}}}
+    # {"report": {...}}
+    if isinstance(current.get("report"), dict):
+        nested = current["report"]
+        if isinstance(nested.get("report"), dict):
+            current = nested["report"]
+        else:
+            current = nested
+
+    return current
+
+
 def _normalize_report(report):
     warnings = []
-    if not isinstance(report, dict):
-        raise ValueError("impact_report.json must be a JSON object")
+    report = _extract_core_report(report)
 
     context = report.get("context", {})
     if not isinstance(context, dict):

@@ -14,6 +14,10 @@ def generate_tree(report):
     Returns:
         str: Tree representation of the file structure
     """
+    # Support both normalized report and raw API response payload.
+    if isinstance(report, dict) and "report" in report and isinstance(report.get("report"), dict):
+        report = report["report"]
+
     # Extract all changed files
     files = [change.get("file", "unknown") for change in report.get("changes", [])]
     
@@ -31,22 +35,22 @@ def generate_tree(report):
             current = current[part]
     
     # Generate tree text representation
-    def build_tree_text(node, prefix="", is_last=True):
-        """Recursively build tree text with proper indentation"""
+    def build_tree_text(node, prefix=""):
+        """Recursively build tree text with ASCII-safe indentation."""
         lines = []
         items = sorted(node.items())
         
         for i, (name, children) in enumerate(items):
             is_last_item = (i == len(items) - 1)
             
-            # Choose the right connector
-            connector = "└── " if is_last_item else "├── "
+            # Use ASCII connectors to avoid mojibake in non-UTF-8 terminals.
+            connector = "`-- " if is_last_item else "|-- "
             lines.append(f"{prefix}{connector}{name}")
             
             # Recurse for children
             if children:
-                extension = "    " if is_last_item else "│   "
-                lines.extend(build_tree_text(children, prefix + extension, is_last_item))
+                extension = "    " if is_last_item else "|   "
+                lines.extend(build_tree_text(children, prefix + extension))
         
         return lines
     

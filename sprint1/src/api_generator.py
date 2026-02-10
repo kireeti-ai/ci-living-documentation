@@ -132,6 +132,20 @@ def _extract_json_object(text: str) -> Optional[Dict[str, Any]]:
         return None
 
 
+def _extract_contract_endpoints(report: Dict[str, Any]):
+    api_contract = report.get("api_contract")
+    if isinstance(api_contract, dict) and isinstance(api_contract.get("endpoints"), list):
+        return api_contract.get("endpoints")
+
+    doc_contract = report.get("doc_contract")
+    if isinstance(doc_contract, dict):
+        nested_api = doc_contract.get("api_contract")
+        if isinstance(nested_api, dict) and isinstance(nested_api.get("endpoints"), list):
+            return nested_api.get("endpoints")
+
+    return []
+
+
 def _llm_enrich_endpoint(
     report: Dict[str, Any],
     file_path: str,
@@ -200,26 +214,40 @@ def generate_api_docs(report, rag_context: Optional[Dict[str, str]] = None):
     Returns:
         str: Formatted API reference documentation
     """
-    changes = report.get("changes", [])
-    
     api_endpoints = []
     files_with_apis = defaultdict(list)
-    
-    for change in changes:
-        features = change.get("features", {})
-        endpoints = features.get("api_endpoints", [])
-        
-        if endpoints:
-            file_path = change.get("file", "unknown")
-            for ep in endpoints:
-                method, path = _endpoint_to_tuple(ep, file_path=file_path)
-                if not path:
-                    continue
-                if not method:
-                    method = "GET"
-                entry = (method, path, change.get("language", "unknown"))
-                files_with_apis[file_path].append(entry)
-                api_endpoints.append((method, path))
+    contract_endpoints = _extract_contract_endpoints(report)
+
+    if contract_endpoints:
+        for ep in contract_endpoints:
+            if not isinstance(ep, dict):
+                continue
+            method = str(ep.get("method", "GET")).upper().strip() or "GET"
+            path = _normalize_route(str(ep.get("path", "")).strip())
+            if not path:
+                continue
+            source = ep.get("source") if isinstance(ep.get("source"), dict) else {}
+            file_path = source.get("file", "contract/unknown")
+            entry = (method, path, "javascript")
+            files_with_apis[file_path].append(entry)
+            api_endpoints.append((method, path))
+    else:
+        changes = report.get("changes", [])
+        for change in changes:
+            features = change.get("features", {})
+            endpoints = features.get("api_endpoints", [])
+
+            if endpoints:
+                file_path = change.get("file", "unknown")
+                for ep in endpoints:
+                    method, path = _endpoint_to_tuple(ep, file_path=file_path)
+                    if not path:
+                        continue
+                    if not method:
+                        method = "GET"
+                    entry = (method, path, change.get("language", "unknown"))
+                    files_with_apis[file_path].append(entry)
+                    api_endpoints.append((method, path))
     
     # Build documentation
     doc = "# API Reference\n\n"
@@ -228,8 +256,11 @@ def generate_api_docs(report, rag_context: Optional[Dict[str, str]] = None):
         doc += "No API endpoints detected in the analyzed code changes.\n"
         return doc
     
-    unique_endpoints = sorted(set(api_endpoints))
-    doc += f"**Total Endpoints:** {len(unique_endpoints)}\n\n"
+    if contract_endpoints:
+        endpoints_for_count = sorted(api_endpoints)
+    else:
+        endpoints_for_count = sorted(set(api_endpoints))
+    doc += f"**Total Endpoints:** {len(endpoints_for_count)}\n\n"
     doc += "---\n\n"
     
     # Group endpoints by file
@@ -273,7 +304,7 @@ def generate_api_docs(report, rag_context: Optional[Dict[str, str]] = None):
     # List all unique endpoints (using string representation)
     doc += "## All Endpoints\n\n"
     
-    for method, path in unique_endpoints:
+    for method, path in endpoints_for_count:
         doc += f"- `{method} {path}`\n"
     
     doc += "\n---\n\n"
@@ -289,40 +320,95 @@ def generate_api_docs(report, rag_context: Optional[Dict[str, str]] = None):
 
 def generate_api_descriptions_json(report, rag_context: Optional[Dict[str, str]] = None) -> str:
     """
-    Generate API descriptions as JSON map:
-    {
-      "METHOD /path": "description"
-    }
+    Generate API descriptions as JSON.
+    Contract mode keeps all endpoint records (including duplicate METHOD+PATH in different modules)
+    to stay aligned with api-reference endpoint count.
     """
-    changes = report.get("changes", [])
-    endpoint_map: Dict[str, str] = {}
+    endpoints = []
+    contract_endpoints = _extract_contract_endpoints(report)
 
-    for change in changes:
-        features = change.get("features", {})
-        endpoints = features.get("api_endpoints", [])
-        if not endpoints:
-            continue
-
-        file_path = change.get("file", "unknown")
-        language = change.get("language", "unknown")
-
-        for ep in endpoints:
-            method, path = _endpoint_to_tuple(ep, file_path=file_path)
+    if contract_endpoints:
+        for ep in contract_endpoints:
+            if not isinstance(ep, dict):
+                continue
+            method = str(ep.get("method", "GET")).upper().strip() or "GET"
+            path = _normalize_route(str(ep.get("path", "")).strip())
             if not path:
                 continue
-            if not method:
-                method = "GET"
 
-            llm_meta = _llm_enrich_endpoint(
-                report=report,
-                file_path=file_path,
-                language=language,
-                method=method,
-                path=path,
-                rag_context=rag_context
-            )
-            summary = llm_meta["summary"] if llm_meta else _infer_summary(method, path)
-            endpoint_map[f"{method} {path}"] = summary
+            summary = str(ep.get("summary", "")).strip() or _infer_summary(method, path)
 
-    ordered = {k: endpoint_map[k] for k in sorted(endpoint_map.keys())}
-    return json.dumps(ordered, indent=2, ensure_ascii=False)
+            req = ep.get("request") if isinstance(ep.get("request"), dict) else {}
+            path_params = req.get("path_params") if isinstance(req.get("path_params"), list) else []
+            param_names = []
+            for p in path_params:
+                if isinstance(p, dict) and p.get("name"):
+                    param_names.append(str(p["name"]))
+            parameters = f"Path params: {', '.join(param_names)}" if param_names else "Path params: none detected"
+
+            resp = ep.get("responses") if isinstance(ep.get("responses"), list) else []
+            status_parts = []
+            for r in resp:
+                if isinstance(r, dict) and r.get("status") is not None:
+                    desc = str(r.get("description", "")).strip()
+                    if desc:
+                        status_parts.append(f"{r['status']} {desc}")
+                    else:
+                        status_parts.append(str(r["status"]))
+            responses = ", ".join(status_parts) if status_parts else _infer_response(method)
+
+            source = ep.get("source") if isinstance(ep.get("source"), dict) else {}
+            endpoints.append({
+                "key": f"{method} {path}",
+                "method": method,
+                "path": path,
+                "source_file": source.get("file", "contract/unknown"),
+                "summary": summary,
+                "parameters": parameters,
+                "responses": responses,
+            })
+    else:
+        changes = report.get("changes", [])
+        for change in changes:
+            features = change.get("features", {})
+            discovered = features.get("api_endpoints", [])
+            if not discovered:
+                continue
+
+            file_path = change.get("file", "unknown")
+            language = change.get("language", "unknown")
+
+            for ep in discovered:
+                method, path = _endpoint_to_tuple(ep, file_path=file_path)
+                if not path:
+                    continue
+                if not method:
+                    method = "GET"
+
+                llm_meta = _llm_enrich_endpoint(
+                    report=report,
+                    file_path=file_path,
+                    language=language,
+                    method=method,
+                    path=path,
+                    rag_context=rag_context
+                )
+                summary = llm_meta["summary"] if llm_meta else _infer_summary(method, path)
+                parameters = llm_meta["parameters"] if llm_meta else _infer_parameters(path)
+                responses = llm_meta["responses"] if llm_meta else _infer_response(method)
+
+                endpoints.append({
+                    "key": f"{method} {path}",
+                    "method": method,
+                    "path": path,
+                    "source_file": file_path,
+                    "summary": summary,
+                    "parameters": parameters,
+                    "responses": responses,
+                })
+
+    payload = {
+        "total_endpoints": len(endpoints),
+        "endpoints": endpoints,
+    }
+    return json.dumps(payload, indent=2, ensure_ascii=False)
