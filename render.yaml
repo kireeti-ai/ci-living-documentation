@@ -52,11 +52,9 @@ services:
           name: ci-living-docs-backend
           property: hostport
 
-  # Frontend Service
   - type: web
     name: ci-living-docs-frontend
     env: static
-    plan: free
     buildCommand: npm install --prefix frontend && npm run build --prefix frontend
     staticPublishPath: frontend/dist
     routes:
@@ -71,3 +69,4 @@ services:
           type: web
           name: ci-living-docs-backend
           property: hostport
+
