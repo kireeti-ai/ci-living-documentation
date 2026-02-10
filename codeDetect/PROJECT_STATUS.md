@@ -128,6 +128,7 @@ python api.py  # or gunicorn api:app
 GET  /health           # Health check
 POST /analyze          # Analyze GitHub repo
 POST /analyze/local    # Analyze local repo
+GET  /docs             # Swagger UI documentation
 ```
 
 ---

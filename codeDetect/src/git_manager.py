@@ -7,6 +7,7 @@ import os
 import datetime
 import tempfile
 import shutil
+import time
 from typing import List, Dict, Optional, Any
 from git import Repo, InvalidGitRepositoryError, GitCommandError
 
@@ -44,16 +45,27 @@ class GitManager:
             else:
                 auth_url = repo_path
 
-            try:
-                print(f"Cloning repository from {repo_path}...")
-                self.repo = Repo.clone_from(auth_url, self.temp_dir, branch=branch)
-                self.repo_path = self.temp_dir
-                print(f"Repository cloned to temporary directory: {self.temp_dir}")
-            except Exception as e:
+            last_error: Optional[Exception] = None
+            for attempt in range(1, 4):
+                try:
+                    print(f"Cloning repository from {repo_path} (attempt {attempt}/3)...")
+                    self.repo = Repo.clone_from(auth_url, self.temp_dir, branch=branch)
+                    self.repo_path = self.temp_dir
+                    print(f"Repository cloned to temporary directory: {self.temp_dir}")
+                    last_error = None
+                    break
+                except Exception as e:
+                    last_error = e
+                    if attempt < 3:
+                        time.sleep(1.5 * attempt)
+            if last_error is not None:
                 if self.temp_dir and os.path.exists(self.temp_dir):
                     shutil.rmtree(self.temp_dir)
+                error_text = str(last_error)
+                if github_token:
+                    error_text = error_text.replace(github_token, "***")
                 raise InvalidGitRepositoryError(
-                    f"Failed to clone repository from {repo_path}: {e}"
+                    f"Failed to clone repository from {repo_path}: {error_text}"
                 )
         else:
             # Local repository path
@@ -90,39 +102,45 @@ class GitManager:
         Returns:
             Dictionary containing repository context
         """
-        try:
-            head = self.repo.head.commit
+        metadata: Dict[str, Any] = {
+            "repository": os.path.basename(os.path.abspath(self.repo_path)),
+            "branch": "unknown",
+            "commit_sha": None,
+            "full_sha": None,
+            "author": None,
+            "author_email": None,
+            "intent": {
+                "message": None,
+                "timestamp": None
+            },
+            "stats": {
+                "total_commits": -1,
+                "is_first_commit": False
+            }
+        }
 
+        try:
             # Safely get branch name
             try:
-                branch_name = self.repo.active_branch.name
+                metadata["branch"] = self.repo.active_branch.name
             except TypeError:
-                branch_name = "detached"
+                metadata["branch"] = "detached"
 
-            return {
-                "repository": os.path.basename(os.path.abspath(self.repo_path)),
-                "branch": branch_name,
-                "commit_sha": head.hexsha[:8],
-                "full_sha": head.hexsha,
-                "author": head.author.name,
-                "author_email": head.author.email,
-                "intent": {
-                    "message": head.message.strip(),
-                    "timestamp": datetime.datetime.fromtimestamp(
-                        head.committed_date
-                    ).isoformat()
-                },
-                "stats": {
-                    "total_commits": self._get_commit_count(),
-                    "is_first_commit": len(head.parents) == 0
-                }
-            }
+            head = self.repo.head.commit
+            metadata["commit_sha"] = head.hexsha[:8]
+            metadata["full_sha"] = head.hexsha
+            metadata["author"] = head.author.name
+            metadata["author_email"] = head.author.email
+            metadata["intent"]["message"] = head.message.strip()
+            metadata["intent"]["timestamp"] = datetime.datetime.fromtimestamp(
+                head.committed_date
+            ).isoformat()
+            metadata["stats"]["total_commits"] = self._get_commit_count()
+            metadata["stats"]["is_first_commit"] = len(head.parents) == 0
         except Exception as e:
-            return {
-                "repository": os.path.basename(os.path.abspath(self.repo_path)),
-                "branch": "unknown",
-                "error": str(e)
-            }
+            metadata["error"] = str(e)
+
+        return metadata
 
     def _get_commit_count(self) -> int:
         """Get total number of commits in the repository."""
@@ -165,9 +183,18 @@ class GitManager:
             return changes
 
         # Compare against previous commit
-        try:
-            diffs = head_commit.diff(compare_with)
-        except GitCommandError as e:
+        diffs = None
+        last_error: Optional[Exception] = None
+        for attempt in range(1, 4):
+            try:
+                diffs = head_commit.diff(compare_with)
+                last_error = None
+                break
+            except GitCommandError as e:
+                last_error = e
+                if attempt < 3:
+                    time.sleep(0.8 * attempt)
+        if diffs is None:
             # Fallback: compare against the first parent
             try:
                 diffs = head_commit.diff(head_commit.parents[0])
@@ -175,7 +202,7 @@ class GitManager:
                 return [{
                     "path": "ERROR",
                     "change_type": "ERROR",
-                    "error": f"Failed to compute diff: {e}"
+                    "error": f"Failed to compute diff: {last_error}"
                 }]
 
         for diff in diffs:
@@ -208,7 +235,34 @@ class GitManager:
 
         return changes
 
-    def get_file_content(self, file_path: str, ref: str = "HEAD") -> str:
+    def list_all_files(self) -> List[Dict[str, str]]:
+        """List all tracked files at HEAD as ADDED entries.
+
+        Useful for first-run bootstrap where we want to analyze the
+        entire repository rather than only diffs.
+
+        Returns:
+            List of dictionaries with 'path' and 'change_type' keys
+        """
+        files: List[Dict[str, str]] = []
+        try:
+            head_commit = self.repo.head.commit
+            for item in head_commit.tree.traverse():
+                if item.type == 'blob':
+                    files.append({
+                        "path": item.path,
+                        "change_type": "ADDED",
+                        "is_bootstrap": True
+                    })
+        except Exception as e:
+            files.append({
+                "path": "ERROR",
+                "change_type": "ERROR",
+                "error": str(e)
+            })
+        return files
+
+    def get_file_content(self, file_path: str, ref: str = "HEAD") -> Optional[str]:
         """
         Safely retrieve file content from a specific git reference.
 
@@ -217,7 +271,7 @@ class GitManager:
             ref: Git reference (default: HEAD)
 
         Returns:
-            File content as string, or empty string on error
+            File content as string, empty string if missing, or None for binary/decode issues
         """
         try:
             return self.repo.git.show(f"{ref}:{file_path}")
@@ -225,8 +279,8 @@ class GitManager:
             # File might not exist at this ref
             return ""
         except UnicodeDecodeError:
-            # Binary file - return empty
-            return ""
+            # Binary file content that cannot be decoded safely
+            return None
         except Exception:
             return ""
 

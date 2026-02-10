@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+
+# Generated analysis artifacts
+impact_report_new_user.json
+epic1_report.json

@@ -36,11 +36,11 @@ jobs:
           cd codeDetect
           python main.py https://github.com/${{ github.repository }}
 
-      - name: Upload change report
-        uses: actions/upload-artifact@v3
+      - name: Upload impact report
+        uses: actions/upload-artifact@v4
         with:
-          name: change-report
-          path: codeDetect/change_report.json
+          name: impact-report
+          path: codeDetect/impact_report.json
 
       - name: Comment on PR (optional)
         if: github.event_name == 'pull_request'
@@ -48,7 +48,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const report = JSON.parse(fs.readFileSync('codeDetect/change_report.json', 'utf8'));
+            const report = JSON.parse(fs.readFileSync('codeDetect/impact_report.json', 'utf8'));
 
             const comment = `##  Change Analysis Report
 

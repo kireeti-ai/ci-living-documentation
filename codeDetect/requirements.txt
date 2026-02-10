@@ -23,3 +23,4 @@ gunicorn>=21.0.0  # Production WSGI server
 requests>=2.31.0  # HTTP client
 flask>=3.0.0  # REST API service
 requests>=2.31.0  # HTTP client for integrations
+flasgger>=0.9.7.1  # API documentation (Swagger UI)
