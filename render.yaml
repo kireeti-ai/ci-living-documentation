@@ -10,14 +10,17 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+
+      - key: PORT
+        value: 8000
+
       - key: DATABASE_URL
         sync: false
       - key: JWT_SECRET
         sync: false
       - key: JWT_EXPIRES_IN
         value: 7d
-      - key: PORT
-        value: 8000
+
       - key: SMTP_PORT
         sync: false
       - key: SMTP_USER
@@ -26,6 +29,7 @@ services:
         sync: false
       - key: SMTP_FROM
         sync: false
+
       - key: R2_ACCOUNT_ID
         sync: false
       - key: R2_BUCKET_NAME
@@ -38,21 +42,20 @@ services:
         value: auto
       - key: R2_ENDPOINT
         sync: false
+
       - key: GITHUB_WEBHOOK_SECRET
         sync: false
-      - key: BACKEND_URL
-        sync: false
-      - key: FRONTEND_URL
+
+      - key: BACKEND_HOSTPORT
         fromService:
           type: web
-          name: ci-living-docs-frontend
-          property: url
+          name: ci-living-docs-backend
+          property: hostport
 
   # Frontend Service
   - type: web
     name: ci-living-docs-frontend
     env: static
-    region: oregon
     plan: free
     buildCommand: npm install --prefix frontend && npm run build --prefix frontend
     staticPublishPath: frontend/dist
@@ -61,8 +64,10 @@ services:
         source: /*
         destination: /index.html
     envVars:
-      - key: VITE_API_URL
+      - key: VITE_API_BASE
+        value: https://
+      - key: VITE_API_HOSTPORT
         fromService:
           type: web
           name: ci-living-docs-backend
-          envVarKey: BACKEND_URL
+          property: hostport
