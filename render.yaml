@@ -62,11 +62,8 @@ services:
         source: /*
         destination: /index.html
     envVars:
-      - key: VITE_API_BASE
-        value: https://
-      - key: VITE_API_HOSTPORT
-        fromService:
-          type: web
-          name: ci-living-docs-backend
-          property: hostport
+      # Set this manually to your backend URL after first deploy
+      # Example: https://ci-living-docs-backend.onrender.com
+      - key: VITE_API_URL
+        sync: false
 

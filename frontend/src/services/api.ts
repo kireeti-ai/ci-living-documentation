@@ -1,6 +1,19 @@
 import axios from 'axios'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/'
+// Build the API URL from environment variables
+// VITE_API_URL takes priority, otherwise construct from VITE_API_BASE + VITE_API_HOSTPORT
+const getApiBaseUrl = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL
+  }
+  if (import.meta.env.VITE_API_HOSTPORT) {
+    const base = import.meta.env.VITE_API_BASE || 'https://'
+    return `${base}${import.meta.env.VITE_API_HOSTPORT}`
+  }
+  return 'http://localhost:8000/'
+}
+
+const API_BASE_URL = getApiBaseUrl()
 
 // Create axios instance
 const api = axios.create({
