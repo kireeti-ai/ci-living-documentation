@@ -1,17 +1,13 @@
-import nodemailer from 'nodemailer'
+import { Resend } from 'resend'
 import dotenv from 'dotenv'
 
 dotenv.config()
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-})
+// Initialize Resend with API key
+const resend = new Resend(process.env.RESEND_API_KEY)
+
+// Default sender email - use your verified domain or Resend's default
+const FROM_EMAIL = process.env.EMAIL_FROM || 'onboarding@resend.dev'
 
 export const generateOtp = (): string => {
   return Math.floor(100000 + Math.random() * 900000).toString()
@@ -20,8 +16,7 @@ export const generateOtp = (): string => {
 export const sendOtpEmail = async (email: string, otp: string): Promise<boolean> => {
   console.log(`[EMAIL] Attempting to send OTP email to: ${email}`)
   console.log(`[EMAIL] NODE_ENV: ${process.env.NODE_ENV}`)
-  console.log(`[EMAIL] SMTP_USER configured: ${!!process.env.SMTP_USER}`)
-  console.log(`[EMAIL] SMTP_PASS configured: ${!!process.env.SMTP_PASS}`)
+  console.log(`[EMAIL] RESEND_API_KEY configured: ${!!process.env.RESEND_API_KEY}`)
   
   try {
     // In development, just log the OTP
@@ -32,25 +27,18 @@ export const sendOtpEmail = async (email: string, otp: string): Promise<boolean>
       return true
     }
 
-    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      console.error('[EMAIL] ERROR: SMTP_USER or SMTP_PASS not configured!')
+    if (!process.env.RESEND_API_KEY) {
+      console.error('[EMAIL] ERROR: RESEND_API_KEY not configured!')
       return false
     }
 
-    const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS,
-        },
-    });
+    console.log(`[EMAIL] Sending email via Resend...`)
     
-    const message = {
-        from: process.env.SMTP_USER,
-        to: email,
-        subject: "OTP verification from Automatic Docs generator",
-        text: `OTP : ${otp}`,
-        html: `
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: email,
+      subject: 'OTP verification from Automatic Docs generator',
+      html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2>Email Verification</h2>
           <p>Your verification code is:</p>
@@ -61,12 +49,14 @@ export const sendOtpEmail = async (email: string, otp: string): Promise<boolean>
           <p>If you didn't request this verification, please ignore this email.</p>
         </div>
       `,
-    };
+    })
 
-    console.log(`[EMAIL] Sending email via Gmail...`)
-    await transporter.sendMail(message)
-    console.log(`[EMAIL] Email sent successfully to: ${email}`)
+    if (error) {
+      console.error('[EMAIL] Resend error:', error)
+      return false
+    }
 
+    console.log(`[EMAIL] Email sent successfully to: ${email}, ID: ${data?.id}`)
     return true
   } catch (error) {
     console.error('[EMAIL] Failed to send OTP email:', error)
@@ -94,16 +84,13 @@ export const sendProjectInviteEmail = async (
       return true
     }
 
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    })
+    if (!process.env.RESEND_API_KEY) {
+      console.error('[EMAIL] ERROR: RESEND_API_KEY not configured!')
+      return false
+    }
 
-    const message = {
-      from: process.env.SMTP_USER,
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
       to: email,
       subject: `You've been invited to join ${projectName} - CI Living Documentation`,
       html: `
@@ -120,9 +107,14 @@ export const sendProjectInviteEmail = async (
           <p style="color: #666; font-size: 14px;">If you didn't expect this invitation, you can safely ignore this email.</p>
         </div>
       `,
+    })
+
+    if (error) {
+      console.error('[EMAIL] Failed to send invite email:', error)
+      return false
     }
 
-    await transporter.sendMail(message)
+    console.log(`[EMAIL] Invite email sent to: ${email}, ID: ${data?.id}`)
     return true
   } catch (error) {
     console.error('Failed to send project invite email:', error)
@@ -146,16 +138,13 @@ export const sendPasswordResetEmail = async (
       return true
     }
 
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    })
+    if (!process.env.RESEND_API_KEY) {
+      console.error('[EMAIL] ERROR: RESEND_API_KEY not configured!')
+      return false
+    }
 
-    const message = {
-      from: process.env.SMTP_USER,
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
       to: email,
       subject: 'Password Reset Request - CI Living Documentation',
       html: `
@@ -172,9 +161,14 @@ export const sendPasswordResetEmail = async (
           <p style="color: #666; font-size: 14px;">If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.</p>
         </div>
       `,
+    })
+
+    if (error) {
+      console.error('[EMAIL] Failed to send password reset email:', error)
+      return false
     }
 
-    await transporter.sendMail(message)
+    console.log(`[EMAIL] Password reset email sent to: ${email}, ID: ${data?.id}`)
     return true
   } catch (error) {
     console.error('Failed to send password reset email:', error)
