@@ -5,8 +5,8 @@ services:
     env: node
     region: oregon
     plan: free
-    buildCommand: npm install --prefix backend && npm run build --prefix backend
-    startCommand: node backend/dist/app.js
+    buildCommand: cd backend && npm install --include=dev && npm run build
+    startCommand: cd backend && node dist/app.js
     envVars:
       - key: NODE_ENV
         value: production
@@ -55,7 +55,7 @@ services:
   - type: web
     name: ci-living-docs-frontend
     env: static
-    buildCommand: npm install --prefix frontend && npm run build --prefix frontend
+    buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: frontend/dist
     routes:
       - type: rewrite

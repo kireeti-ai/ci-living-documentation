@@ -1,11 +1,12 @@
 {
   "name": "ci-living-documentation-backend",
   "version": "1.0.0",
+  "type": "module",
   "description": "Backend for CI Living Documentation",
   "main": "dist/app.js",
   "scripts": {
     "dev": "tsx watch src/app.ts",
-    "build": "tsc --build --verbose",
+    "build": "npx tsc",
     "start": "node dist/app.js",
     "start:dev": "npx tsx --watch src/app.ts",
     "db:generate": "drizzle-kit generate",
@@ -39,7 +40,6 @@
     "@types/pg": "^8.11.10",
     "@types/uuid": "^10.0.0",
     "drizzle-kit": "^0.25.0",
-    "tsc": "^2.0.4",
     "tsx": "^4.19.1",
     "typescript": "^5.9.3"
   }
