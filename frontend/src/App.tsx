@@ -12,7 +12,6 @@ import ProjectDetail from './pages/ProjectDetail'
 import AcceptInvitation from './pages/AcceptInvitation'
 import DocumentViewer from './pages/DocumentViewer'
 import DocumentComparison from './pages/DocumentComparison'
-import EditDocumentTags from './pages/EditDocumentTags'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {

@@ -94,11 +94,11 @@ export const getMe = createAsyncThunk(
 
 export const logout = createAsyncThunk(
   'auth/logout',
-  async (_, { rejectWithValue }) => {
+  async () => {
     try {
       await authApi.logout()
       return null
-    } catch (error: any) {
+    } catch {
       // Still logout locally even if API fails
       return null
     }
