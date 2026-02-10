@@ -39,11 +39,42 @@ def get_impact_report():
         print(f"❌ Missing impact report at {INPUT_PATH}")
         sys.exit(1)
 
+
     print(f"📂 Using impact report: {INPUT_PATH}")
     report, warnings = load_impact_report(INPUT_PATH)
+    
+
+    # ---------------------------------------------------------
+    # Sanitize Repository Name (Fix for temp clone names)
+    # ---------------------------------------------------------
+    ctx = report.get("context", {})
+    repo_name = ctx.get("repository", "")
+    
+    # 1. Prefer explicit override from env var
+    override_name = os.getenv("REPOSITORY_NAME")
+    if override_name:
+         print(f"🔧 Using explicit repository name from env: '{override_name}'")
+         ctx["repository"] = override_name
+         report["context"] = ctx
+    
+    # 2. If no override and looks like temp name, try to infer
+    elif "git_clone_" in repo_name or not repo_name:
+        # Try to infer from environment or CWD
+        new_name = os.getenv("GITHUB_REPOSITORY", "").split("/")[-1]
+        if not new_name:
+            # Fallback to current directory name
+            new_name = os.path.basename(os.getcwd())
+            
+        print(f"⚠️ Detected temporary repository name '{repo_name}'. Overriding with '{new_name}'.")
+        ctx["repository"] = new_name
+        report["context"] = ctx
+    # ---------------------------------------------------------
+
+
     for w in warnings:
         print(f"⚠️ {w}")
     return report
+
 
 
 def write_file(path, content):
@@ -77,7 +108,10 @@ def _load_env_files():
 def _derive_generated_at(report):
     deterministic = os.getenv("DETERMINISTIC_DOCS", "true").lower() == "true"
     if deterministic:
-        return report.get("context", {}).get("commit_timestamp", "1970-01-01T00:00:00Z")
+        commit_timestamp = report.get("context", {}).get("commit_timestamp")
+        if commit_timestamp:
+            return commit_timestamp
+        return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
@@ -85,7 +119,9 @@ def generate_all_docs(report, project_id, commit_hash, generated_at, docs_bucket
     generated_files = []
     errors = []
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-    rag_context = build_rag_context(repo_root)
+    # RAG context disabled to prevent hallucinations from the tool's own codebase
+    # rag_context = build_rag_context(repo_root) 
+    rag_context = {}
 
     def attempt(path, type_, description, fn):
         try:
@@ -99,12 +135,45 @@ def generate_all_docs(report, project_id, commit_hash, generated_at, docs_bucket
         except Exception as e:
             errors.append({"path": path, "error": str(e)})
 
+    # Architecture & High-level docs first
     attempt(
         f"{OUTPUT_BASE}/README.generated.md",
         "markdown",
         "Auto-generated repository README",
         lambda: generate_readme(report, generated_at, rag_context=rag_context)
     )
+    attempt(
+        f"{OUTPUT_BASE}/adr/ADR-001.md",
+        "markdown",
+        "Architecture Baseline",
+        lambda: generate_adr(report, generated_at, rag_context=rag_context)
+    )
+    attempt(
+        f"{OUTPUT_BASE}/architecture/system.mmd",
+        "mermaid",
+        "System architecture diagram",
+        lambda: system_diagram(report)
+    )
+    attempt(
+        f"{OUTPUT_BASE}/architecture/sequence.mmd",
+        "mermaid",
+        "Process sequence diagram",
+        lambda: sequence_diagram(report)
+    )
+    attempt(
+        f"{OUTPUT_BASE}/architecture/er.mmd",
+        "mermaid",
+        "Entity-relationship diagram",
+        lambda: er_diagram(report)
+    )
+    attempt(
+        f"{OUTPUT_BASE}/architecture/architecture.md",
+        "markdown",
+        "Architecture documentation text",
+        lambda: generate_architecture_doc(report)
+    )
+    
+    # Detailed API docs later (can be slow)
     attempt(
         f"{OUTPUT_BASE}/api/api-reference.md",
         "markdown",
@@ -117,41 +186,12 @@ def generate_all_docs(report, project_id, commit_hash, generated_at, docs_bucket
         "API endpoint descriptions map",
         lambda: generate_api_descriptions_json(report, rag_context=rag_context)
     )
-    attempt(
-        f"{OUTPUT_BASE}/adr/ADR-001.md",
-        "markdown",
-        "Architecture Decision Record",
-        lambda: generate_adr(report, generated_at, rag_context=rag_context)
-    )
-    attempt(
-        f"{OUTPUT_BASE}/architecture/system.mmd",
-        "mermaid",
-        "System architecture diagram",
-        lambda: system_diagram()
-    )
-    attempt(
-        f"{OUTPUT_BASE}/architecture/sequence.mmd",
-        "mermaid",
-        "Process sequence diagram",
-        lambda: sequence_diagram()
-    )
-    attempt(
-        f"{OUTPUT_BASE}/architecture/er.mmd",
-        "mermaid",
-        "Entity-relationship diagram",
-        lambda: er_diagram()
-    )
+
     attempt(
         f"{OUTPUT_BASE}/tree.txt",
         "text",
         "Hierarchical file tree",
         lambda: generate_tree(report)
-    )
-    attempt(
-        f"{OUTPUT_BASE}/architecture/architecture.md",
-        "markdown",
-        "Architecture documentation text",
-        lambda: generate_architecture_doc(report)
     )
 
     generated_files.append({

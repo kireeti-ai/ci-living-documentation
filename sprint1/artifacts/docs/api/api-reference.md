@@ -1,149 +1,74 @@
 # API Reference
 
-**Total Endpoints:** 20
+**Total Endpoints:** 46
 
 ---
 
 ## Endpoints by File
 
-### `backend/src/main/java/com/exl/quizapp/controller/AIController.java`
+### `backend/src/app.js`
 
-**Language:** java
-
-- **Method:** POST
-  **Path:** `/ai/generate`
-  **Summary:** Create ai.
-  **Authentication:** Likely requires authentication/authorization middleware
-  **Parameters:** Path params: none detected
-  **Responses:** 201 Created (or 200 OK), 400 Bad Request, 401/403 Unauthorized, 500 Server Error
-  **Examples:** `curl -X POST "<base-url>/ai/generate"`
-
-### `backend/src/main/java/com/exl/quizapp/controller/QuestionController.java`
-
-**Language:** java
-
-- **Method:** DELETE
-  **Path:** `/question/delete/{id}`
-  **Summary:** Delete question.
-  **Authentication:** Likely requires authentication/authorization middleware
-  **Parameters:** Path params: id
-  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
-  **Examples:** `curl -X DELETE "<base-url>/question/delete/{id}"`
-- **Method:** GET
-  **Path:** `/question/category/{category}`
-  **Summary:** Retrieve question data.
-  **Authentication:** Likely requires authentication/authorization middleware
-  **Parameters:** Path params: category
-  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
-  **Examples:** `curl -X GET "<base-url>/question/category/{category}"`
-- **Method:** GET
-  **Path:** `/question/my-questions`
-  **Summary:** Retrieve question data.
-  **Authentication:** Likely requires authentication/authorization middleware
-  **Parameters:** Path params: none detected
-  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
-  **Examples:** `curl -X GET "<base-url>/question/my-questions"`
-- **Method:** POST
-  **Path:** `/question/add`
-  **Summary:** Create question.
-  **Authentication:** Likely requires authentication/authorization middleware
-  **Parameters:** Path params: none detected
-  **Responses:** 201 Created (or 200 OK), 400 Bad Request, 401/403 Unauthorized, 500 Server Error
-  **Examples:** `curl -X POST "<base-url>/question/add"`
-- **Method:** POST
-  **Path:** `/question/add-batch`
-  **Summary:** Create question.
-  **Authentication:** Likely requires authentication/authorization middleware
-  **Parameters:** Path params: none detected
-  **Responses:** 201 Created (or 200 OK), 400 Bad Request, 401/403 Unauthorized, 500 Server Error
-  **Examples:** `curl -X POST "<base-url>/question/add-batch"`
-- **Method:** PUT
-  **Path:** `/question/update/{id}`
-  **Summary:** Update question.
-  **Authentication:** Likely requires authentication/authorization middleware
-  **Parameters:** Path params: id
-  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
-  **Examples:** `curl -X PUT "<base-url>/question/update/{id}"`
-
-### `backend/src/main/java/com/exl/quizapp/controller/QuizController.java`
-
-**Language:** java
+**Language:** javascript
 
 - **Method:** GET
-  **Path:** `/quiz/all`
-  **Summary:** Retrieve quiz data.
-  **Authentication:** Likely requires authentication/authorization middleware
-  **Parameters:** Path params: none detected
-  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
-  **Examples:** `curl -X GET "<base-url>/quiz/all"`
-- **Method:** GET
-  **Path:** `/quiz/code/{code}`
-  **Summary:** Retrieve quiz data.
-  **Authentication:** Likely requires authentication/authorization middleware
-  **Parameters:** Path params: code
-  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
-  **Examples:** `curl -X GET "<base-url>/quiz/code/{code}"`
-- **Method:** GET
-  **Path:** `/quiz/get/{id}`
-  **Summary:** Retrieve quiz data.
-  **Authentication:** Likely requires authentication/authorization middleware
-  **Parameters:** Path params: id
-  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
-  **Examples:** `curl -X GET "<base-url>/quiz/get/{id}"`
-- **Method:** GET
-  **Path:** `/quiz/my-quizzes`
-  **Summary:** Retrieve quiz data.
-  **Authentication:** Likely requires authentication/authorization middleware
-  **Parameters:** Path params: none detected
-  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
-  **Examples:** `curl -X GET "<base-url>/quiz/my-quizzes"`
-- **Method:** GET
-  **Path:** `/quiz/result/{id}`
-  **Summary:** Retrieve quiz data.
-  **Authentication:** Likely requires authentication/authorization middleware
-  **Parameters:** Path params: id
-  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
-  **Examples:** `curl -X GET "<base-url>/quiz/result/{id}"`
-- **Method:** POST
-  **Path:** `/quiz/create`
-  **Summary:** Create quiz.
-  **Authentication:** Likely requires authentication/authorization middleware
-  **Parameters:** Path params: none detected
-  **Responses:** 201 Created (or 200 OK), 400 Bad Request, 401/403 Unauthorized, 500 Server Error
-  **Examples:** `curl -X POST "<base-url>/quiz/create"`
-- **Method:** POST
-  **Path:** `/quiz/submit/{id}`
-  **Summary:** Create quiz.
-  **Authentication:** Likely requires authentication/authorization middleware
-  **Parameters:** Path params: id
-  **Responses:** 201 Created (or 200 OK), 400 Bad Request, 401/403 Unauthorized, 500 Server Error
-  **Examples:** `curl -X POST "<base-url>/quiz/submit/{id}"`
-
-### `backend/src/main/java/com/exl/quizapp/controller/UserController.java`
-
-**Language:** java
-
-- **Method:** GET
-  **Path:** `/api/user/profile`
+  **Path:** `/api/docs.json`
   **Summary:** Retrieve api data.
   **Authentication:** Likely requires authentication/authorization middleware
   **Parameters:** Path params: none detected
   **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
-  **Examples:** `curl -X GET "<base-url>/api/user/profile"`
+  **Examples:** `curl -X GET "<base-url>/api/docs.json"`
 - **Method:** GET
-  **Path:** `/api/user/qr-code`
-  **Summary:** Retrieve api data.
+  **Path:** `/health`
+  **Summary:** Retrieve health data.
+  **Authentication:** Public endpoint (authentication may not be required)
+  **Parameters:** Path params: none detected
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
+  **Examples:** `curl -X GET "<base-url>/health"`
+
+### `backend/src/modules/activity/routes/activity.routes.js`
+
+**Language:** javascript
+
+- **Method:** GET
+  **Path:** `/me`
+  **Summary:** Retrieve me data.
   **Authentication:** Likely requires authentication/authorization middleware
   **Parameters:** Path params: none detected
   **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
-  **Examples:** `curl -X GET "<base-url>/api/user/qr-code"`
+  **Examples:** `curl -X GET "<base-url>/me"`
 - **Method:** GET
-  **Path:** `/hello`
-  **Summary:** Retrieve hello data.
+  **Path:** `/project/{projectId}`
+  **Summary:** Retrieve project data.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: projectId
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
+  **Examples:** `curl -X GET "<base-url>/project/{projectId}"`
+- **Method:** GET
+  **Path:** `/user/{userId}`
+  **Summary:** Retrieve user data.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: userId
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
+  **Examples:** `curl -X GET "<base-url>/user/{userId}"`
+
+### `backend/src/modules/auth/routes/auth.routes.js`
+
+**Language:** javascript
+
+- **Method:** GET
+  **Path:** `/me`
+  **Summary:** Retrieve me data.
   **Authentication:** Likely requires authentication/authorization middleware
   **Parameters:** Path params: none detected
   **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
-  **Examples:** `curl -X GET "<base-url>/hello"`
+  **Examples:** `curl -X GET "<base-url>/me"`
+- **Method:** POST
+  **Path:** `/change-password`
+  **Summary:** Create change password.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: none detected
+  **Responses:** 201 Created (or 200 OK), 400 Bad Request, 401/403 Unauthorized, 500 Server Error
+  **Examples:** `curl -X POST "<base-url>/change-password"`
 - **Method:** POST
   **Path:** `/login`
   **Summary:** Create login.
@@ -152,44 +77,347 @@
   **Responses:** 201 Created (or 200 OK), 400 Bad Request, 401/403 Unauthorized, 500 Server Error
   **Examples:** `curl -X POST "<base-url>/login"`
 - **Method:** POST
+  **Path:** `/logout`
+  **Summary:** Create logout.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: none detected
+  **Responses:** 201 Created (or 200 OK), 400 Bad Request, 401/403 Unauthorized, 500 Server Error
+  **Examples:** `curl -X POST "<base-url>/logout"`
+- **Method:** POST
+  **Path:** `/refresh`
+  **Summary:** Create refresh.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: none detected
+  **Responses:** 201 Created (or 200 OK), 400 Bad Request, 401/403 Unauthorized, 500 Server Error
+  **Examples:** `curl -X POST "<base-url>/refresh"`
+- **Method:** POST
   **Path:** `/register`
   **Summary:** Create register.
   **Authentication:** Public endpoint (authentication may not be required)
   **Parameters:** Path params: none detected
   **Responses:** 201 Created (or 200 OK), 400 Bad Request, 401/403 Unauthorized, 500 Server Error
   **Examples:** `curl -X POST "<base-url>/register"`
+
+### `backend/src/modules/comments/routes/comment.routes.js`
+
+**Language:** javascript
+
+- **Method:** DELETE
+  **Path:** `/{id}`
+  **Summary:** Delete {id}.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: id
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
+  **Examples:** `curl -X DELETE "<base-url>/{id}"`
+- **Method:** DELETE
+  **Path:** `/{id}/reactions/{emoji}`
+  **Summary:** Delete {id}.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: id, emoji
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
+  **Examples:** `curl -X DELETE "<base-url>/{id}/reactions/{emoji}"`
+- **Method:** GET
+  **Path:** `/`
+  **Summary:** Retrieve resource data.
+  **Authentication:** Public endpoint (authentication may not be required)
+  **Parameters:** Path params: none detected
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
+  **Examples:** `curl -X GET "<base-url>/"`
+- **Method:** PATCH
+  **Path:** `/{id}`
+  **Summary:** Partially update {id}.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: id
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 500 Server Error
+  **Examples:** `curl -X PATCH "<base-url>/{id}"`
 - **Method:** POST
-  **Path:** `/verify-otp`
-  **Summary:** Create verify otp.
+  **Path:** `/`
+  **Summary:** Create resource.
   **Authentication:** Public endpoint (authentication may not be required)
   **Parameters:** Path params: none detected
   **Responses:** 201 Created (or 200 OK), 400 Bad Request, 401/403 Unauthorized, 500 Server Error
-  **Examples:** `curl -X POST "<base-url>/verify-otp"`
+  **Examples:** `curl -X POST "<base-url>/"`
+- **Method:** POST
+  **Path:** `/{id}/reactions`
+  **Summary:** Create {id}.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: id
+  **Responses:** 201 Created (or 200 OK), 400 Bad Request, 401/403 Unauthorized, 500 Server Error
+  **Examples:** `curl -X POST "<base-url>/{id}/reactions"`
+
+### `backend/src/modules/labels/routes/label.routes.js`
+
+**Language:** javascript
+
+- **Method:** DELETE
+  **Path:** `/{id}`
+  **Summary:** Delete {id}.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: id
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
+  **Examples:** `curl -X DELETE "<base-url>/{id}"`
+- **Method:** GET
+  **Path:** `/`
+  **Summary:** Retrieve resource data.
+  **Authentication:** Public endpoint (authentication may not be required)
+  **Parameters:** Path params: none detected
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
+  **Examples:** `curl -X GET "<base-url>/"`
+- **Method:** GET
+  **Path:** `/{id}`
+  **Summary:** Retrieve {id} data.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: id
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
+  **Examples:** `curl -X GET "<base-url>/{id}"`
+- **Method:** PATCH
+  **Path:** `/{id}`
+  **Summary:** Partially update {id}.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: id
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 500 Server Error
+  **Examples:** `curl -X PATCH "<base-url>/{id}"`
+- **Method:** POST
+  **Path:** `/`
+  **Summary:** Create resource.
+  **Authentication:** Public endpoint (authentication may not be required)
+  **Parameters:** Path params: none detected
+  **Responses:** 201 Created (or 200 OK), 400 Bad Request, 401/403 Unauthorized, 500 Server Error
+  **Examples:** `curl -X POST "<base-url>/"`
+
+### `backend/src/modules/projects/routes/project.routes.js`
+
+**Language:** javascript
+
+- **Method:** DELETE
+  **Path:** `/{id}`
+  **Summary:** Delete {id}.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: id
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
+  **Examples:** `curl -X DELETE "<base-url>/{id}"`
+- **Method:** DELETE
+  **Path:** `/{id}/members/{memberId}`
+  **Summary:** Delete {id}.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: id, memberId
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
+  **Examples:** `curl -X DELETE "<base-url>/{id}/members/{memberId}"`
+- **Method:** GET
+  **Path:** `/`
+  **Summary:** Retrieve resource data.
+  **Authentication:** Public endpoint (authentication may not be required)
+  **Parameters:** Path params: none detected
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
+  **Examples:** `curl -X GET "<base-url>/"`
+- **Method:** GET
+  **Path:** `/analytics`
+  **Summary:** Retrieve analytics data.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: none detected
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
+  **Examples:** `curl -X GET "<base-url>/analytics"`
+- **Method:** GET
+  **Path:** `/{id}`
+  **Summary:** Retrieve {id} data.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: id
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
+  **Examples:** `curl -X GET "<base-url>/{id}"`
+- **Method:** PATCH
+  **Path:** `/{id}`
+  **Summary:** Partially update {id}.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: id
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 500 Server Error
+  **Examples:** `curl -X PATCH "<base-url>/{id}"`
+- **Method:** PATCH
+  **Path:** `/{id}/members/{memberId}`
+  **Summary:** Partially update {id}.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: id, memberId
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 500 Server Error
+  **Examples:** `curl -X PATCH "<base-url>/{id}/members/{memberId}"`
+- **Method:** POST
+  **Path:** `/`
+  **Summary:** Create resource.
+  **Authentication:** Public endpoint (authentication may not be required)
+  **Parameters:** Path params: none detected
+  **Responses:** 201 Created (or 200 OK), 400 Bad Request, 401/403 Unauthorized, 500 Server Error
+  **Examples:** `curl -X POST "<base-url>/"`
+- **Method:** POST
+  **Path:** `/{id}/members`
+  **Summary:** Create {id}.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: id
+  **Responses:** 201 Created (or 200 OK), 400 Bad Request, 401/403 Unauthorized, 500 Server Error
+  **Examples:** `curl -X POST "<base-url>/{id}/members"`
+
+### `backend/src/modules/tasks/routes/task.routes.js`
+
+**Language:** javascript
+
+- **Method:** DELETE
+  **Path:** `/{id}`
+  **Summary:** Delete {id}.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: id
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
+  **Examples:** `curl -X DELETE "<base-url>/{id}"`
+- **Method:** GET
+  **Path:** `/`
+  **Summary:** Retrieve resource data.
+  **Authentication:** Public endpoint (authentication may not be required)
+  **Parameters:** Path params: none detected
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
+  **Examples:** `curl -X GET "<base-url>/"`
+- **Method:** GET
+  **Path:** `/board/{projectId}`
+  **Summary:** Retrieve board data.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: projectId
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
+  **Examples:** `curl -X GET "<base-url>/board/{projectId}"`
+- **Method:** GET
+  **Path:** `/my-tasks`
+  **Summary:** Retrieve my tasks data.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: none detected
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
+  **Examples:** `curl -X GET "<base-url>/my-tasks"`
+- **Method:** GET
+  **Path:** `/stats/{projectId}`
+  **Summary:** Retrieve stats data.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: projectId
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
+  **Examples:** `curl -X GET "<base-url>/stats/{projectId}"`
+- **Method:** GET
+  **Path:** `/{id}`
+  **Summary:** Retrieve {id} data.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: id
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
+  **Examples:** `curl -X GET "<base-url>/{id}"`
+- **Method:** PATCH
+  **Path:** `/bulk`
+  **Summary:** Partially update bulk.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: none detected
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 500 Server Error
+  **Examples:** `curl -X PATCH "<base-url>/bulk"`
+- **Method:** PATCH
+  **Path:** `/{id}`
+  **Summary:** Partially update {id}.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: id
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 500 Server Error
+  **Examples:** `curl -X PATCH "<base-url>/{id}"`
+- **Method:** POST
+  **Path:** `/`
+  **Summary:** Create resource.
+  **Authentication:** Public endpoint (authentication may not be required)
+  **Parameters:** Path params: none detected
+  **Responses:** 201 Created (or 200 OK), 400 Bad Request, 401/403 Unauthorized, 500 Server Error
+  **Examples:** `curl -X POST "<base-url>/"`
+
+### `backend/src/modules/users/routes/user.routes.js`
+
+**Language:** javascript
+
+- **Method:** DELETE
+  **Path:** `/{id}`
+  **Summary:** Delete {id}.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: id
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
+  **Examples:** `curl -X DELETE "<base-url>/{id}"`
+- **Method:** GET
+  **Path:** `/`
+  **Summary:** Retrieve resource data.
+  **Authentication:** Public endpoint (authentication may not be required)
+  **Parameters:** Path params: none detected
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
+  **Examples:** `curl -X GET "<base-url>/"`
+- **Method:** GET
+  **Path:** `/statistics`
+  **Summary:** Retrieve statistics data.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: none detected
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
+  **Examples:** `curl -X GET "<base-url>/statistics"`
+- **Method:** GET
+  **Path:** `/{id}`
+  **Summary:** Retrieve {id} data.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: id
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 404 Not Found, 500 Server Error
+  **Examples:** `curl -X GET "<base-url>/{id}"`
+- **Method:** PATCH
+  **Path:** `/{id}`
+  **Summary:** Partially update {id}.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: id
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 500 Server Error
+  **Examples:** `curl -X PATCH "<base-url>/{id}"`
+- **Method:** PATCH
+  **Path:** `/{id}/role`
+  **Summary:** Partially update {id}.
+  **Authentication:** Likely requires authentication/authorization middleware
+  **Parameters:** Path params: id
+  **Responses:** 200 OK, 400 Bad Request, 401/403 Unauthorized, 500 Server Error
+  **Examples:** `curl -X PATCH "<base-url>/{id}/role"`
 
 ---
 
 ## All Endpoints
 
-- `DELETE /question/delete/{id}`
-- `GET /api/user/profile`
-- `GET /api/user/qr-code`
-- `GET /hello`
-- `GET /question/category/{category}`
-- `GET /question/my-questions`
-- `GET /quiz/all`
-- `GET /quiz/code/{code}`
-- `GET /quiz/get/{id}`
-- `GET /quiz/my-quizzes`
-- `GET /quiz/result/{id}`
-- `POST /ai/generate`
+- `DELETE /{id}`
+- `DELETE /{id}`
+- `DELETE /{id}`
+- `DELETE /{id}`
+- `DELETE /{id}`
+- `DELETE /{id}/members/{memberId}`
+- `DELETE /{id}/reactions/{emoji}`
+- `GET /`
+- `GET /`
+- `GET /`
+- `GET /`
+- `GET /`
+- `GET /analytics`
+- `GET /api/docs.json`
+- `GET /board/{projectId}`
+- `GET /health`
+- `GET /me`
+- `GET /me`
+- `GET /my-tasks`
+- `GET /project/{projectId}`
+- `GET /statistics`
+- `GET /stats/{projectId}`
+- `GET /user/{userId}`
+- `GET /{id}`
+- `GET /{id}`
+- `GET /{id}`
+- `GET /{id}`
+- `PATCH /bulk`
+- `PATCH /{id}`
+- `PATCH /{id}`
+- `PATCH /{id}`
+- `PATCH /{id}`
+- `PATCH /{id}`
+- `PATCH /{id}/members/{memberId}`
+- `PATCH /{id}/role`
+- `POST /`
+- `POST /`
+- `POST /`
+- `POST /`
+- `POST /change-password`
 - `POST /login`
-- `POST /question/add`
-- `POST /question/add-batch`
-- `POST /quiz/create`
-- `POST /quiz/submit/{id}`
+- `POST /logout`
+- `POST /refresh`
 - `POST /register`
-- `POST /verify-otp`
-- `PUT /question/update/{id}`
+- `POST /{id}/members`
+- `POST /{id}/reactions`
 
 ---
 

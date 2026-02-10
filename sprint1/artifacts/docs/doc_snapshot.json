@@ -1,10 +1,15 @@
 {
-  "snapshot_id": "13859c50731df84e",
-  "project_id": "proj_10234",
-  "commit": "edb75298",
-  "generated_at": "1970-01-01T00:00:00Z",
-  "docs_bucket_path": "proj_10234/edb75298/docs/",
+  "snapshot_id": "a06afe459a319e66",
+  "project_id": "test-project-pro-readme",
+  "commit": "commit-v8-debug",
+  "generated_at": "2026-02-10T19:30:50.428705Z",
+  "docs_bucket_path": "test-project-pro-readme/commit-v8-debug/docs/",
   "generated_files": [
+    {
+      "file": "README.generated.md",
+      "type": "markdown",
+      "description": "Auto-generated repository README"
+    },
     {
       "file": "api/api-reference.md",
       "type": "markdown",
@@ -14,6 +19,11 @@
       "file": "api/api-descriptions.json",
       "type": "json",
       "description": "API endpoint descriptions map"
+    },
+    {
+      "file": "adr/ADR-001.md",
+      "type": "markdown",
+      "description": "Architecture Decision Record"
     },
     {
       "file": "architecture/system.mmd",
@@ -52,363 +62,596 @@
     }
   ],
   "documentation_health": {
-    "missing_sections": [
-      "README.generated.md",
-      "adr/ADR-001.md"
-    ],
-    "template_followed": false
+    "missing_sections": [],
+    "template_followed": true
   },
-  "author": "Kireeti",
+  "author": "kireeti-ai",
   "analysis": {
     "severity": "MAJOR",
     "breaking_changes": true,
-    "files_changed": 65
+    "files_changed": 114
   },
-  "errors": [
-    {
-      "path": "sprint1/artifacts/docs/README.generated.md",
-      "error": "HTTPSConnectionPool(host='api.groq.com', port=443): Max retries exceeded with url: /openai/v1/chat/completions (Caused by NameResolutionError(\"<urllib3.connection.HTTPSConnection object at 0x10b1f21d0>: Failed to resolve 'api.groq.com' ([Errno 8] nodename nor servname provided, or not known)\"))"
-    },
-    {
-      "path": "sprint1/artifacts/docs/adr/ADR-001.md",
-      "error": "HTTPSConnectionPool(host='api.groq.com', port=443): Max retries exceeded with url: /openai/v1/chat/completions (Caused by NameResolutionError(\"<urllib3.connection.HTTPSConnection object at 0x10b32dc00>: Failed to resolve 'api.groq.com' ([Errno 8] nodename nor servname provided, or not known)\"))"
-    }
-  ],
+  "errors": [],
   "statistics": {
-    "total_files": 65,
-    "total_documents": 9,
+    "total_files": 114,
+    "total_documents": 11,
     "diagram_count": 3
   },
   "repo": {
-    "name": "git_clone_7wkko8dk",
+    "name": "git_clone_vle_6acz",
     "branch": "main",
-    "commit": "63d36c2b"
+    "commit": "d4509166"
   },
   "changed_files": [
+    {
+      "path": "Dockerfile",
+      "language": null,
+      "severity": "PATCH"
+    },
     {
       "path": "README.md",
       "language": null,
       "severity": "PATCH"
     },
     {
-      "path": "SECURITY_FEATURES.md",
-      "language": null,
-      "severity": "PATCH"
-    },
-    {
-      "path": "Frontend/eslint.config.js",
-      "language": "javascript",
-      "severity": "PATCH"
-    },
-    {
-      "path": "Frontend/index.html",
-      "language": null,
-      "severity": "PATCH"
-    },
-    {
-      "path": "Frontend/package.json",
+      "path": "docker-compose.yml",
       "language": null,
       "severity": "MINOR"
     },
     {
-      "path": "Frontend/vite.config.js",
-      "language": "javascript",
-      "severity": "PATCH"
+      "path": "package.json",
+      "language": null,
+      "severity": "MINOR"
     },
     {
-      "path": "backend/.dockerignore",
+      "path": "backend/.env.example",
       "language": null,
       "severity": "PATCH"
     },
     {
-      "path": "backend/Dockerfile",
+      "path": "backend/.eslintrc.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/package.json",
+      "language": null,
+      "severity": "MINOR"
+    },
+    {
+      "path": "docs/ADR-001.md",
       "language": null,
       "severity": "PATCH"
     },
     {
-      "path": "backend/mvnw",
+      "path": "docs/api-reference.md",
       "language": null,
       "severity": "PATCH"
     },
     {
-      "path": "backend/mvnw.cmd",
+      "path": "docs/architecture.md",
       "language": null,
       "severity": "PATCH"
     },
     {
-      "path": "backend/pom.xml",
+      "path": "docs/changelog.md",
       "language": null,
       "severity": "PATCH"
     },
     {
-      "path": "backend/quiz.pem",
+      "path": "docs/data-model.md",
       "language": null,
       "severity": "PATCH"
     },
     {
-      "path": "Frontend/src/App.css",
+      "path": "docs/security.md",
       "language": null,
       "severity": "PATCH"
     },
     {
-      "path": "Frontend/src/App.jsx",
-      "language": "javascript",
-      "severity": "MINOR"
-    },
-    {
-      "path": "Frontend/src/index.css",
+      "path": "docs/testing.md",
       "language": null,
       "severity": "PATCH"
     },
     {
-      "path": "Frontend/src/main.jsx",
-      "language": "javascript",
-      "severity": "PATCH"
-    },
-    {
-      "path": "Frontend/src/components/CreateQuizModal.jsx",
-      "language": "javascript",
-      "severity": "MINOR"
-    },
-    {
-      "path": "Frontend/src/components/QuizResultsModal.jsx",
-      "language": "javascript",
-      "severity": "MINOR"
-    },
-    {
-      "path": "Frontend/src/services/quizService.js",
-      "language": "javascript",
-      "severity": "MINOR"
-    },
-    {
-      "path": "Frontend/src/components/Sidebar/Sidebar.jsx",
-      "language": "javascript",
-      "severity": "MINOR"
-    },
-    {
-      "path": "Frontend/src/pages/Auth/Auth.css",
+      "path": "frontend/Dockerfile.dev",
       "language": null,
       "severity": "PATCH"
     },
     {
-      "path": "Frontend/src/pages/Auth/Auth.jsx",
-      "language": "javascript",
-      "severity": "MINOR"
-    },
-    {
-      "path": "Frontend/src/pages/Faculty/AIQuestionGenerator.jsx",
-      "language": "javascript",
-      "severity": "MINOR"
-    },
-    {
-      "path": "Frontend/src/pages/Faculty/Faculty.css",
+      "path": "frontend/index.html",
       "language": null,
       "severity": "PATCH"
     },
     {
-      "path": "Frontend/src/pages/Faculty/FacultyDashboard.jsx",
-      "language": "javascript",
-      "severity": "MINOR"
-    },
-    {
-      "path": "Frontend/src/pages/Faculty/QuestionBank.jsx",
-      "language": "javascript",
-      "severity": "MINOR"
-    },
-    {
-      "path": "Frontend/src/pages/Profile/Profile.css",
+      "path": "frontend/package.json",
       "language": null,
+      "severity": "MINOR"
+    },
+    {
+      "path": "frontend/vite.config.js",
+      "language": "javascript",
       "severity": "PATCH"
     },
     {
-      "path": "Frontend/src/pages/Profile/Profile.jsx",
-      "language": "javascript",
-      "severity": "MINOR"
-    },
-    {
-      "path": "Frontend/src/pages/Student/QuizPlayer.jsx",
-      "language": "javascript",
-      "severity": "MINOR"
-    },
-    {
-      "path": "Frontend/src/pages/Student/ResultPage.jsx",
-      "language": "javascript",
-      "severity": "MINOR"
-    },
-    {
-      "path": "Frontend/src/pages/Student/Student.css",
+      "path": ".github/workflows/ci.yml",
       "language": null,
-      "severity": "PATCH"
+      "severity": "MINOR"
     },
     {
-      "path": "Frontend/src/pages/Student/StudentDashboard.jsx",
+      "path": "backend/src/app.js",
       "language": "javascript",
-      "severity": "MINOR"
-    },
-    {
-      "path": "backend/src/main/resources/application.properties.example",
-      "language": null,
-      "severity": "PATCH"
-    },
-    {
-      "path": "backend/src/main/java/com/exl/quizapp/QuizAppApplication.java",
-      "language": "java",
-      "severity": "PATCH"
-    },
-    {
-      "path": "backend/src/test/java/com/exl/quizapp/QuizAppApplicationTests.java",
-      "language": "java",
-      "severity": "PATCH"
-    },
-    {
-      "path": "backend/src/main/java/com/exl/quizapp/config/CorsConfig.java",
-      "language": "java",
-      "severity": "MINOR"
-    },
-    {
-      "path": "backend/src/main/java/com/exl/quizapp/config/JwtFilter.java",
-      "language": "java",
-      "severity": "PATCH"
-    },
-    {
-      "path": "backend/src/main/java/com/exl/quizapp/config/SecurityConfig.java",
-      "language": "java",
-      "severity": "MINOR"
-    },
-    {
-      "path": "backend/src/main/java/com/exl/quizapp/controller/AIController.java",
-      "language": "java",
       "severity": "MAJOR"
     },
     {
-      "path": "backend/src/main/java/com/exl/quizapp/controller/QuestionController.java",
-      "language": "java",
-      "severity": "MAJOR"
+      "path": "backend/src/server.js",
+      "language": "javascript",
+      "severity": "MINOR"
     },
     {
-      "path": "backend/src/main/java/com/exl/quizapp/controller/QuizController.java",
-      "language": "java",
-      "severity": "MAJOR"
-    },
-    {
-      "path": "backend/src/main/java/com/exl/quizapp/controller/UserController.java",
-      "language": "java",
-      "severity": "MAJOR"
-    },
-    {
-      "path": "backend/src/main/java/com/exl/quizapp/dao/AttemptDao.java",
-      "language": "java",
+      "path": "backend/tests/setup.js",
+      "language": "javascript",
       "severity": "PATCH"
     },
     {
-      "path": "backend/src/main/java/com/exl/quizapp/dao/QuestionDao.java",
-      "language": "java",
+      "path": "frontend/src/App.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "frontend/src/index.css",
+      "language": null,
       "severity": "PATCH"
     },
     {
-      "path": "backend/src/main/java/com/exl/quizapp/dao/QuizDao.java",
-      "language": "java",
+      "path": "frontend/src/main.jsx",
+      "language": "javascript",
       "severity": "PATCH"
     },
     {
-      "path": "backend/src/main/java/com/exl/quizapp/dao/UserRepo.java",
-      "language": "java",
+      "path": "frontend/tests/setup.js",
+      "language": "javascript",
       "severity": "PATCH"
     },
     {
-      "path": "backend/src/main/java/com/exl/quizapp/model/Attempt.java",
-      "language": "java",
+      "path": "backend/src/config/database.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/config/index.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/docs/swagger.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/middleware/auth.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/middleware/errorHandler.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/middleware/index.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/middleware/rbac.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/middleware/requestLogger.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/middleware/validate.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/routes/index.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/scripts/seed.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/utils/ApiError.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/utils/ApiResponse.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/utils/asyncHandler.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/utils/index.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/utils/jwt.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/utils/logger.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/tests/integration/auth.test.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/tests/integration/projects.test.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/tests/integration/tasks.test.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/context/AuthContext.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "frontend/src/pages/AdminPage.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/pages/AdminPage.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "frontend/src/pages/AuthPages.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/pages/DashboardPage.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/pages/DashboardPage.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "frontend/src/pages/LoginPage.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "frontend/src/pages/ProfilePage.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/pages/ProfilePage.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "frontend/src/pages/ProjectDetailPage.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/pages/ProjectDetailPage.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "frontend/src/pages/ProjectsPage.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/pages/ProjectsPage.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "frontend/src/pages/RegisterPage.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "frontend/src/pages/TasksPage.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/pages/TasksPage.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "frontend/src/services/api.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/services/authService.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/services/projectService.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/services/taskService.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/services/userService.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/activity/Activity.model.js",
+      "language": "javascript",
       "severity": "MAJOR"
     },
     {
-      "path": "backend/src/main/java/com/exl/quizapp/model/Question.java",
-      "language": "java",
+      "path": "backend/src/modules/comments/Comment.model.js",
+      "language": "javascript",
       "severity": "MAJOR"
     },
     {
-      "path": "backend/src/main/java/com/exl/quizapp/model/QuestionWrapper.java",
-      "language": "java",
-      "severity": "PATCH"
-    },
-    {
-      "path": "backend/src/main/java/com/exl/quizapp/model/Quiz.java",
-      "language": "java",
+      "path": "backend/src/modules/labels/Label.model.js",
+      "language": "javascript",
       "severity": "MAJOR"
     },
     {
-      "path": "backend/src/main/java/com/exl/quizapp/model/QuizStartResponse.java",
-      "language": "java",
-      "severity": "PATCH"
-    },
-    {
-      "path": "backend/src/main/java/com/exl/quizapp/model/Response.java",
-      "language": "java",
-      "severity": "PATCH"
-    },
-    {
-      "path": "backend/src/main/java/com/exl/quizapp/model/UserPrinicipal.java",
-      "language": "java",
-      "severity": "MINOR"
-    },
-    {
-      "path": "backend/src/main/java/com/exl/quizapp/model/Users.java",
-      "language": "java",
+      "path": "backend/src/modules/projects/Project.model.js",
+      "language": "javascript",
       "severity": "MAJOR"
     },
     {
-      "path": "backend/src/main/java/com/exl/quizapp/service/AIService.java",
-      "language": "java",
+      "path": "backend/src/modules/tasks/Task.model.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "backend/src/modules/users/User.model.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "frontend/src/components/auth/ProtectedRoute.jsx",
+      "language": "javascript",
       "severity": "MINOR"
     },
     {
-      "path": "backend/src/main/java/com/exl/quizapp/service/EmailService.java",
-      "language": "java",
+      "path": "frontend/src/components/common/Avatar.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/components/common/Avatar.jsx",
+      "language": "javascript",
       "severity": "MINOR"
     },
     {
-      "path": "backend/src/main/java/com/exl/quizapp/service/EncryptionService.java",
-      "language": "java",
+      "path": "frontend/src/components/common/Layout.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/components/common/Layout.jsx",
+      "language": "javascript",
       "severity": "MINOR"
     },
     {
-      "path": "backend/src/main/java/com/exl/quizapp/service/JWTService.java",
-      "language": "java",
+      "path": "frontend/src/components/common/LoadingSpinner.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/components/common/LoadingSpinner.jsx",
+      "language": "javascript",
       "severity": "MINOR"
     },
     {
-      "path": "backend/src/main/java/com/exl/quizapp/service/MyUserDetailsService.java",
-      "language": "java",
+      "path": "frontend/src/components/common/Navbar.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/components/common/Navbar.jsx",
+      "language": "javascript",
       "severity": "MINOR"
     },
     {
-      "path": "backend/src/main/java/com/exl/quizapp/service/OtpService.java",
-      "language": "java",
+      "path": "frontend/src/components/common/Sidebar.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/components/common/Sidebar.jsx",
+      "language": "javascript",
       "severity": "MINOR"
     },
     {
-      "path": "backend/src/main/java/com/exl/quizapp/service/PdfService.java",
-      "language": "java",
-      "severity": "MINOR"
+      "path": "backend/src/modules/activity/controllers/activity.controller.js",
+      "language": "javascript",
+      "severity": "PATCH"
     },
     {
-      "path": "backend/src/main/java/com/exl/quizapp/service/QrCodeService.java",
-      "language": "java",
-      "severity": "MINOR"
+      "path": "backend/src/modules/activity/routes/activity.routes.js",
+      "language": "javascript",
+      "severity": "MAJOR"
     },
     {
-      "path": "backend/src/main/java/com/exl/quizapp/service/QuestionService.java",
-      "language": "java",
-      "severity": "MINOR"
+      "path": "backend/src/modules/activity/services/activity.service.js",
+      "language": "javascript",
+      "severity": "PATCH"
     },
     {
-      "path": "backend/src/main/java/com/exl/quizapp/service/QuizService.java",
-      "language": "java",
-      "severity": "MINOR"
+      "path": "backend/src/modules/auth/controllers/auth.controller.js",
+      "language": "javascript",
+      "severity": "PATCH"
     },
     {
-      "path": "backend/src/main/java/com/exl/quizapp/service/UserService.java",
-      "language": "java",
-      "severity": "MINOR"
+      "path": "backend/src/modules/auth/routes/auth.routes.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "backend/src/modules/auth/services/auth.service.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/auth/validators/auth.validator.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/comments/controllers/comment.controller.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/comments/routes/comment.routes.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "backend/src/modules/comments/services/comment.service.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/comments/validators/comment.validator.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/labels/controllers/label.controller.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/labels/routes/label.routes.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "backend/src/modules/labels/services/label.service.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/labels/validators/label.validator.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/projects/controllers/project.controller.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/projects/repositories/project.repository.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/projects/routes/project.routes.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "backend/src/modules/projects/services/project.service.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/projects/validators/project.validator.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/tasks/controllers/task.controller.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/tasks/repositories/task.repository.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/tasks/routes/task.routes.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "backend/src/modules/tasks/services/task.service.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/tasks/validators/task.validator.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/users/controllers/user.controller.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/users/repositories/user.repository.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/users/routes/user.routes.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "backend/src/modules/users/services/user.service.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/users/validators/user.validator.js",
+      "language": "javascript",
+      "severity": "PATCH"
     }
   ]
 }

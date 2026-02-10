@@ -1,54 +1,37 @@
 erDiagram
-    REPOSITORY ||--o{ BRANCH : contains
-    BRANCH ||--o{ COMMIT : contains
-    COMMIT ||--o{ FILE_CHANGE : includes
-    FILE_CHANGE ||--o{ CODE_FEATURE : has
-    
-    REPOSITORY {
-        string name
-        string url
-        string owner
+    ACTIVITY {
+        uuid id PK
+        datetime created_at
+        datetime updated_at
     }
-    
-    BRANCH {
-        string name
-        string ref
-        boolean is_default
+    COMMENT {
+        uuid id PK
+        datetime created_at
+        datetime updated_at
     }
-    
-    COMMIT {
-        string sha
-        string author
-        datetime timestamp
-        string message
+    LABEL {
+        uuid id PK
+        datetime created_at
+        datetime updated_at
     }
-    
-    FILE_CHANGE {
-        string file_path
-        string language
-        string change_type
-        string severity
+    PROJECT {
+        uuid id PK
+        datetime created_at
+        datetime updated_at
     }
-    
-    CODE_FEATURE {
-        string type
-        string name
-        string description
+    TASK {
+        uuid id PK
+        datetime created_at
+        datetime updated_at
     }
-    
-    COMMIT ||--o{ IMPACT_REPORT : generates
-    IMPACT_REPORT ||--o{ DOCUMENTATION : produces
-    
-    IMPACT_REPORT {
-        string commit_sha
-        string severity
-        boolean breaking_changes
-        json analysis_summary
+    USER {
+        uuid id PK
+        datetime created_at
+        datetime updated_at
     }
-    
-    DOCUMENTATION {
-        string type
-        string filename
-        datetime generated_at
-        string content
-    }
+    USER ||--o{ PROJECT : manages
+    PROJECT ||--|{ TASK : contains
+    TASK ||--o{ COMMENT : has
+    USER ||--o{ COMMENT : owns
+    USER ||--o{ ACTIVITY : owns
+    USER ||--o{ LABEL : owns

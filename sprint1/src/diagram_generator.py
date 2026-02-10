@@ -1,206 +1,313 @@
 #!/usr/bin/env python3
 """
 Diagram Generator
-Creates Mermaid diagrams for architecture visualization
+Creates detailed and professional Mermaid diagrams for architecture visualization based on code analysis.
 """
+from typing import Dict, Any, Set
 
-def system_diagram():
+def _infer_components(report: Dict[str, Any]) -> Set[str]:
     """
-    Generate system architecture diagram in Mermaid format
-    
-    Returns:
-        str: Mermaid diagram showing overall system architecture
+    Infer system components from changed files and packages with high granularity.
     """
-    return """graph TB
-    subgraph "Development"
-        Dev[Developer]
-        Code[Code Changes]
-    end
+    components = set()
+    changes = report.get("changes", [])
+    files = [str(c.get("file", "")).lower() for c in changes]
+    packages = {str(p).lower() for p in report.get("affected_packages", [])}
     
-    subgraph "CI/CD Pipeline"
-        GH[GitHub Push/PR]
-        CI[GitHub Actions]
-        E1[EPIC-1 Analysis]
-    end
+    # Combined text for wider search
+    all_text = " ".join(files) + " " + " ".join(packages)
+
+    # Frontend
+    if any(k in all_text for k in ["frontend", "react", "vue", "angular", "next", "vite", "tailwind"]):
+        components.add("Frontend")
+
+    # Backend
+    if any(k in all_text for k in ["backend", "express", "django", "flask", "fastapi", "spring", "nest"]):
+        components.add("Backend")
+
+    # Database
+    if any(k in all_text for k in ["mongo", "mongoose", "postgres", "mysql", "sequelize", "prisma", "typeorm", "sql"]):
+        components.add("Database")
+
+    # Infrastructure / External Services
+    if any(k in all_text for k in ["redis", "cache"]):
+        components.add("Redis")
+    if any(k in all_text for k in ["docker", "kubernetes", "k8s"]):
+        components.add("Docker")
+    if any(k in all_text for k in ["rabbitmq", "kafka", "sqs", "queue", "worker"]):
+        components.add("Queue")
+        components.add("Worker")
+    if any(k in all_text for k in ["s3", "aws", "storage", "upload"]):
+        components.add("ObjectStorage")
+    if any(k in all_text for k in ["mail", "smtp", "sendgrid"]):
+        components.add("EmailService")
     
-    subgraph "Documentation Generation"
-        E2[EPIC-2 Runner]
-        Gen[Documentation Generators]
-    end
-    
-    subgraph "Outputs"
-        README[README.generated.md]
-        API[API Docs]
-        ADR[ADR]
-        Diagrams[Diagrams]
-        Snapshot[Snapshot JSON]
-    end
-    
-    subgraph "Storage"
-        Repo[Git Repository]
-        Artifacts[CI Artifacts]
-    end
-    
-    Dev -->|commits| Code
-    Code -->|push| GH
-    GH -->|triggers| CI
-    CI -->|calls| E1
-    E1 -->|impact report| E2
-    E2 -->|orchestrates| Gen
-    Gen -->|creates| README
-    Gen -->|creates| API
-    Gen -->|creates| ADR
-    Gen -->|creates| Diagrams
-    Gen -->|creates| Snapshot
-    README -->|commits| Repo
-    API -->|commits| Repo
-    ADR -->|commits| Repo
-    Diagrams -->|commits| Repo
-    Snapshot -->|commits| Repo
-    Gen -->|uploads| Artifacts
-    
-    style E1 fill:#e1f5ff
-    style E2 fill:#e1f5ff
-    style Gen fill:#fff4e1
-    style Repo fill:#e8f5e9
+    # Internal Modules
+    if any("auth" in f for f in files) or "jwt" in all_text:
+        components.add("AuthService")
+    if any("monitor" in f for f in files) or "prometheus" in all_text:
+        components.add("Monitoring")
+
+    return components
+
+def system_diagram(report: Dict[str, Any] = None) -> str:
+    """
+    Generate a professional system architecture diagram.
+    """
+    components = _infer_components(report or {})
+    if not components:
+         # Fallback to a generic tiered architecture if inference fails
+        return """graph TD
+    User([User]) -->|HTTP| App[Application]
+    App -->|Reads/Writes| DB[(Database)]
 """
+    
+    lines = ["graph TD"]
+    lines.append("    User([User])")
+    
+    # Subgraph for Client Layer
+    if "Frontend" in components:
+        lines.append('    subgraph Client ["Client Layer"]')
+        lines.append('        Frontend[Frontend Application]')
+        lines.append('    end')
+        lines.append("    User -->|HTTPS| Frontend")
+    else:
+        # If no frontend, User hits Backend directly (API consumer)
+        pass
 
-def sequence_diagram():
-    """
-    Generate sequence diagram showing the documentation generation flow
-    
-    Returns:
-        str: Mermaid sequence diagram
-    """
-    return """sequenceDiagram
-    actor Developer
-    participant GitHub
-    participant CI as GitHub Actions
-    participant EPIC1 as EPIC-1 Backend
-    participant EPIC2 as EPIC-2 Runner
-    participant Generators
-    participant Repo as Repository
-    
-    Developer->>GitHub: Push code changes
-    GitHub->>CI: Trigger workflow
-    
-    Note over CI: Setup Python environment
-    
-    CI->>EPIC1: POST /analyze<br/>{repo_url, branch}
-    EPIC1-->>CI: Impact Report JSON
-    
-    Note over CI: Save to sprint1/input/
-    
-    CI->>EPIC2: python run_epic2.py
-    
-    EPIC2->>EPIC2: Load impact report
-    EPIC2->>Generators: generate_readme()
-    Generators-->>EPIC2: README.generated.md
-    
-    EPIC2->>Generators: generate_api_docs()
-    Generators-->>EPIC2: api-reference.md
-    
-    EPIC2->>Generators: generate_adr()
-    Generators-->>EPIC2: ADR-001.md
-    
-    EPIC2->>Generators: system_diagram()
-    Generators-->>EPIC2: system.mmd
-    
-    EPIC2->>Generators: sequence_diagram()
-    Generators-->>EPIC2: sequence.mmd
-    
-    EPIC2->>Generators: er_diagram()
-    Generators-->>EPIC2: er.mmd
-    
-    EPIC2->>Generators: generate_tree()
-    Generators-->>EPIC2: tree.txt
-    
-    EPIC2->>Generators: write_snapshot()
-    Generators-->>EPIC2: doc_snapshot.json
-    
-    Note over EPIC2: All docs generated
-    
-    CI->>Repo: git add sprint1/artifacts/docs
-    CI->>Repo: git commit -m "docs: auto-generate [skip ci]"
-    CI->>Repo: git push
-    
-    Note over Repo: Documentation updated
-    
-    CI-->>Developer: ✅ Workflow complete
-"""
+    # Subgraph for Backend Layer
+    lines.append('    subgraph Server ["Server Layer"]')
+    if "Backend" in components:
+        lines.append('        Backend[Backend API]')
+        if "Frontend" in components:
+            lines.append("        Frontend -->|REST/GraphQL| Backend")
+        else:
+            lines.append("        User -->|API Request| Backend")
+            
+        if "AuthService" in components:
+            lines.append('        Auth[Auth Service/Module]')
+            lines.append("        Backend -.->|Validate Token| Auth")
+            
+        if "Worker" in components:
+            lines.append('        Worker[Background Worker]')
+            
+    lines.append('    end')
 
-def er_diagram():
-    """
-    Generate entity-relationship diagram
+    # Subgraph for Infrastructure/Data Layer
+    lines.append('    subgraph Infra ["Infrastructure Layer"]')
     
-    Returns:
-        str: Mermaid ER diagram
-    """
-    return """erDiagram
-    REPOSITORY ||--o{ BRANCH : contains
-    BRANCH ||--o{ COMMIT : contains
-    COMMIT ||--o{ FILE_CHANGE : includes
-    FILE_CHANGE ||--o{ CODE_FEATURE : has
+    if "Database" in components:
+        lines.append('        DB[(Primary Database)]')
+        if "Backend" in components:
+            lines.append("        Backend -->|Read/Write| DB")
+            
+    if "Redis" in components:
+        lines.append('        Cache[(Redis Cache)]')
+        if "Backend" in components:
+            lines.append("        Backend -->|Cache Hit/Miss| Cache")
+            
+    if "Queue" in components:
+        lines.append('        MQ[[Message Queue]]')
+        if "Backend" in components:
+            lines.append("        Backend -->|Publish Event| MQ")
+        if "Worker" in components:
+            lines.append("        MQ -->|Consume| Worker")
+            
+    if "ObjectStorage" in components:
+        lines.append('        S3[Object Storage]')
+        if "Backend" in components:
+             lines.append("        Backend -->|Upload/Presign| S3")
+        if "Frontend" in components:
+             lines.append("        Frontend -.->|Direct Download| S3")
+
+    lines.append('    end')
+
+    # Styling
+    lines.append("    classDef client fill:#e3f2fd,stroke:#1565c0,color:black,stroke-width:2px;")
+    lines.append("    classDef server fill:#f3e5f5,stroke:#7b1fa2,color:black,stroke-width:2px;")
+    lines.append("    classDef infra fill:#e8f5e9,stroke:#2e7d32,color:black,stroke-width:2px;")
     
-    REPOSITORY {
+    if "Frontend" in components:
+        lines.append("    class Frontend client;")
+    if "Backend" in components:
+        lines.append("    class Backend,Auth,Worker server;")
+    lines.append("    class DB,Cache,MQ,S3 infra;")
+    
+    return "\n".join(lines)
+
+def sequence_diagram(report: Dict[str, Any] = None) -> str:
+    """
+    Generate a dynamic sequence diagram highlighting key interactions.
+    """
+    components = _infer_components(report or {})
+    lines = ["sequenceDiagram"]
+    lines.append("    autonumber")
+    lines.append("    actor User")
+    
+    if "Frontend" in components:
+        lines.append("    participant Client as Frontend Client")
+    
+    lines.append("    participant API as Backend Service")
+    
+    if "AuthService" in components:
+        lines.append("    participant Auth as Auth Module")
+        
+    if "Redis" in components:
+        lines.append("    participant Cache as Redis Cache")
+        
+    lines.append("    participant DB as Database")
+    
+    if "Queue" in components:
+        lines.append("    participant Queue as Message Queue")
+
+    # Flow
+    if "Frontend" in components:
+        lines.append("    User->>Client: Internal Action / Navigation")
+        lines.append("    Client->>API: Secure API Request (Bearer Token)")
+    else:
+        lines.append("    User->>API: Direct API Request")
+
+    # Auth Step
+    if "AuthService" in components:
+        lines.append("    API->>Auth: Validate Session/Token")
+        lines.append("    Auth-->>API: Token Valid")
+    
+    # Caching Step
+    if "Redis" in components:
+        lines.append("    API->>Cache: Check Cache Key")
+        lines.append("    alt Cache Hit")
+        lines.append("        Cache-->>API: Return Cached Data")
+        lines.append("    else Cache Miss")
+    
+    # DB Step
+    lines.append("        API->>DB: Query Operational Data")
+    lines.append("        DB-->>API: Result Set")
+    
+    if "Redis" in components:
+        lines.append("        API->>Cache: Set Cache Key")
+        lines.append("    end")
+        
+    # Async Step
+    if "Queue" in components:
+        lines.append("    par Async Processing")
+        lines.append("        API->>Queue: Publish Event")
+        lines.append("    and Response")
+        lines.append("        API-->>Client: 202 Accepted")
+        lines.append("    end")
+    else:
+        if "Frontend" in components:
+            lines.append("    API-->>Client: JSON Response")
+            lines.append("    Client-->>User: Render Data")
+        else:
+            lines.append("    API-->>User: JSON Response")
+
+    return "\n".join(lines)
+
+def er_diagram(report: Dict[str, Any] = None) -> str:
+    """
+    Generate an Entity-Relationship diagram with smart heuristic relationships.
+    """
+    if not report:
+        return ""
+        
+    changes = report.get("changes", [])
+    files = [str(c.get("file", "")) for c in changes]
+    
+    # 1. Extract Entities
+    entities = set()
+    for f in files:
+        # Heuristic: look for model files
+        low = f.lower()
+        if "model" in low or "entity" in low or "schema" in low:
+            parts = f.split("/")
+            for part in parts:
+                if "model" in part.lower() or "entity" in part.lower():
+                    # clean filename to get Entity Name
+                    clean = part.replace(".model", "").replace(".js", "").replace(".ts", "").replace(".java", "").replace(".py", "")
+                    # Ensure it looks like a class name (PascalCase)
+                    if clean and clean[0].isupper():
+                        entities.add(clean)
+
+    if not entities:
+        # If no entities found, provide a professional generic template
+        return """erDiagram
+    %% No specific data models detected in changelog
+    %% Generic User-Resource Schema shown
+    
+    USER ||--o{ ORGANIZATION : belongs_to
+    ORGANIZATION ||--o{ PROJECT : owns
+    PROJECT ||--|{ TASK : contains
+    
+    USER {
+        uuid id PK
+        string email
+        string hashed_password
+    }
+    PROJECT {
+        uuid id PK
         string name
-        string url
-        string owner
+        uuid organization_id FK
     }
-    
-    BRANCH {
-        string name
-        string ref
-        boolean is_default
-    }
-    
-    COMMIT {
-        string sha
-        string author
-        datetime timestamp
-        string message
-    }
-    
-    FILE_CHANGE {
-        string file_path
-        string language
-        string change_type
-        string severity
-    }
-    
-    CODE_FEATURE {
-        string type
-        string name
-        string description
-    }
-    
-    COMMIT ||--o{ IMPACT_REPORT : generates
-    IMPACT_REPORT ||--o{ DOCUMENTATION : produces
-    
-    IMPACT_REPORT {
-        string commit_sha
-        string severity
-        boolean breaking_changes
-        json analysis_summary
-    }
-    
-    DOCUMENTATION {
-        string type
-        string filename
-        datetime generated_at
-        string content
+    TASK {
+        uuid id PK
+        string title
+        string status
+        uuid assignee_id FK
     }
 """
 
-def generate_all_diagrams():
-    """
-    Convenience function to generate all diagrams at once
+    lines = ["erDiagram"]
     
-    Returns:
-        dict: Dictionary with all diagram types
-    """
+    # 2. Define Entities
+    sorted_entities = sorted(list(entities))
+    for entity in sorted_entities:
+        lines.append(f"    {entity.upper()} {{")
+        lines.append(f"        uuid id PK")
+        lines.append(f"        datetime created_at")
+        lines.append(f"        datetime updated_at")
+        lines.append(f"    }}")
+
+    # 3. Infer Relationships (Heuristic)
+    # Common patterns: User -> * (owns), Project -> Task, Post -> Comment
+    
+    # Convert to set for fast lookup
+    entity_set = {e.upper() for e in entities}
+    
+    relationships = []
+    
+    # Logic: If we have USER and PROJECT, likely User --|{ Project
+    if "USER" in entity_set and "PROJECT" in entity_set:
+        relationships.append("    USER ||--o{ PROJECT : manages")
+    
+    # Logic: If we have PROJECT and TASK, likely Project --|{ Task
+    if "PROJECT" in entity_set and "TASK" in entity_set:
+        relationships.append("    PROJECT ||--|{ TASK : contains")
+        
+    # Logic: If we have TASK and COMMENT, likely Task --|{ Comment
+    if "TASK" in entity_set and "COMMENT" in entity_set:
+        relationships.append("    TASK ||--o{ COMMENT : has")
+        
+    # Logic: User usually owns everything else
+    if "USER" in entity_set:
+        for other in entity_set:
+            if other != "USER" and other not in ["PROJECT", "TASK"]: # Avoid duplicates if covered above
+                 relationships.append(f"    USER ||--o{{ {other} : owns")
+
+    # Fallback to a central node if no smart relationships found but multiple entities exist
+    if not relationships and len(sorted_entities) > 1:
+        root = sorted_entities[0].upper()
+        for other in sorted_entities[1:]:
+             relationships.append(f"    {root} ||--o{{ {other.upper()} : relates_to")
+
+    lines.extend(relationships)
+    
+    return "\n".join(lines)
+
+def generate_all_diagrams(report: Dict[str, Any] = None):
     return {
-        "system": system_diagram(),
-        "sequence": sequence_diagram(),
-        "er": er_diagram()
+        "system": system_diagram(report),
+        "sequence": sequence_diagram(report),
+        "er": er_diagram(report)
     }
+
+
