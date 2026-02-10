@@ -1,4 +1,5 @@
 import os
+import sys
 
 
 # Bind to Render/Docker provided port when available.
@@ -22,3 +23,16 @@ errorlog = "-"
 # Recycle workers periodically to reduce leak-related instability.
 max_requests = int(os.getenv("GUNICORN_MAX_REQUESTS", "100"))
 max_requests_jitter = int(os.getenv("GUNICORN_MAX_REQUESTS_JITTER", "20"))
+
+# Emit effective runtime settings at startup so deploy logs show actual config.
+print(
+    "[gunicorn-config] "
+    f"bind={bind} "
+    f"worker_class={worker_class} "
+    f"workers={workers} "
+    f"threads={threads} "
+    f"timeout={timeout} "
+    f"graceful_timeout={graceful_timeout} "
+    f"loglevel={loglevel}",
+    file=sys.stderr,
+)
