@@ -18,6 +18,11 @@ export const generateOtp = (): string => {
 }
 
 export const sendOtpEmail = async (email: string, otp: string): Promise<boolean> => {
+  console.log(`[EMAIL] Attempting to send OTP email to: ${email}`)
+  console.log(`[EMAIL] NODE_ENV: ${process.env.NODE_ENV}`)
+  console.log(`[EMAIL] SMTP_USER configured: ${!!process.env.SMTP_USER}`)
+  console.log(`[EMAIL] SMTP_PASS configured: ${!!process.env.SMTP_PASS}`)
+  
   try {
     // In development, just log the OTP
     if (process.env.NODE_ENV === 'development') {
@@ -25,6 +30,11 @@ export const sendOtpEmail = async (email: string, otp: string): Promise<boolean>
       console.log(`OTP for ${email}: ${otp}`)
       console.log(`========================================\n`)
       return true
+    }
+
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      console.error('[EMAIL] ERROR: SMTP_USER or SMTP_PASS not configured!')
+      return false
     }
 
     const transporter = nodemailer.createTransport({
@@ -53,11 +63,13 @@ export const sendOtpEmail = async (email: string, otp: string): Promise<boolean>
       `,
     };
 
+    console.log(`[EMAIL] Sending email via Gmail...`)
     await transporter.sendMail(message)
+    console.log(`[EMAIL] Email sent successfully to: ${email}`)
 
     return true
   } catch (error) {
-    console.error('Failed to send OTP email:', error)
+    console.error('[EMAIL] Failed to send OTP email:', error)
     return false
   }
 }
