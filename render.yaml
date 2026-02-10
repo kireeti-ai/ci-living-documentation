@@ -5,9 +5,8 @@ services:
     env: node
     region: oregon
     plan: free
-    rootDirectory: ./backend
-    buildCommand: npm install && npm run build
-    startCommand: node dist/app.js
+    buildCommand: npm install --prefix backend && npm run build --prefix backend
+    startCommand: node backend/dist/app.js
     envVars:
       - key: NODE_ENV
         value: production
@@ -55,9 +54,8 @@ services:
     env: static
     region: oregon
     plan: free
-    rootDirectory: ./frontend
-    buildCommand: npm install && npm run build
-    staticPublishPath: ./dist
+    buildCommand: npm install --prefix frontend && npm run build --prefix frontend
+    staticPublishPath: frontend/dist
     routes:
       - type: rewrite
         source: /*
