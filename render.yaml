@@ -62,8 +62,6 @@ services:
         source: /*
         destination: /index.html
     envVars:
-      # Set this manually to your backend URL after first deploy
-      # Example: https://ci-living-docs-backend.onrender.com
       - key: VITE_API_URL
-        sync: false
+        value: https://ci-living-docs-backend.onrender.com
 
