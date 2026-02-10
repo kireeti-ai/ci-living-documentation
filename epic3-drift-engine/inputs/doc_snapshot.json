@@ -1,0 +1,15 @@
+{
+    "snapshot_id": "snap_abc123_20260208",
+    "commit": "abc123def456",
+    "timestamp": "2026-02-08T10:30:00Z",
+    "docs_bucket_path": "docs/v1.2.0/snapshot_abc123",
+    "repo": {
+        "name": "sample-repo",
+        "branch": "main"
+    },
+    "documentation_files": [
+        "api.md",
+        "README.md",
+        "adr-001.md"
+    ]
+}
