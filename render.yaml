@@ -48,6 +48,9 @@ services:
       - key: FRONTEND_URL
         value: https://ci-living-docs-frontend.onrender.com
 
+      - key: BACKEND_URL
+        value: https://ci-living-docs-backend.onrender.com
+
       - key: BACKEND_HOSTPORT
         fromService:
           type: web
