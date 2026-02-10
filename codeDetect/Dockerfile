@@ -21,5 +21,5 @@ ENV PYTHONUNBUFFERED=1
 # Expose port for Flask API
 EXPOSE 5000
 
-# Default command - run Flask API
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--timeout", "300", "api:app"]
+# Default command - run Flask API with hardened Gunicorn settings
+CMD ["gunicorn", "-c", "gunicorn.conf.py", "api:app"]

@@ -54,7 +54,8 @@ def _run_git_ls_remote(repo_url: str, github_token: Optional[str], branch: Optio
         args.extend(["--heads", auth_url, branch])
     else:
         args.append(auth_url)
-    return subprocess.run(args, capture_output=True, text=True, timeout=15)
+    timeout_s = int(os.environ.get("CODE_DETECT_LS_REMOTE_TIMEOUT_SEC", "45"))
+    return subprocess.run(args, capture_output=True, text=True, timeout=max(10, timeout_s))
 
 
 def _validate_dependencies() -> None:
@@ -67,10 +68,27 @@ def _validate_dependencies() -> None:
 
 
 def _validate_remote_repo(repo_url: str, github_token: Optional[str], branch: str) -> None:
-    try:
-        proc = _run_git_ls_remote(repo_url, github_token, branch)
-    except Exception as e:
-        raise AnalysisError("clone", f"Failed to reach remote repository: {e}", True)
+    retries = int(os.environ.get("CODE_DETECT_LS_REMOTE_RETRIES", "2"))
+    proc = None
+    last_error: Optional[Exception] = None
+    for attempt in range(retries + 1):
+        try:
+            proc = _run_git_ls_remote(repo_url, github_token, branch)
+            last_error = None
+            break
+        except subprocess.TimeoutExpired as e:
+            last_error = e
+            if attempt < retries:
+                continue
+        except Exception as e:
+            last_error = e
+            break
+    if proc is None:
+        raise AnalysisError(
+            "clone",
+            f"Failed to reach remote repository after {retries + 1} attempt(s): {last_error}",
+            True
+        )
 
     if proc.returncode != 0:
         stderr = (proc.stderr or "").strip()
@@ -96,10 +114,11 @@ def _validate_local_repo(repo_path: str) -> None:
         raise AnalysisError("clone", f"Repository path is not a directory: {repo_path}", False)
 
 
-def _preflight_validate(repo_path_or_url: str, github_token: Optional[str], branch: str) -> None:
+def _preflight_validate(repo_path_or_url: str, github_token: Optional[str], branch: str, skip_remote_preflight: bool = False) -> None:
     _validate_dependencies()
     if repo_path_or_url.startswith(("http://", "https://", "git@")):
-        _validate_remote_repo(repo_path_or_url, github_token, branch)
+        if not skip_remote_preflight:
+            _validate_remote_repo(repo_path_or_url, github_token, branch)
     else:
         _validate_local_repo(repo_path_or_url)
 
@@ -114,7 +133,7 @@ def _build_fallback_report(repo_path_or_url: str,
                            branch: str,
                            failure_reason: str,
                            context: Optional[dict] = None) -> dict:
-    return {
+    working = {
         "repo": {
             "path_or_url": repo_path_or_url,
             "branch": branch
@@ -126,9 +145,19 @@ def _build_fallback_report(repo_path_or_url: str,
             "breaking_changes_detected": False
         },
         "changes": [],
+        "api_contract": {
+            "endpoints": []
+        },
+        "extraction_quality": {
+            "api_endpoint_count": 0,
+            "invalid_endpoint_count": 0,
+            "normalized_endpoint_count": 0,
+            "warnings": []
+        },
         "analysis_status": "PARTIAL",
         "failure_reason": failure_reason
     }
+    return _to_canonical_v3({"meta": {"generated_at": datetime.datetime.utcnow().isoformat() + "Z", "tool_version": "1.0.0"}, **working}, status="partial")
 
 def _dedupe_order(items: list[str]) -> list[str]:
     seen = set()
@@ -218,6 +247,649 @@ def _extract_packages(file_path: str, content: str, language: Optional[str]) -> 
                         if mod:
                             packages.append(mod)
     return _dedupe_order(packages)
+
+
+def _is_valid_package_entry(pkg: str) -> bool:
+    if not isinstance(pkg, str):
+        return False
+    value = pkg.strip()
+    if not value:
+        return False
+    if any(ch in value for ch in ['"', "'"]):
+        return False
+    if "#" in value:
+        return False
+    if "//" in value:
+        return False
+    if re.search(r"\s", value):
+        return False
+    return True
+
+
+def _normalize_method(method: Optional[str]) -> tuple[str, list[str], bool]:
+    valid = {"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"}
+    warnings: list[str] = []
+    raw = (method or "GET").upper().strip()
+    if raw in valid:
+        return raw, warnings, False
+    warnings.append(f"Unsupported method '{method}', defaulted to GET")
+    return "GET", warnings, True
+
+
+def _split_concat_route_token(token: str) -> str:
+    if "/" in token or not token:
+        return token
+    prefixes = [
+        "question", "questions", "quiz", "quizzes", "user", "users", "auth", "api",
+        "course", "courses", "lesson", "lessons", "admin", "profile", "payment", "order"
+    ]
+    for p in sorted(prefixes, key=len, reverse=True):
+        if token.startswith(p) and len(token) > len(p):
+            tail = token[len(p):]
+            if tail.startswith("-"):
+                tail = tail[1:]
+            if tail:
+                return f"{p}/{tail}"
+    return token
+
+
+def _normalize_path(path: Optional[str]) -> tuple[str, list[str], bool]:
+    warnings: list[str] = []
+    invalid = False
+    raw = (path or "").strip()
+    if not raw:
+        warnings.append("Missing route path, defaulted to '/'")
+        return "/", warnings, True
+
+    normalized = raw
+    normalized = re.sub(r'["\']', "", normalized).strip()
+    normalized = re.sub(r"\s+", "", normalized)
+    normalized = re.sub(r"/{2,}", "/", normalized)
+    normalized = normalized.replace(":id", "{id}")
+    normalized = re.sub(r":([A-Za-z_]\w*)", r"{\1}", normalized)
+
+    if not normalized.startswith("/"):
+        normalized = f"/{normalized}"
+        warnings.append("Route prefixed with '/'")
+
+    parts = [p for p in normalized.split("/") if p]
+    fixed_parts: list[str] = []
+    for part in parts:
+        fixed = _split_concat_route_token(part)
+        if fixed != part:
+            warnings.append(f"Normalized concatenated route segment '{part}' -> '{fixed}'")
+        fixed_parts.extend([x for x in fixed.split("/") if x])
+    normalized = "/" + "/".join(fixed_parts) if fixed_parts else "/"
+    normalized = re.sub(r"/{2,}", "/", normalized)
+
+    if not normalized.startswith("/"):
+        invalid = True
+    return normalized, warnings, invalid
+
+
+def _sanitize_operation_id(method: str, path: str) -> str:
+    parts = [method.lower()]
+    for seg in path.strip("/").split("/"):
+        if not seg:
+            continue
+        clean = seg.replace("{", "").replace("}", "")
+        clean = re.sub(r"[^a-zA-Z0-9_]", "_", clean)
+        parts.append(clean.lower())
+    return "_".join(parts) or f"{method.lower()}_root"
+
+
+def _titleize(value: str) -> str:
+    token = value.replace("-", " ").replace("_", " ").strip()
+    return token.title() if token else "Resource"
+
+
+def _is_balanced_angles(value: str) -> bool:
+    depth = 0
+    for ch in value:
+        if ch == "<":
+            depth += 1
+        elif ch == ">":
+            depth -= 1
+            if depth < 0:
+                return False
+    return depth == 0
+
+
+def _sanitize_schema_ref(value: Optional[str]) -> Optional[str]:
+    if not value:
+        return None
+    candidate = str(value).strip()
+    if not candidate:
+        return None
+    if candidate.startswith("#/components/schemas/"):
+        name = candidate.split("#/components/schemas/", 1)[1]
+        if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", name):
+            return candidate
+        return None
+    candidate = re.sub(r"\s+", "", candidate)
+    if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_<>,.]*", candidate):
+        return None
+    if "<" in candidate and not _is_balanced_angles(candidate):
+        return None
+    return candidate
+
+
+def _build_summary(method: str, path: str) -> str:
+    segments = [s for s in path.strip("/").split("/") if s and not s.startswith("{")]
+    resource = segments[0] if segments else "resource"
+    tail = segments[-1] if segments else resource
+    has_id = any(s.startswith("{") and s.endswith("}") for s in path.strip("/").split("/"))
+    action_map = {
+        "GET": "List" if not has_id else "Get",
+        "POST": "Create",
+        "PUT": "Replace",
+        "PATCH": "Update",
+        "DELETE": "Delete"
+    }
+    action = action_map.get(method, method.title())
+    special_tail_actions = {
+        "create": "Create",
+        "update": "Update",
+        "delete": "Delete",
+        "search": "Search",
+        "login": "Authenticate",
+        "logout": "Logout",
+        "register": "Register",
+        "health": "Check",
+        "status": "Get"
+    }
+    if tail in special_tail_actions:
+        return f"{special_tail_actions[tail]} {_titleize(resource)}".strip()[:80]
+    tail_hint = ""
+    if tail and tail not in {resource, "create"} and not has_id:
+        tail_hint = f" ({tail.replace('-', ' ')})"
+    summary = f"{action} {_titleize(resource)}{tail_hint}".strip()
+    if summary.lower() in {"list hello", "get hello", "create hello"}:
+        return f"{action} {_titleize(tail if tail != resource else 'resource')}"[:80]
+    if summary.lower().endswith(" resource"):
+        summary = f"{action} {_titleize(resource)} endpoint"
+    return summary[:80]
+
+
+def _build_description(method: str, path: str, summary: str, auth_required: Optional[bool]) -> str:
+    auth_clause = "requires authentication" if auth_required is True else "is publicly accessible" if auth_required is False else "has unknown authentication requirements"
+    return f"{summary}. Handles {method} requests for `{path}` and {auth_clause}."
+
+
+def _infer_handler_name(candidate: dict, method: str, path: str) -> Optional[str]:
+    handler = str(candidate.get("handler") or "").strip()
+    if handler and handler != "unknown_handler":
+        return handler
+    content = candidate.get("content") or ""
+    line_start = int(candidate.get("line_start", 0) or 0)
+    lines = content.splitlines()
+    if content and line_start > 0 and line_start <= len(lines):
+        window = "\n".join(lines[line_start - 1: min(len(lines), line_start + 8)])
+        route_rx = re.search(
+            r'\b(?:app|router|api|server)\.(?:get|post|put|patch|delete)\s*\([^)]*[\'"][^\'"]+[\'"]\s*,\s*(?:async\s+)?([A-Za-z_]\w*)',
+            window
+        )
+        if route_rx:
+            return route_rx.group(1)
+        js_inline = re.search(
+            r'\b(?:app|router|api|server)\.(?:get|post|put|patch|delete)\s*\([^)]*,\s*(?:async\s+)?(?:function\s+)?([A-Za-z_]\w*)\s*\(',
+            window
+        )
+        if js_inline:
+            return js_inline.group(1)
+        java_method = re.search(
+            r'\b(?:public|private|protected)\s+[\w<>\[\],\s]+\s+([A-Za-z_]\w*)\s*\(',
+            window
+        )
+        if java_method:
+            return java_method.group(1)
+        py_def = re.search(r'^\s*(?:async\s+)?def\s+([A-Za-z_]\w*)\s*\(', window, re.MULTILINE)
+        if py_def:
+            return py_def.group(1)
+    return None
+
+
+def _infer_query_params(path: str, content: str, method: str) -> list[dict]:
+    params: list[dict] = []
+    parsed = re.findall(r'[?&]([A-Za-z_]\w*)=', path)
+    for p in _dedupe_order(parsed):
+        params.append({"name": p, "type": "string", "required": False, "description": f"{p} query parameter"})
+
+    if method == "GET":
+        common = ["page", "limit", "offset", "sort", "order", "search", "q", "filter"]
+        text = (content or "").lower()
+        for p in common:
+            if re.search(rf"\b{re.escape(p)}\b", text):
+                if not any(item["name"] == p for item in params):
+                    params.append({"name": p, "type": "string", "required": False, "description": f"{p} query parameter"})
+    return params
+
+
+def _infer_body_schema(candidate: dict, method: str) -> tuple[Optional[dict], bool]:
+    empty = {"type": "object", "properties": {}, "required": []}
+    if method in {"GET", "DELETE", "HEAD", "OPTIONS"}:
+        return None, True
+
+    content = candidate.get("content") or ""
+    line_start = int(candidate.get("line_start", 0) or 0)
+    lines = content.splitlines()
+    snippet = content
+    if line_start > 0 and line_start <= len(lines):
+        snippet = "\n".join(lines[max(0, line_start - 1): min(len(lines), line_start + 40)])
+
+    has_body_indicator = bool(re.search(r"(req\.body|request\.body|@RequestBody|\bbody\s*:|Body\(|payload)", snippet))
+    props: list[str] = []
+    props.extend(re.findall(r'req\.body\.([A-Za-z_]\w*)', snippet))
+    props.extend(re.findall(r'request\.body\.([A-Za-z_]\w*)', snippet))
+    props.extend(re.findall(r'body\.get\(\s*[\'"]([A-Za-z_]\w*)[\'"]', snippet))
+    props.extend(re.findall(r'[\'"]([A-Za-z_]\w*)[\'"]\s*:\s*(?:req\.body|request\.body)', snippet))
+    props = _dedupe_order(props)
+    java_body_type = re.search(r'@RequestBody\s+([A-Z][A-Za-z0-9_<>,.]*)', snippet)
+    if java_body_type:
+        body_type = _sanitize_schema_ref(java_body_type.group(1))
+        if not body_type:
+            body_type = None
+        return {
+            "type": "object",
+            **({"schema_ref": body_type} if body_type else {}),
+            "properties": {},
+            "required": []
+        }, True
+    java_param_type = re.search(
+        r'\(\s*(?:@Valid\s+)?@RequestBody\s+([A-Z][A-Za-z0-9_<>,.]*)\s+[A-Za-z_]\w*',
+        snippet
+    )
+    if java_param_type:
+        body_type = _sanitize_schema_ref(java_param_type.group(1))
+        if not body_type:
+            body_type = None
+        return {
+            "type": "object",
+            **({"schema_ref": body_type} if body_type else {}),
+            "properties": {},
+            "required": []
+        }, True
+    if not has_body_indicator and not props:
+        return empty, False
+
+    properties = {name: {"type": "string"} for name in props[:20]}
+    required = []
+    for name in props[:20]:
+        if re.search(rf"\b(required|notnull|not_blank)\b.*\b{name}\b", snippet, re.IGNORECASE):
+            required.append(name)
+    return {"type": "object", "properties": properties, "required": _dedupe_order(required)}, True
+
+
+def _infer_responses(candidate: dict, method: str, auth_required: bool) -> tuple[list[dict], bool]:
+    content = candidate.get("content") or ""
+    line_start = int(candidate.get("line_start", 0) or 0)
+    lines = content.splitlines()
+    snippet = content
+    if line_start > 0 and line_start <= len(lines):
+        snippet = "\n".join(lines[max(0, line_start - 1): min(len(lines), line_start + 80)])
+
+    status_desc = {
+        200: "OK",
+        201: "Created",
+        204: "No Content",
+        400: "Bad Request",
+        401: "Unauthorized",
+        403: "Forbidden",
+        404: "Not Found",
+        409: "Conflict",
+        422: "Validation Error",
+        500: "Internal Server Error"
+    }
+    default_by_method = {"GET": [200], "POST": [200], "PUT": [200], "PATCH": [200], "DELETE": [204]}
+    codes = set(default_by_method.get(method, [200]))
+    for m in re.findall(r'\b(?:status|sendStatus|code)\s*\(?\s*(\d{3})\b', snippet):
+        codes.add(int(m))
+    for m in re.findall(r'\b(2\d\d|4\d\d|5\d\d)\b', snippet):
+        val = int(m)
+        if val in status_desc:
+            codes.add(val)
+    if auth_required:
+        codes.update({401, 403})
+    if re.search(r'(invalid|validation|bad request|exception)', snippet, re.IGNORECASE):
+        codes.add(400)
+    if re.search(r'(not\s+found|throw\s+new\s+\w*NotFound|404)', snippet, re.IGNORECASE):
+        codes.add(404)
+    if method in {"GET", "PUT", "PATCH", "DELETE"} and re.search(r'\{[A-Za-z_]\w*\}', candidate.get("path", "")):
+        codes.add(404)
+    if method in {"POST", "PUT", "PATCH"}:
+        codes.add(400)
+    codes.add(500)
+
+    schema_ref = None
+    schema_match = re.search(r'\b([A-Z][A-Za-z0-9_<>,.]*(?:Response|Dto|DTO|Result))\b', snippet)
+    if schema_match:
+        schema_ref = _sanitize_schema_ref(schema_match.group(1))
+
+    responses = []
+    for code in sorted(codes):
+        entry = {"status": code, "description": status_desc.get(code, f"HTTP {code}")}
+        if schema_ref and 200 <= code < 300:
+            entry["schema_ref"] = schema_ref
+        responses.append(entry)
+    resolved = len(responses) > 0 and any(r["status"] in {200, 201, 204} for r in responses)
+    return responses, resolved
+
+
+def _score_endpoint(handler_resolved: bool, auth_resolved: bool, request_resolved: bool, responses_resolved: bool) -> float:
+    score = 0.0
+    if handler_resolved:
+        score += 0.25
+    if auth_resolved:
+        score += 0.25
+    if request_resolved:
+        score += 0.25
+    if responses_resolved:
+        score += 0.25
+    return round(max(0.0, min(1.0, score)), 2)
+
+
+def _extract_path_params(path: str) -> list[dict]:
+    params = re.findall(r"\{([A-Za-z_]\w*)\}", path)
+    result = []
+    for name in _dedupe_order(params):
+        result.append({
+            "name": name,
+            "type": "string",
+            "required": True,
+            "description": f"{name} path parameter"
+        })
+    return result
+
+
+def _detect_auth_and_middleware(content: str) -> tuple[Optional[bool], str, list[str]]:
+    text = (content or "").lower()
+    middleware: list[str] = []
+    for token in ["auth", "authenticate", "jwt", "passport", "session", "apikey", "api_key", "bearer", "oauth", "oauth2"]:
+        if re.search(rf"\b{re.escape(token)}\b", text):
+            middleware.append(token)
+    middleware = _dedupe_order(middleware)
+    if not middleware:
+        return None, "Unknown", []
+    if any(t in middleware for t in ["jwt", "bearer", "passport"]):
+        return True, "JWT", middleware
+    if any(t in middleware for t in ["session"]):
+        return True, "Session", middleware
+    if any(t in middleware for t in ["apikey", "api_key"]):
+        return True, "APIKey", middleware
+    if any(t in middleware for t in ["oauth", "oauth2"]):
+        return True, "OAuth2", middleware
+    return True, "Unknown", middleware
+
+
+def _build_api_contract_endpoints(candidates: list[dict]) -> tuple[list[dict], dict]:
+    endpoints: list[dict] = []
+    invalid_endpoint_count = 0
+    normalized_endpoint_count = 0
+    unresolved_auth_count = 0
+    unresolved_request_count = 0
+    unresolved_response_count = 0
+
+    dedupe_seen = set()
+    for c in candidates:
+        method, method_warnings, method_invalid = _normalize_method(c.get("method"))
+        path, path_warnings, path_invalid = _normalize_path(c.get("path"))
+        warnings = method_warnings + path_warnings + list(c.get("warnings", []))
+        invalid = method_invalid or path_invalid
+        if invalid:
+            invalid_endpoint_count += 1
+        if warnings:
+            normalized_endpoint_count += 1
+
+        normalized_key = f"{method} {path}"
+        dedupe_key = (normalized_key, c.get("source_file", ""), c.get("line_start", 0))
+        if dedupe_key in dedupe_seen:
+            continue
+        dedupe_seen.add(dedupe_key)
+
+        auth_required, auth_type, middleware = _detect_auth_and_middleware(c.get("content", ""))
+        path_lower = path.lower()
+        if auth_required is None and any(p in path_lower for p in ["/login", "/register", "/health", "/public", "/status"]):
+            auth_required = False
+            if auth_type == "Unknown":
+                auth_type = "Unknown"
+        path_params = _extract_path_params(path)
+        query_params = _infer_query_params(path, c.get("content", ""), method)
+        body_schema, body_resolved = _infer_body_schema(c, method)
+        responses, responses_resolved = _infer_responses(c, method, bool(auth_required))
+        tag = path.strip("/").split("/")[0] if path.strip("/") else "general"
+        summary = c.get("summary") if c.get("summary") and not re.match(rf"^{method}\s+{re.escape(path)}$", str(c.get('summary')).strip(), re.IGNORECASE) else _build_summary(method, path)
+        handler = _infer_handler_name(c, method, path)
+        handler_resolved = bool(handler)
+        auth_resolved = auth_type != "Unknown" or auth_required is not None
+        request_resolved = bool(path_params or query_params or body_resolved)
+        endpoint_warnings = list(warnings)
+        if not auth_resolved:
+            endpoint_warnings.append("Authentication could not be resolved from source")
+            unresolved_auth_count += 1
+        if not request_resolved:
+            endpoint_warnings.append("Request schema/params could not be confidently inferred")
+            unresolved_request_count += 1
+        if not responses_resolved:
+            endpoint_warnings.append("Response contract inferred from defaults only")
+            unresolved_response_count += 1
+        confidence = _score_endpoint(handler_resolved, auth_resolved, request_resolved, responses_resolved)
+
+        endpoint = {
+            "operation_id": _sanitize_operation_id(method, path),
+            "method": method,
+            "path": path,
+            "normalized_key": normalized_key,
+            "summary": summary,
+            "description": _build_description(method, path, summary, auth_required),
+            "tags": [tag],
+            "auth": {
+                "required": auth_required,
+                "type": auth_type,
+                "middleware": middleware
+            },
+            "request": {
+                "path_params": path_params,
+                "query_params": query_params,
+                "body_schema": body_schema
+            },
+            "responses": responses,
+            "example": {
+                "curl": f"curl -X {method} '<base-url>{path}' ..."
+            },
+            "source": {
+                "file": c.get("source_file", ""),
+                "line_start": int(c.get("line_start", 0) or 0),
+                "line_end": max(int(c.get("line_end", 0) or 0), int(c.get("line_start", 0) or 0)),
+                "handler": handler
+            },
+            "confidence": confidence,
+            "warnings": _dedupe_order(endpoint_warnings)
+        }
+        endpoints.append(endpoint)
+
+    quality_warnings: list[str] = []
+    if invalid_endpoint_count:
+        quality_warnings.append(f"{invalid_endpoint_count} endpoint(s) had invalid method/path and were normalized")
+    if normalized_endpoint_count:
+        quality_warnings.append(f"{normalized_endpoint_count} endpoint(s) required normalization adjustments")
+    if unresolved_auth_count:
+        quality_warnings.append(f"{unresolved_auth_count} endpoint(s) have unresolved authentication type")
+    if unresolved_request_count:
+        quality_warnings.append(f"{unresolved_request_count} endpoint(s) have incomplete request metadata")
+    if unresolved_response_count:
+        quality_warnings.append(f"{unresolved_response_count} endpoint(s) rely on inferred/default response metadata")
+    extraction_quality = {
+        "api_endpoint_count": len(endpoints),
+        "invalid_endpoint_count": invalid_endpoint_count,
+        "normalized_endpoint_count": normalized_endpoint_count,
+        "warnings": quality_warnings
+    }
+    return endpoints, extraction_quality
+
+
+def _build_doc_contract(report: dict) -> dict:
+    endpoints = report.get("api_contract", {}).get("endpoints", [])
+    components = report.get("component_distribution", {})
+    security_features = report.get("security_features_detected", [])
+    db_impact = report.get("database_impact", {})
+    config = report.get("configuration_changes", {})
+    extraction_quality = report.get("extraction_quality", {})
+    change_summary = report.get("change_summary", "")
+    impact_scope = report.get("impact_scope", "INTERNAL_ONLY")
+
+    changed_components = [name for name, count in components.items() if count > 0]
+    key_features = _dedupe_order(list(report.get("feature_tags", [])))
+    risk_highlights = []
+    if report.get("analysis_summary", {}).get("breaking_changes_detected"):
+        risk_highlights.append("Breaking behavior changes detected")
+    if db_impact.get("schema_changed"):
+        risk_highlights.append("Database schema changes require migration validation")
+    if security_features:
+        risk_highlights.append("Security-sensitive changes require focused review")
+    if extraction_quality.get("invalid_endpoint_count", 0):
+        risk_highlights.append("Some endpoints required normalization from raw route extraction")
+
+    deployment_notes = []
+    if config.get("docker"):
+        deployment_notes.append("Container/deployment definitions were modified")
+    if config.get("build_files"):
+        deployment_notes.append("Build pipeline or package manifests changed")
+    if config.get("environment_variables"):
+        deployment_notes.append("Environment variable contract updated")
+
+    architecture_components = []
+    for name in changed_components:
+        ctype = "service"
+        if name == "database":
+            ctype = "data"
+        elif name in {"frontend"}:
+            ctype = "client"
+        elif name in {"security", "authentication"}:
+            ctype = "security"
+        architecture_components.append({
+            "name": name,
+            "type": ctype,
+            "responsibility": f"Owns {name} related behavior in this change set"
+        })
+
+    data_stores = []
+    if db_impact.get("schema_changed") or db_impact.get("tables_affected"):
+        data_stores.append({
+            "name": "primary-database",
+            "type": "relational",
+            "entities": db_impact.get("tables_affected", [])
+        })
+
+    external_integrations = []
+    if any(ep.get("auth", {}).get("type") == "JWT" for ep in endpoints):
+        external_integrations.append({
+            "name": "auth-provider",
+            "auth": "JWT",
+            "purpose": "Token verification for protected endpoints"
+        })
+
+    interactions = []
+    for ep in endpoints[:50]:
+        interactions.append({
+            "from": "client",
+            "to": ep.get("source", {}).get("handler", "service"),
+            "protocol": "HTTP",
+            "purpose": ep.get("summary", "Serve API request")
+        })
+
+    sequence_steps = [
+        {"actor": "client", "action": "Send API request", "target": "http-endpoint"},
+        {"actor": "backend", "action": "Validate/authenticate request", "target": "middleware"},
+        {"actor": "backend", "action": "Execute handler logic", "target": "service/data-store"},
+        {"actor": "backend", "action": "Return HTTP response", "target": "client"}
+    ]
+
+    entities = []
+    for store in data_stores:
+        for e in store.get("entities", []):
+            entities.append({"name": e, "fields": []})
+
+    test_impact = report.get("test_impact", {})
+    impacted_areas = _dedupe_order(
+        changed_components +
+        (["api"] if endpoints else []) +
+        (["database"] if db_impact.get("schema_changed") else []) +
+        (["security"] if security_features else [])
+    )
+
+    return {
+        "readme_contract": {
+            "project_summary": change_summary or "Repository changes analyzed for impact and documentation updates.",
+            "key_features": key_features,
+            "changed_components": changed_components,
+            "risk_highlights": _dedupe_order(risk_highlights),
+            "deployment_notes": _dedupe_order(deployment_notes)
+        },
+        "api_contract": {
+            "endpoints": endpoints
+        },
+        "adr_contract": {
+            "decision_title": f"{impact_scope.replace('_', ' ').title()} Documentation Update",
+            "status": "proposed",
+            "context": change_summary or "Changes impact architecture and delivery documentation.",
+            "options_considered": [
+                "Document only changed files",
+                "Publish full EPIC-2 contract set"
+            ],
+            "selected_option": "Publish full EPIC-2 contract set",
+            "consequences_positive": [
+                "Downstream documentation generation is deterministic",
+                "Reduces guesswork in API and architecture docs"
+            ],
+            "consequences_negative": [
+                "Requires maintaining richer extraction logic"
+            ],
+            "followups": _dedupe_order(extraction_quality.get("warnings", []))
+        },
+        "architecture_contract": {
+            "components": architecture_components,
+            "interactions": interactions,
+            "data_stores": data_stores,
+            "external_integrations": external_integrations,
+            "sequence_steps": sequence_steps,
+            "entities": entities
+        },
+        "quality_contract": {
+            "risk_register": [
+                {"risk": r, "severity": "MEDIUM", "mitigation": "Review and validate before release"}
+                for r in _dedupe_order(risk_highlights)
+            ],
+            "test_impact": {
+                "requires_new_tests": bool(test_impact.get("requires_new_tests", False)),
+                "impacted_areas": impacted_areas
+            },
+            "security_impact": {
+                "auth_changes": bool(security_features) or any(ep.get("auth", {}).get("required") is True for ep in endpoints),
+                "crypto_changes": any("encrypt" in f.lower() or "tls" in f.lower() for f in security_features),
+                "sensitive_paths": _dedupe_order([
+                    ep.get("path", "")
+                    for ep in endpoints
+                    if "auth" in ep.get("path", "") or ep.get("auth", {}).get("required") is True
+                ])
+            },
+            "extraction_quality": {
+                "api_endpoint_count": int(extraction_quality.get("api_endpoint_count", 0)),
+                "invalid_endpoint_count": int(extraction_quality.get("invalid_endpoint_count", 0)),
+                "warnings": list(extraction_quality.get("warnings", []))
+            }
+        }
+    }
+
+
+def _to_canonical_v3(working: dict, status: str = "success") -> dict:
+    payload = {k: v for k, v in working.items() if k not in {"schema_version", "status", "meta", "report"}}
+    payload["doc_contract"] = _build_doc_contract(payload)
+    return {
+        "schema_version": "epic1-impact/v3",
+        "status": status,
+        "meta": working.get("meta", {}),
+        "report": payload
+    }
 
 
 def _classify_intent(message: Optional[str], security_features: list[str]) -> str:
@@ -653,20 +1325,28 @@ def _validate_report_schema(report: dict) -> tuple[bool, str]:
     if not isinstance(report, dict):
         return False, "Report must be an object"
 
-    required_top = {"meta", "context", "analysis_summary", "changes"}
-    if not required_top.issubset(report.keys()):
-        return False, "Report missing required top-level keys"
-
+    required_top = {"schema_version", "status", "meta", "report"}
+    if set(report.keys()) != required_top:
+        return False, "Top-level keys must be exactly schema_version,status,meta,report"
+    if report.get("schema_version") != "epic1-impact/v3":
+        return False, "schema_version must be epic1-impact/v3"
+    if report.get("status") not in {"success", "partial"}:
+        return False, "status must be success|partial"
     if not isinstance(report.get("meta"), dict):
         return False, "meta must be an object"
-    if not isinstance(report.get("context"), dict):
+    report_obj = report.get("report")
+    if not isinstance(report_obj, dict):
+        return False, "report must be an object"
+    if not isinstance(report_obj.get("context"), dict):
         return False, "context must be an object"
-    if not isinstance(report.get("analysis_summary"), dict):
+    if not isinstance(report_obj.get("analysis_summary"), dict):
         return False, "analysis_summary must be an object"
-    if not isinstance(report.get("changes"), list):
+    if not isinstance(report_obj.get("changes"), list):
         return False, "changes must be an array"
+    if not isinstance(report_obj.get("doc_contract"), dict):
+        return False, "doc_contract must be an object"
 
-    summary = report["analysis_summary"]
+    summary = report_obj["analysis_summary"]
     summary_keys = {"total_files", "highest_severity", "breaking_changes_detected"}
     if not summary_keys.issubset(summary.keys()):
         return False, "analysis_summary missing required keys"
@@ -681,7 +1361,7 @@ def _validate_report_schema(report: dict) -> tuple[bool, str]:
     required_change_keys = {
         "file", "change_type", "language", "severity", "is_binary", "syntax_error", "features"
     }
-    for item in report["changes"]:
+    for item in report_obj["changes"]:
         if not isinstance(item, dict):
             return False, "Each changes entry must be an object"
         if not required_change_keys.issubset(item.keys()):
@@ -695,9 +1375,8 @@ def _validate_report_schema(report: dict) -> tuple[bool, str]:
         if not isinstance(item["features"], dict):
             return False, "Change features must be an object"
 
-    # Optional documentation_context validation
-    if "documentation_context" in report:
-        doc_ctx = report["documentation_context"]
+    if "documentation_context" in report_obj:
+        doc_ctx = report_obj["documentation_context"]
         if not isinstance(doc_ctx, dict):
             return False, "documentation_context must be an object"
         allowed_doc_keys = {
@@ -717,9 +1396,8 @@ def _validate_report_schema(report: dict) -> tuple[bool, str]:
                 if not isinstance(doc_ctx[key], list) or not all(isinstance(v, str) for v in doc_ctx[key]):
                     return False, f"documentation_context.{key} must be an array of strings"
 
-    # Optional api_details validation
-    if "api_details" in report:
-        api_details = report["api_details"]
+    if "api_details" in report_obj:
+        api_details = report_obj["api_details"]
         if not isinstance(api_details, list):
             return False, "api_details must be an array"
         allowed_api_keys = {
@@ -748,18 +1426,46 @@ def _validate_report_schema(report: dict) -> tuple[bool, str]:
                 if not isinstance(item["responses"], list) or not all(isinstance(v, str) for v in item["responses"]):
                     return False, "api_details.responses must be an array of strings"
 
+    doc_contract = report_obj.get("doc_contract", {})
+    api_contract = doc_contract.get("api_contract", {})
+    endpoints = api_contract.get("endpoints", [])
+    if not isinstance(endpoints, list):
+        return False, "doc_contract.api_contract.endpoints must be an array"
+    quality = doc_contract.get("quality_contract", {}).get("extraction_quality", {})
+    if int(quality.get("api_endpoint_count", -1)) != len(endpoints):
+        return False, "extraction_quality.api_endpoint_count mismatch"
+    for ep in endpoints:
+        if not isinstance(ep, dict):
+            return False, "endpoint must be object"
+        method = ep.get("method")
+        path = ep.get("path")
+        if ep.get("normalized_key") != f"{method} {path}":
+            return False, "normalized_key mismatch"
+        req = ep.get("request", {})
+        if method in {"GET", "DELETE"} and req.get("body_schema", "x") is not None:
+            return False, "GET/DELETE request.body_schema must be null"
+        src = ep.get("source", {})
+        if int(src.get("line_end", 0)) < int(src.get("line_start", 0)):
+            return False, "source line_end must be >= line_start"
+        for r in ep.get("responses", []):
+            if "schema_ref" in r and _sanitize_schema_ref(r.get("schema_ref")) is None:
+                return False, "invalid response schema_ref"
+        body_schema = req.get("body_schema")
+        if isinstance(body_schema, dict) and "schema_ref" in body_schema:
+            if _sanitize_schema_ref(body_schema.get("schema_ref")) is None:
+                return False, "invalid body schema_ref"
     return True, ""
 
 
 def main():
-    usage_error = {"error": "Usage: python main.py <repo_path_or_url> [github_token] [branch] [--new-user]"}
+    usage_error = {"error": "Usage: python main.py <repo_path_or_url> [github_token] [branch] [--new-user] [--skip-remote-preflight]"}
 
     if len(sys.argv) < 2:
         print(json.dumps(usage_error))
         sys.exit(1)
 
     # Extract positional args (ignore known flags we handle separately)
-    args = [a for a in sys.argv[1:] if not a.startswith("--new-user")]
+    args = [a for a in sys.argv[1:] if not a.startswith("--new-user") and a != "--skip-remote-preflight" and not a.startswith("--branch=")]
     if not args:
         print(json.dumps(usage_error))
         sys.exit(1)
@@ -786,6 +1492,7 @@ def main():
         github_token = os.environ.get('GITHUB_TOKEN')
 
     new_user = _is_new_user_flag(sys.argv[1:]) or _ask_new_user_interactive()
+    skip_remote_preflight = "--skip-remote-preflight" in sys.argv[1:]
 
     report = {
         "meta": {
@@ -831,11 +1538,20 @@ def main():
         "test_impact": {
             "requires_new_tests": False,
             "test_files_changed": 0
+        },
+        "api_contract": {
+            "endpoints": []
+        },
+        "extraction_quality": {
+            "api_endpoint_count": 0,
+            "invalid_endpoint_count": 0,
+            "normalized_endpoint_count": 0,
+            "warnings": []
         }
     }
 
     try:
-        _preflight_validate(repo_path, github_token, branch)
+        _preflight_validate(repo_path, github_token, branch, skip_remote_preflight=skip_remote_preflight)
         # Use context manager to ensure cleanup
         try:
             with GitManager(repo_path, github_token, branch) as git_mgr:
@@ -852,6 +1568,7 @@ def main():
                 severity_rank = {"PATCH": 1, "MINOR": 2, "MAJOR": 3}
                 max_severity = 0
                 api_summary = {"added": 0, "modified": 0, "removed": 0}
+                api_contract_candidates: list[dict] = []
                 security_features_detected: list[str] = []
                 affected_packages: list[str] = []
                 component_distribution: dict[str, int] = {}
@@ -927,6 +1644,29 @@ def main():
                         # Merge notes if syntax error existed
                         if record["syntax_error"]:
                             features["note"] = record["features"]["note"]
+
+                        # Collect endpoint candidates for v2 API contract
+                        api_endpoints = features.get("api_endpoints", [])
+                        if isinstance(api_endpoints, list):
+                            for ep in api_endpoints:
+                                if not isinstance(ep, dict):
+                                    continue
+                                route = ep.get("route") or ep.get("path") or ""
+                                method = ep.get("verb") or ep.get("method") or "GET"
+                                line = ep.get("line", 0)
+                                api_contract_candidates.append({
+                                    "method": method,
+                                    "path": route,
+                                    "summary": "",
+                                    "description": f"Detected endpoint from source analysis in {file_path}",
+                                    "source_file": file_path,
+                                    "line_start": line,
+                                    "line_end": line,
+                                    "handler": ep.get("handler") or "",
+                                    "content": content,
+                                    "features": features,
+                                    "warnings": []
+                                })
 
                         # Component refinement with content
                         record["component"] = _classify_component(file_path, content)
@@ -1021,6 +1761,7 @@ def main():
             # Normalize aggregates
             security_features_detected = _dedupe_order(security_features_detected)
             affected_packages = _dedupe_order(affected_packages)
+            affected_packages = [p for p in affected_packages if _is_valid_package_entry(p)]
             tables_affected = _dedupe_order(tables_affected)
             config_build_files = _dedupe_order(config_build_files)
             env_vars = _dedupe_order(env_vars)
@@ -1050,6 +1791,26 @@ def main():
             api_details = _collect_api_details(git_mgr, additional_ignores)
             if api_details:
                 report["api_details"] = api_details
+                for item in api_details:
+                    method = item.get("method", "GET")
+                    path = item.get("path", "")
+                    summary = item.get("summary") or f"{method} {path}"
+                    api_contract_candidates.append({
+                        "method": method,
+                        "path": path,
+                        "summary": summary,
+                        "description": item.get("summary") or f"Detected endpoint from API details in {path}",
+                        "source_file": "",
+                        "line_start": 0,
+                        "line_end": 0,
+                        "handler": "",
+                        "content": "",
+                        "warnings": []
+                    })
+
+            endpoints, extraction_quality = _build_api_contract_endpoints(api_contract_candidates)
+            report["api_contract"] = {"endpoints": endpoints}
+            report["extraction_quality"] = extraction_quality
 
             # Impact scope classification
             if security_features_detected:
@@ -1125,16 +1886,16 @@ def main():
                 bool(security_features_detected),
                 report["analysis_summary"]["breaking_changes_detected"]
             )
-
-            valid, validation_error = _validate_report_schema(report)
+            final_report = _to_canonical_v3(report, status="success")
+            valid, validation_error = _validate_report_schema(final_report)
             if not valid:
                 raise ValueError(f"Report validation failed: {validation_error}")
 
             # Save to file
-            _write_report(report)
+            _write_report(final_report)
 
             # Print to stdout
-            print(json.dumps(report, indent=2))
+            print(json.dumps(final_report, indent=2))
         except InvalidGitRepositoryError as e:
             raise AnalysisError("clone", str(e), True)
 
