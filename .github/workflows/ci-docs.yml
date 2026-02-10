@@ -37,7 +37,7 @@ jobs:
           python main.py https://github.com/${{ github.repository }}
 
       - name: Upload change report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: change-report
           path: codeDetect/change_report.json
