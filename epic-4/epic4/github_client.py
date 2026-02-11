@@ -20,6 +20,7 @@ class GitHubClient:
             "Accept": "application/vnd.github.v3+json"
         }
         self._setup_git_credentials()
+        
 
     def _sanitize_log(self, text: str) -> str:
         """Remove tokens and credentials from log output."""
