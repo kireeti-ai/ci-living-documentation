@@ -160,7 +160,11 @@ const triggerInitialDocGeneration = async (
     if (!generateSummaryResponse.ok) {
       console.error(`Generate-summary API error: ${generateSummaryResponse.status} ${await generateSummaryResponse.text()}`)
       return
-    }
+    } else {
+        const summaryResult = await generateSummaryResponse.json()
+        console.log(`Summary generated for ${projectId}:`, summaryResult)
+      }
+    
 
     console.log(`Initial documentation generation completed for ${projectName} (branch: ${branch}, commit: ${commitHash.substring(0, 7)})`)
   } catch (error) {
