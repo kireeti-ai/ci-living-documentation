@@ -213,9 +213,19 @@ class StorageClient:
         if not self.r2_available:
             raise RuntimeError("R2 client not available")
 
-        self.r2_client.upload_file(local_path, bucket_name, key)
-        logger.info(f"Uploaded {local_path} to r2://{bucket_name}/{key}")
-        return True
+        try:
+            self.r2_client.upload_file(local_path, bucket_name, key)
+            logger.info(f"Uploaded {local_path} to r2://{bucket_name}/{key}")
+            return True
+        except Exception as e:
+            try:
+                from botocore.exceptions import NoCredentialsError, PartialCredentialsError
+                if isinstance(e, (NoCredentialsError, PartialCredentialsError)):
+                    logger.error("R2 credentials missing; skipping upload")
+                    return False
+            except Exception:
+                pass
+            raise
 
     @retry_with_backoff
     def upload_to_s3(self, local_path: str, bucket_name: str, key: str) -> bool:
@@ -223,9 +233,19 @@ class StorageClient:
         if not self.s3_available:
             raise RuntimeError("S3 client not available")
 
-        self.s3_client.upload_file(local_path, bucket_name, key)
-        logger.info(f"Uploaded {local_path} to s3://{bucket_name}/{key}")
-        return True
+        try:
+            self.s3_client.upload_file(local_path, bucket_name, key)
+            logger.info(f"Uploaded {local_path} to s3://{bucket_name}/{key}")
+            return True
+        except Exception as e:
+            try:
+                from botocore.exceptions import NoCredentialsError, PartialCredentialsError
+                if isinstance(e, (NoCredentialsError, PartialCredentialsError)):
+                    logger.error("AWS credentials missing; skipping upload")
+                    return False
+            except Exception:
+                pass
+            raise
 
     @retry_with_backoff
     def upload_to_gcs(self, local_path: str, bucket_name: str, key: str) -> bool:

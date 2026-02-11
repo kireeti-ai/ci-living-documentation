@@ -1,0 +1,18 @@
+{
+  "report_id": "01c7c690-e4cb-4e33-aca3-3dc9c4f0d4c3",
+  "generated_at": "2026-02-11T11:22:31.966731Z",
+  "drift_detected": true,
+  "overall_severity": "MINOR",
+  "severity_summary": {
+    "CRITICAL": 0,  
+    "MAJOR": 0,     
+    "MINOR": 182    
+  },
+  "validated_docs_bucket_path": "quiz-app-java/63d36c2b/docs/",
+  "statistics": {
+    "total_code_symbols": 27,
+    "api_drift_count": 0,
+    "schema_drift_count": 0,
+    "obsolete_documentation_count": 182
+  }
+}

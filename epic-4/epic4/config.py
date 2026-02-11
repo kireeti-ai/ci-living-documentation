@@ -1,7 +1,15 @@
 import os
 from typing import Optional
 
+# Load environment variables from .env if present.
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except Exception:
+    pass
+
 class Config:
+    EXECUTION_MODE: str = os.getenv("MODE", os.getenv("EPIC4_MODE", "FULL_MODE"))
     REPO_OWNER: str = os.getenv("REPO_OWNER", "")
     REPO_NAME: str = os.getenv("REPO_NAME", "")
     TARGET_BRANCH: str = os.getenv("TARGET_BRANCH", "main")
@@ -23,13 +31,19 @@ class Config:
     R2_ACCOUNT_ID: str = os.getenv("R2_ACCOUNT_ID", "")
     R2_ACCESS_KEY_ID: str = os.getenv("R2_ACCESS_KEY_ID", "")
     R2_SECRET_ACCESS_KEY: str = os.getenv("R2_SECRET_ACCESS_KEY", "")
+    R2_BUCKET_NAME: str = os.getenv("R2_BUCKET_NAME", "ci-living-docs")  # Default bucket name
+
 
     @classmethod
-    def validate(cls):
+    def validate(cls, require_git: bool = True):
         missing = []
-        if not cls.REPO_OWNER: missing.append("REPO_OWNER")
-        if not cls.REPO_NAME: missing.append("REPO_NAME")
-        if not cls.GITHUB_TOKEN: missing.append("GITHUB_TOKEN")
+        if require_git:
+            if not cls.REPO_OWNER:
+                missing.append("REPO_OWNER")
+            if not cls.REPO_NAME:
+                missing.append("REPO_NAME")
+            if not cls.GITHUB_TOKEN:
+                missing.append("GITHUB_TOKEN")
 
         if missing:
             raise ValueError(f"Missing required environment variables: {', '.join(missing)}")

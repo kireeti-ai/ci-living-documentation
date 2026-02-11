@@ -1,0 +1,657 @@
+{
+  "snapshot_id": "eb04eaa28c7d519e",
+  "project_id": "quiz-app-java",
+  "commit": "63d36c2b",
+  "generated_at": "2026-02-11T10:59:22.421208Z",
+  "docs_bucket_path": "quiz-app-java/63d36c2b/docs/",
+  "generated_files": [
+    {
+      "file": "README.generated.md",
+      "type": "markdown",
+      "description": "Auto-generated repository README"
+    },
+    {
+      "file": "adr/ADR-001.md",
+      "type": "markdown",
+      "description": "Architecture Baseline"
+    },
+    {
+      "file": "architecture/system.mmd",
+      "type": "mermaid",
+      "description": "System architecture diagram"
+    },
+    {
+      "file": "architecture/sequence.mmd",
+      "type": "mermaid",
+      "description": "Process sequence diagram"
+    },
+    {
+      "file": "architecture/er.mmd",
+      "type": "mermaid",
+      "description": "Entity-relationship diagram"
+    },
+    {
+      "file": "architecture/architecture.md",
+      "type": "markdown",
+      "description": "Architecture documentation text"
+    },
+    {
+      "file": "api/api-reference.md",
+      "type": "markdown",
+      "description": "API endpoint documentation"
+    },
+    {
+      "file": "api/api-descriptions.json",
+      "type": "json",
+      "description": "API endpoint descriptions map"
+    },
+    {
+      "file": "tree.txt",
+      "type": "text",
+      "description": "Hierarchical file tree"
+    },
+    {
+      "file": "doc_snapshot.json",
+      "type": "json",
+      "description": "Documentation generation metadata"
+    },
+    {
+      "file": "documentation-health.md",
+      "type": "markdown",
+      "description": "Documentation health report"
+    }
+  ],
+  "documentation_health": {
+    "missing_sections": [],
+    "template_followed": true
+  },
+  "author": "kireeti-ai",
+  "analysis": {
+    "severity": "MAJOR",
+    "breaking_changes": true,
+    "files_changed": 114
+  },
+  "errors": [],
+  "statistics": {
+    "total_files": 114,
+    "total_documents": 11,
+    "diagram_count": 3
+  },
+  "repo": {
+    "name": "ci-living-documentation",
+    "branch": "main",
+    "commit": "d4509166"
+  },
+  "changed_files": [
+    {
+      "path": "Dockerfile",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "README.md",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "docker-compose.yml",
+      "language": null,
+      "severity": "MINOR"
+    },
+    {
+      "path": "package.json",
+      "language": null,
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/.env.example",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/.eslintrc.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/package.json",
+      "language": null,
+      "severity": "MINOR"
+    },
+    {
+      "path": "docs/ADR-001.md",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "docs/api-reference.md",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "docs/architecture.md",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "docs/changelog.md",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "docs/data-model.md",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "docs/security.md",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "docs/testing.md",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/Dockerfile.dev",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/index.html",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/package.json",
+      "language": null,
+      "severity": "MINOR"
+    },
+    {
+      "path": "frontend/vite.config.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "language": null,
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/app.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "backend/src/server.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/tests/setup.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/App.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "frontend/src/index.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/main.jsx",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/tests/setup.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/config/database.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/config/index.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/docs/swagger.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/middleware/auth.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/middleware/errorHandler.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/middleware/index.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/middleware/rbac.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/middleware/requestLogger.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/middleware/validate.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/routes/index.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/scripts/seed.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/utils/ApiError.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/utils/ApiResponse.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/utils/asyncHandler.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/utils/index.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/utils/jwt.js",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/utils/logger.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/tests/integration/auth.test.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/tests/integration/projects.test.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/tests/integration/tasks.test.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/context/AuthContext.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "frontend/src/pages/AdminPage.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/pages/AdminPage.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "frontend/src/pages/AuthPages.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/pages/DashboardPage.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/pages/DashboardPage.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "frontend/src/pages/LoginPage.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "frontend/src/pages/ProfilePage.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/pages/ProfilePage.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "frontend/src/pages/ProjectDetailPage.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/pages/ProjectDetailPage.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "frontend/src/pages/ProjectsPage.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/pages/ProjectsPage.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "frontend/src/pages/RegisterPage.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "frontend/src/pages/TasksPage.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/pages/TasksPage.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "frontend/src/services/api.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/services/authService.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/services/projectService.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/services/taskService.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/services/userService.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/activity/Activity.model.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "backend/src/modules/comments/Comment.model.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "backend/src/modules/labels/Label.model.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "backend/src/modules/projects/Project.model.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "backend/src/modules/tasks/Task.model.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "backend/src/modules/users/User.model.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "frontend/src/components/auth/ProtectedRoute.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "frontend/src/components/common/Avatar.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/components/common/Avatar.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "frontend/src/components/common/Layout.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/components/common/Layout.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "frontend/src/components/common/LoadingSpinner.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/components/common/LoadingSpinner.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "frontend/src/components/common/Navbar.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/components/common/Navbar.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "frontend/src/components/common/Sidebar.css",
+      "language": null,
+      "severity": "PATCH"
+    },
+    {
+      "path": "frontend/src/components/common/Sidebar.jsx",
+      "language": "javascript",
+      "severity": "MINOR"
+    },
+    {
+      "path": "backend/src/modules/activity/controllers/activity.controller.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/activity/routes/activity.routes.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "backend/src/modules/activity/services/activity.service.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/auth/controllers/auth.controller.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/auth/routes/auth.routes.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "backend/src/modules/auth/services/auth.service.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/auth/validators/auth.validator.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/comments/controllers/comment.controller.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/comments/routes/comment.routes.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "backend/src/modules/comments/services/comment.service.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/comments/validators/comment.validator.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/labels/controllers/label.controller.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/labels/routes/label.routes.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "backend/src/modules/labels/services/label.service.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/labels/validators/label.validator.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/projects/controllers/project.controller.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/projects/repositories/project.repository.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/projects/routes/project.routes.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "backend/src/modules/projects/services/project.service.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/projects/validators/project.validator.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/tasks/controllers/task.controller.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/tasks/repositories/task.repository.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/tasks/routes/task.routes.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "backend/src/modules/tasks/services/task.service.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/tasks/validators/task.validator.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/users/controllers/user.controller.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/users/repositories/user.repository.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/users/routes/user.routes.js",
+      "language": "javascript",
+      "severity": "MAJOR"
+    },
+    {
+      "path": "backend/src/modules/users/services/user.service.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    },
+    {
+      "path": "backend/src/modules/users/validators/user.validator.js",
+      "language": "javascript",
+      "severity": "PATCH"
+    }
+  ]
+}

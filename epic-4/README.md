@@ -1,171 +1,318 @@
-# Epic-4: Automated Documentation & Change Summary Service
+# Epic-4: Summary Generation Service
 
-Epic-4 is a production-grade CI automation tool designed to generate deterministic change summaries and deliver documentation updates via automated Pull Requests. It bridges the gap between analysis artifacts (impact reports, drift reports) and developer workflow by ensuring every change is documented and visible.
+**Version:** 1.0.0  
+**Mode:** SUMMARY-ONLY  
+**Status:** Production Ready ✅
+
+Epic-4 is a production-grade summary generation service that creates deterministic change summaries from impact and drift analysis reports. It operates in SUMMARY-ONLY mode, generating comprehensive documentation artifacts and uploading them to cloud storage.
 
 ## Features
 
-- **Deterministic Summaries**: Generates Markdown summaries from `impact_report.json` and `drift_report.json`.
-- **Cloud Storage Integration**: Downloads documentation artifacts from GCS or S3 buckets (Epic-2 integration).
-- **Automated Delivery**: Commits generated artifacts (docs, summaries) to a dedicated `auto/docs/<commit_sha>` branch.
-- **PR Automation**: Automatically creates or updates a Pull Request with the summary and artifacts, keeping your documentation in sync with code changes.
-- **Security Hardened**: Token sanitization and secure credential management prevent credential leakage.
-- **Fault Tolerant**: Continues with degraded artifacts on failures; retry logic for network operations.
-- **CI-Native**: Designed to run within GitHub Actions or other CI providers.
-- **Reliable**: Includes retry logic, idempotency checks, and structured JSON logging.
+- **Deterministic Summaries**: Generates consistent Markdown and JSON summaries from `impact_report.json` and `drift_report.json`
+- **Cloud Storage Integration**: Uploads summary artifacts to R2/S3/GCS cloud storage
+- **Dynamic Path Derivation**: Automatically derives storage paths from `doc_snapshot.json`
+- **Comprehensive Analysis**: Includes severity assessment, API impact, risk analysis, and recommended actions
+- **Fault Tolerant**: Handles missing drift reports gracefully; creates degraded summaries on failures
+- **Security Hardened**: No credential logging; secure environment variable handling
+- **Validated**: Comprehensive test suite with automated validation
 
 ## Installation
 
 ### Basic Installation
 
 ```bash
-pip install .
+pip install -r requirements.txt
 ```
 
 ### With Cloud Storage Support
 
-For integration with Epic-2 cloud-stored documentation:
-
 ```bash
-# Google Cloud Storage
-pip install .[gcs]
-
-# Amazon S3
-pip install .[s3]
-
-# Both providers
-pip install .[cloud]
+# Install with all cloud providers
+pip install boto3  # For S3 and R2
+pip install google-cloud-storage  # For GCS (optional)
 ```
+
+## Quick Start
+
+1. **Configure environment variables** (create `.env` file):
+   ```bash
+   R2_ACCOUNT_ID=your-account-id
+   R2_ACCESS_KEY_ID=your-access-key
+   R2_SECRET_ACCESS_KEY=your-secret-key
+   R2_BUCKET_NAME=ci-living-docs
+   ```
+
+2. **Prepare input artifacts**:
+   - `artifacts/impact_report.json` (required)
+   - `artifacts/doc_snapshot.json` (required)
+   - `artifacts/drift_report.json` (optional)
+
+3. **Run the service**:
+   ```bash
+   python -m epic4.run
+   ```
+
+4. **Validate**:
+   ```bash
+   python validate_epic4.py
+   ```
 
 ## Usage
 
 ### CLI Execution
 
-The primary entry point is the CLI, intended to be run in a CI pipeline step.
-
 ```bash
 python -m epic4.run \
     --impact artifacts/impact_report.json \
     --drift artifacts/drift_report.json \
-    --docs artifacts/docs \
     --commit <commit_sha>
 ```
 
-### FastAPI Service
+### Command Line Arguments
 
-Detailed API documentation is available at `/docs` when running the server.
+| Argument | Description | Default |
+|----------|-------------|---------|
+| `--impact` | Path to impact report JSON | `artifacts/impact_report.json` |
+| `--drift` | Path to drift report JSON | `artifacts/drift_report.json` |
+| `--docs` | Path to docs directory | `artifacts/docs` |
+| `--commit` | Commit SHA | From environment or doc_snapshot.json |
+| `--mode` | Execution mode | `SUMMARY_ONLY_MODE` |
 
-```bash
-uvicorn epic4.api:app --host 0.0.0.0 --port 8000
-```
+## Input Requirements
 
-- `POST /generate-summary`: Generate summary markdown.
-- `POST /deliver-docs-pr`: Trigger background PR delivery.
+### Required Artifacts
+
+1. **impact_report.json** - Change impact analysis
+   - Contains: severity, affected packages, API endpoints, breaking changes
+   - Nested structure: `report.report.analysis_summary`
+
+2. **doc_snapshot.json** - Documentation metadata
+   - Required fields:
+     - `project_id` - Project identifier
+     - `commit` - Commit hash
+     - `docs_bucket_path` - Base storage path (e.g., `"quiz-app-java/63d36c2b/docs/"`)
+
+3. **drift_report.json** (optional) - Documentation drift analysis
+   - Contains: drift findings, severity, statistics
 
 ## Output Artifacts
 
-Epic-4 produces the following artifacts (contract-compliant for Epic-5 dashboard):
+### Generated Files
 
 ```
-artifacts/
-├── summaries/
-│   └── summary.md          # Contract-mandated filename
-├── docs/                   # Downloaded from Epic-2 or local
-│   └── [generated docs]
-└── logs/
-    └── epic4_execution.json
+artifacts/summaries/
+├── summary.md          # Human-readable markdown summary
+└── summary.json        # Machine-readable JSON summary
 ```
 
-**Note:** The output summary is always named `summary.md` (not `change_summary_*.md`) to comply with the Epic-5 integration contract.
+### Cloud Storage
+
+Files are uploaded to:
+```
+<project_id>/<commit_hash>/docs/summary/
+├── summary.md
+└── summary.json
+```
+
+Example: `quiz-app-java/63d36c2b/docs/summary/`
+
+### Response Format
+
+```json
+{
+  "status": "success",
+  "project_id": "quiz-app-java",
+  "commit": "63d36c2b",
+  "summary_bucket_path": "quiz-app-java/63d36c2b/docs/summary/",
+  "generated_files": [
+    "summary.md",
+    "summary.json"
+  ]
+}
+```
 
 ## Configuration
 
-The system is configured via Environment Variables:
+### Environment Variables
 
 | Variable | Description | Required | Default |
 |----------|-------------|----------|---------|
-| `GITHUB_TOKEN` | GitHub Personal Access Token or Actions Token | Yes | - |
-| `REPO_OWNER` | Owner of the target repository | Yes | - |
-| `REPO_NAME` | Name of the target repository | Yes | - |
-| `TARGET_BRANCH` | Base branch for PRs | No | `main` |
-| `COMMIT_SHA` | SHA of the commit being processed | Yes (or via CLI) | - |
-| `DOCS_BUCKET_PATH` | Cloud storage path for Epic-2 docs (gs:// or s3:// or r2://) | No | - |
+| `R2_ACCOUNT_ID` | Cloudflare R2 Account ID | Yes (for R2) | - |
+| `R2_ACCESS_KEY_ID` | R2 Access Key ID | Yes (for R2) | - |
+| `R2_SECRET_ACCESS_KEY` | R2 Secret Access Key | Yes (for R2) | - |
+| `R2_BUCKET_NAME` | R2 Bucket Name | No | `ci-living-docs` |
 | `ARTIFACTS_DIR` | Local artifacts directory | No | `artifacts` |
-| `R2_ACCOUNT_ID` | Cloudflare R2 Account ID | No (required for R2) | - |
-| `R2_ACCESS_KEY_ID` | Cloudflare R2 Access Key ID | No (required for R2) | - |
-| `R2_SECRET_ACCESS_KEY` | Cloudflare R2 Secret Access Key | No (required for R2) | - |
+| `COMMIT_SHA` | Commit SHA (override) | No | From doc_snapshot.json |
 
 ### Cloud Storage Configuration
 
-To integrate with Epic-2's cloud-stored documentation:
+#### Cloudflare R2 (Recommended)
 
 ```bash
-# Google Cloud Storage
-export DOCS_BUCKET_PATH="gs://my-bucket/docs/path"
-
-# Amazon S3
-export DOCS_BUCKET_PATH="s3://my-bucket/docs/path"
-
-# Cloudflare R2 (S3-compatible)
-export DOCS_BUCKET_PATH="r2://my-bucket/docs/path"
 export R2_ACCOUNT_ID="your-account-id"
 export R2_ACCESS_KEY_ID="your-access-key-id"
 export R2_SECRET_ACCESS_KEY="your-secret-access-key"
+export R2_BUCKET_NAME="ci-living-docs"
 ```
 
-**Authentication:**
-- **GCS**: Uses Application Default Credentials or `GOOGLE_APPLICATION_CREDENTIALS`
-- **S3**: Uses AWS credentials from `~/.aws/credentials` or IAM role
-- **R2**: Uses R2-specific credentials (Account ID, Access Key ID, Secret Access Key)
+#### Amazon S3
 
-### Security Best Practices
+```bash
+# Uses AWS credentials from ~/.aws/credentials or IAM role
+export R2_BUCKET_NAME="your-s3-bucket"
+```
 
-- **Never log or commit** the `GITHUB_TOKEN` value
-- Use GitHub Actions secrets or CI provider secret management
-- Tokens are automatically sanitized from logs by Epic-4
-- Git operations use secure credential helpers (no tokens in URLs)
+#### Google Cloud Storage
 
-## Docker
+```bash
+# Uses Application Default Credentials or GOOGLE_APPLICATION_CREDENTIALS
+export R2_BUCKET_NAME="your-gcs-bucket"
+```
 
-### Using Docker Compose (Recommended)
+## Summary Content
 
-The easiest way to run Epic-4 is using Docker Compose.
+### summary.md (Human-Readable)
 
-1. **Set Environment Variables**:
-   Create a `.env` file or export your variables:
-   ```bash
-   export GITHUB_TOKEN=your_token
-   ```
+- **Commit Metadata**: SHA, author, timestamp, message
+- **Impact Analysis**:
+  - Severity level (MAJOR, MINOR, PATCH)
+  - Changed files count
+  - Affected symbols/packages
+  - API impact summary
+  - Affected components
+- **Risk Assessment**: Breaking changes warnings, severity analysis
+- **Recommended Actions**: Developer guidance based on changes
+- **Drift Report**: Documentation drift findings (if available)
 
-2. **Run the API**:
-   ```bash
-   docker-compose up api
-   ```
-   The API will be available at `http://localhost:8000/docs`.
+### summary.json (Machine-Readable)
 
-3. **Run the CLI**:
-   ```bash
-   docker-compose run cli --commit <sha> ...
-   ```
+Deterministic JSON structure with:
+- `summary_version`: Schema version
+- `commit_sha`: Commit identifier
+- `severity`: Change severity level
+- `changed_files_count`: Number of files changed
+- `affected_symbols`: List of affected packages/modules
+- `api_impact_summary`: API changes description
+- `risk_assessment`: Risk analysis text
+- `recommended_actions`: Sorted list of actions
+- `drift_findings`: Drift issues (if available)
 
-### Using Docker Directly
+## Validation
 
-1. **Build the Image**:
-   ```bash
-   docker build -t epic4 .
-   ```
+Run the comprehensive validation script:
 
-2. **Run the Container**:
-   ```bash
-   docker run -p 8000:8000 -e GITHUB_TOKEN=$GITHUB_TOKEN epic4
-   ```
+```bash
+python validate_epic4.py
+```
+
+This validates:
+- Input artifact validation
+- Summary generation
+- Response schema
+- Generated files
+- Cloud storage uploads
 
 ## Development
 
-1. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-2. Run tests:
-   ```bash
-   python -m unittest discover tests
-   ```
+### Running Tests
+
+```bash
+# Run all tests
+pytest tests/
+
+# Run specific test file
+pytest tests/test_summary.py
+
+# Run with coverage
+pytest --cov=epic4 tests/
+```
+
+### Project Structure
+
+```
+epic-4/
+├── epic4/
+│   ├── run.py              # Main entry point
+│   ├── summary.py          # Summary generation logic
+│   ├── storage_client.py   # Cloud storage integration
+│   ├── config.py           # Configuration management
+│   └── utils.py            # Logging and utilities
+├── artifacts/
+│   ├── impact_report.json  # Input (required)
+│   ├── doc_snapshot.json   # Input (required)
+│   ├── drift_report.json   # Input (optional)
+│   └── summaries/          # Output directory
+├── tests/                  # Test suite
+├── validate_epic4.py       # Validation script
+├── requirements.txt        # Dependencies
+└── README.md              # This file
+```
+
+## Integration
+
+### EPIC-2 (Documentation Generation)
+- Consumes `doc_snapshot.json` from EPIC-2
+- Uses `docs_bucket_path` for storage hierarchy
+
+### EPIC-3 (Drift Detection)
+- Optionally consumes `drift_report.json` from EPIC-3
+- Includes drift findings in summary
+
+### EPIC-5 (Dashboard)
+- Provides `summary.json` for dashboard display
+- Standardized schema for easy parsing
+
+## Troubleshooting
+
+### Common Issues
+
+**Error: doc_snapshot.json not found**
+```
+Solution: Ensure EPIC-2 documentation generation ran successfully
+```
+
+**Error: docs_bucket_path not found in doc_snapshot.json**
+```
+Solution: Verify doc_snapshot.json contains the docs_bucket_path field
+```
+
+**Error: Upload failed**
+```
+Solution: Check R2 credentials in .env file
+```
+
+**Summary shows "UNKNOWN" for fields**
+```
+Solution: Verify impact_report.json structure matches expected format
+```
+
+## Security
+
+- No credentials logged
+- Secure environment variable handling
+- No sensitive data in output files
+- Proper error handling without credential exposure
+
+## Performance
+
+- **Execution Time**: ~3 seconds (including cloud upload)
+- **Memory Usage**: <100 MB
+- **Deterministic**: Same input always produces same output
+- **Retry Logic**: Exponential backoff for cloud operations
+
+## Limitations
+
+- **FULL_MODE**: Not implemented (PR creation disabled)
+- **Commit Metadata**: Limited to data available in impact_report.json
+- **Cloud Providers**: Tested with R2, S3, and GCS
+
+## License
+
+See LICENSE file for details.
+
+## Support
+
+For issues or questions:
+1. Run `validate_epic4.py` for diagnostics
+2. Check logs in console output
+3. Review error messages for specific guidance

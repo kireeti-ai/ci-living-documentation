@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 from typing import Dict, List, Any
 from epic4.summary import generate_summary, SummaryGenerator
+from epic4.github_client import GitHubClient
 from epic4.storage_client import StorageClient
 from epic4.config import config
 from epic4.utils import logger
@@ -82,11 +83,21 @@ def deliver_docs_pr(req: DeliverDocsRequest, background_tasks: BackgroundTasks):
         pass
 
     background_tasks.add_task(run_pr_delivery, req.commit_sha, req.target_branch)
-    return {"message": "Summary-only task accepted (PR creation disabled for now)"}
+    return {"message": "PR delivery task accepted"}
 
 def run_pr_delivery(commit_sha: str, target_branch: str):
-    logger.info(f"Starting summary-only delivery task for {commit_sha}")
+    logger.info(f"Starting PR delivery for {commit_sha}")
+    # This largely duplicates the CLI logic. logic should be extracted if this was a real long-running service.
+    # For now, we will just call the main logic functions.
+
+    # We assume 'generate-summary' was called or artifacts exist?
+    # Or we generate it now?
+    # Let's assume we need to run the full flow.
     try:
+        if not (config.REPO_OWNER and config.REPO_NAME and config.GITHUB_TOKEN):
+            logger.warning("Git credentials missing; skipping PR delivery")
+            return
+
         # 0. Download from cloud if configured
         if config.DOCS_BUCKET_PATH:
             logger.info(f"Downloading docs from cloud storage: {config.DOCS_BUCKET_PATH}")
@@ -128,13 +139,34 @@ Summary generation encountered an error:
                 import json
                 json.dump({"error": str(e), "status": "ERROR"}, f)
 
-        if config.DOCS_BUCKET_PATH:
-            storage_client = StorageClient()
-            storage_client.upload_file(summary_md_path, config.DOCS_BUCKET_PATH)
-            storage_client.upload_file(summary_json_path, config.DOCS_BUCKET_PATH)
-            logger.info("Summary-only delivery task completed")
-        else:
-            logger.info("Summary-only delivery task completed (no cloud upload configured)")
+        # 2. Collect files
+        files_to_commit = [summary_md_path]
+        if os.path.isdir(config.DOCS_DIR):
+             for root, dirs, files in os.walk(config.DOCS_DIR):
+                for file in files:
+                    files_to_commit.append(os.path.join(root, file))
+
+        # 3. Git Ops
+        gh = GitHubClient(config.REPO_OWNER, config.REPO_NAME, config.GITHUB_TOKEN)
+        branch_name = f"docs/update-{commit_sha}"
+
+        gh.checkout_and_push_files(
+            branch_name=branch_name,
+            files_to_commit=files_to_commit,
+            message=f"Auto-generated docs and summary for {commit_sha}"
+        )
+
+        try:
+            gh.ensure_pr(
+                head_branch=branch_name,
+                base_branch=target_branch,
+                title="Automated Documentation & Summary Update",
+                body=summary_content,
+                labels=["auto-generated-docs"]
+            )
+            logger.info("PR Delivery Background Task Completed")
+        except Exception as e:
+            logger.error(f"PR creation/update failed: {e}")
 
     except Exception as e:
-        logger.error(f"Summary-only delivery task failed: {e}")
+        logger.error(f"PR Delivery Background Task Failed: {e}")

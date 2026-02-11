@@ -1,11 +1,8 @@
 import argparse
 import os
-import sys
-import glob
 from epic4.config import config
 from epic4.utils import logger
 from epic4.summary import generate_summary
-from epic4.github_client import GitHubClient
 from epic4.storage_client import StorageClient
 
 def main():
@@ -14,62 +11,86 @@ def main():
     parser.add_argument("--drift", default=config.DRIFT_REPORT_PATH, help="Path to drift report")
     parser.add_argument("--docs", default=config.DOCS_DIR, help="Path to docs directory")
     parser.add_argument("--commit", default=config.COMMIT_SHA, help="Commit SHA")
+    parser.add_argument("--mode", default="SUMMARY_ONLY_MODE", help="Execution mode: FULL_MODE or SUMMARY_ONLY_MODE")
 
     args = parser.parse_args()
 
     # 1. Validation & Input Loading
-    try:
-        config.validate()
-        
-        # Load doc_snapshot.json to get dynamic bucket path
-        docs_bucket_path = config.DOCS_BUCKET_PATH # Fallback
-        if os.path.exists(config.DOC_SNAPSHOT_PATH):
-            try:
-                import json
-                with open(config.DOC_SNAPSHOT_PATH, 'r') as f:
-                    snapshot = json.load(f)
-                    docs_bucket_path = snapshot.get("docs_bucket_path", docs_bucket_path)
-                    logger.info(f"Loaded bucket path from snapshot: {docs_bucket_path}")
-            except Exception as e:
-                logger.warning(f"Failed to load doc_snapshot.json: {e}")
-        else:
-            logger.warning(f"doc_snapshot.json not found at {config.DOC_SNAPSHOT_PATH}")
+    # Temporarily force summary-only behavior.
+    effective_mode = "SUMMARY_ONLY_MODE"
 
-    except ValueError as e:
-        logger.error(f"Configuration error: {e}")
-        sys.exit(1)
+    # Load doc_snapshot.json to get dynamic bucket path and project_id
+    docs_bucket_path = None
+    project_id = None
+    commit_hash = args.commit
+    summary_local_dir = config.SUMMARIES_DIR  # Default fallback
+    summary_bucket_path = None
+    
+    if os.path.exists(config.DOC_SNAPSHOT_PATH):
+        try:
+            import json
+            with open(config.DOC_SNAPSHOT_PATH, 'r') as f:
+                snapshot = json.load(f)
+                # Extract project_id and commit
+                project_id = snapshot.get("project_id")
+                commit_from_snapshot = snapshot.get("commit")
+                
+                # Extract docs_bucket_path from snapshot (REQUIRED)
+                # Format: "<project_id>/<commit_hash>/docs/"
+                docs_bucket_path = snapshot.get("docs_bucket_path")
+                
+                if docs_bucket_path:
+                    # Derive summary_bucket_path as: docs_bucket_path + "summary/"
+                    # This gives us: "<project_id>/<commit_hash>/docs/summary/"
+                    summary_path_relative = docs_bucket_path + "summary/"
+                    
+                    # Construct full R2 URI: r2://<bucket_name>/<path>
+                    summary_bucket_path = f"r2://{config.R2_BUCKET_NAME}/{summary_path_relative}"
+                    logger.info(f"Derived summary_bucket_path: {summary_bucket_path}")
+                else:
+                    logger.error("docs_bucket_path not found in doc_snapshot.json")
+                    raise ValueError("docs_bucket_path is required in doc_snapshot.json")
+                
+                if project_id:
+                    logger.info(f"Loaded project_id from snapshot: {project_id}")
+                else:
+                    logger.warning("project_id not found in doc_snapshot.json")
+                
+                # Use commit from snapshot if available
+                if commit_from_snapshot:
+                    commit_hash = commit_from_snapshot
+                    logger.info(f"Using commit from snapshot: {commit_hash}")
+                    
+        except Exception as e:
+            logger.error(f"Failed to load doc_snapshot.json: {e}")
+            raise
+    else:
+        logger.error(f"doc_snapshot.json not found at {config.DOC_SNAPSHOT_PATH}")
+        raise FileNotFoundError(f"doc_snapshot.json is required at {config.DOC_SNAPSHOT_PATH}")
 
-    logger.info(f"Starting Epic-4 execution for commit {args.commit}")
+    logger.info(f"Starting Epic-4 execution for commit {commit_hash} in mode {effective_mode}")
 
     storage_client = StorageClient()
 
-    # 2. Download documentation artifacts from cloud storage if configured
-    if docs_bucket_path:
-        logger.info(f"Downloading docs from cloud storage: {docs_bucket_path}")
-        success = storage_client.download_artifacts(docs_bucket_path, args.docs)
-        if not success:
-            logger.warning("Failed to download from cloud storage, continuing with local files")
-    else:
-        logger.info("No cloud storage path configured, using local docs")
-
-    # 3. Generate Summary with fault tolerance
+    # 2. Generate Summary with fault tolerance
     summary_md_path = ""
     summary_json_path = ""
     
     try:
-        summary_md_path, summary_json_path = generate_summary(args.impact, args.drift, args.commit, config.SUMMARIES_DIR)
+        summary_md_path, summary_json_path = generate_summary(args.impact, args.drift, commit_hash, summary_local_dir, snapshot)
         with open(summary_md_path, 'r') as f:
             summary_content = f.read()
+        logger.info(f"Summary generated successfully at {summary_md_path}")
     except Exception as e:
         logger.error(f"Failed to generate summary: {e}")
         # Create error summary for partial artifact preservation
-        summary_md_path = os.path.join(config.SUMMARIES_DIR, "summary.md")
-        summary_json_path = os.path.join(config.SUMMARIES_DIR, "summary.json")
-        os.makedirs(config.SUMMARIES_DIR, exist_ok=True)
+        summary_md_path = os.path.join(summary_local_dir, "summary.md")
+        summary_json_path = os.path.join(summary_local_dir, "summary.json")
+        os.makedirs(summary_local_dir, exist_ok=True)
         
         summary_content = f"""# Change Summary - Generation Failed
 
-**Commit SHA:** `{args.commit}`
+**Commit SHA:** `{commit_hash}`
 **Status:** ERROR
 
 ## Error
@@ -88,88 +109,46 @@ This is a degraded artifact. Please check the impact and drift reports manually.
             
         with open(summary_json_path, 'w') as f:
             import json
-            json.dump({"error": str(e), "status": "ERROR", "commit_sha": args.commit}, f)
+            json.dump({"error": str(e), "status": "ERROR", "commit_sha": commit_hash}, f)
             
         logger.info(f"Created error summary at {summary_md_path}")
 
-    # 4. Collect Files for Git
-    files_to_commit = []
+    # 3. Upload summary artifacts to cloud storage
+    if summary_bucket_path:
+        logger.info(f"Uploading summary artifacts to {summary_bucket_path}")
+        upload_success_md = storage_client.upload_file(summary_md_path, summary_bucket_path)
+        upload_success_json = storage_client.upload_file(summary_json_path, summary_bucket_path)
+        
+        if upload_success_md and upload_success_json:
+            logger.info("Summary artifacts uploaded successfully")
+        else:
+            logger.error("Failed to upload one or more summary artifacts")
+            raise RuntimeError("Summary upload failed")
+    else:
+        logger.error("No summary_bucket_path available for upload")
+        raise ValueError("summary_bucket_path is required for upload")
 
-    # Docs
-    if os.path.isdir(args.docs):
-        for root, dirs, files in os.walk(args.docs):
-            for file in files:
-                files_to_commit.append(os.path.join(root, file))
+    # 4. Emit response payload
+    # Return the relative path (without scheme) as per specification
+    summary_path_for_response = docs_bucket_path + "summary/" if docs_bucket_path else summary_bucket_path
+    
+    response = {
+        "status": "success",
+        "project_id": project_id,
+        "commit": commit_hash,
+        "summary_bucket_path": summary_path_for_response,
+        "generated_files": [
+            "summary.md",
+            "summary.json"
+        ]
+    }
 
-    # Summary
-    files_to_commit.append(summary_md_path)
-
-    logger.info(f"Files to commit: {len(files_to_commit)}")
-
-    # 5. Git Operations & PR
-    gh = GitHubClient(config.REPO_OWNER, config.REPO_NAME, config.GITHUB_TOKEN)
-
-    branch_name = f"auto/docs/{args.commit}"
-    pr_number = None
-    pr_url = ""
-
-    try:
-        # Push artifacts
-        gh.checkout_and_push_files(
-            branch_name=branch_name,
-            files_to_commit=files_to_commit,
-            message=f"Auto-generated docs and summary for {args.commit}"
-        )
-
-        # Create/Update PR
-        pr_number_str = gh.ensure_pr(
-            head_branch=branch_name,
-            base_branch=config.TARGET_BRANCH,
-            title="Automated Documentation & Summary Update",
-            body=summary_content,
-            labels=["auto-generated-docs"]
-        )
-        pr_number = int(pr_number_str)
-        pr_url = f"https://github.com/{config.REPO_OWNER}/{config.REPO_NAME}/pull/{pr_number}"
-
-        logger.info(f"Successfully processed PR #{pr_number}")
-
-    except Exception as e:
-        logger.error(f"Automation failed: {e}")
-        # If git ops fail, we might still want to upload what we have, but usually it's fatal.
-        # However, for artifact preservation, we continue.
-        pass
-    finally:
-        gh.cleanup()
-
-    # 6. Generate PR Metadata
-    pr_metadata_path = os.path.join(config.ARTIFACTS_DIR, "pr_metadata.json")
     try:
         import json
-        with open(pr_metadata_path, 'w') as f:
-            json.dump({
-                "pr_number": pr_number,
-                "pr_url": pr_url,
-                "branch": branch_name,
-                "commit_sha": args.commit
-            }, f, indent=2)
-    except Exception as e:
-        logger.error(f"Failed to generate pr_metadata.json: {e}")
+        print(json.dumps(response))
+    except Exception:
+        print(response)
 
-    # 7. Upload Artifacts to Cloud Storage (Epic-5 requirement)
-    if docs_bucket_path:
-        logger.info(f"Uploading CI artifacts to {docs_bucket_path}")
-        # We upload to the same bucket path (assuming it's a folder for this build/version)
-        # Or should we upload to a specific artifacts folder?
-        # The requirement says "Upload CI result artifacts... to the storage bucket"
-        # We'll upload to the root of the bucket path provided.
-        
-        storage_client.upload_file(summary_md_path, docs_bucket_path)
-        storage_client.upload_file(summary_json_path, docs_bucket_path)
-        if os.path.exists(pr_metadata_path):
-             storage_client.upload_file(pr_metadata_path, docs_bucket_path)
-    else:
-        logger.warning("No bucket path available for artifact upload")
 
 if __name__ == "__main__":
     main()
