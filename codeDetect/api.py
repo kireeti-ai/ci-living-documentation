@@ -99,6 +99,41 @@ def _error_response(stage: str,
         payload["report"] = report
     return jsonify(payload), status_code
 
+@app.route('/', methods=['GET', 'HEAD'])
+def root():
+    """
+    Root endpoint - API information
+    ---
+    tags:
+      - System
+    responses:
+      200:
+        description: API information
+        schema:
+          type: object
+          properties:
+            service:
+              type: string
+              example: Code Change Detector API
+            version:
+              type: string
+              example: 1.0.0
+            endpoints:
+              type: object
+    """
+    return jsonify({
+        "service": "Code Change Detector API",
+        "version": "1.0.0",
+        "status": "healthy",
+        "endpoints": {
+            "health": "/health",
+            "docs": "/docs/",
+            "analyze": "/analyze",
+            "analyze_local": "/analyze/local"
+        },
+        "timestamp": datetime.utcnow().isoformat()
+    })
+
 @app.route('/health', methods=['GET'])
 def health_check():
     """
