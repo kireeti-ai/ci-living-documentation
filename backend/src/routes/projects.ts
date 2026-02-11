@@ -10,6 +10,71 @@ import { createGitHubWebhook, deleteGitHubWebhook, parseGitHubUrl } from '../uti
 import crypto from 'crypto'
 
 /**
+ * Fetch the latest commit and default branch from a GitHub repository
+ */
+const getRepoLatestInfo = async (
+  githubUrl: string,
+  githubToken: string
+): Promise<{ branch: string; commitHash: string }> => {
+  const defaultResult = { branch: 'main', commitHash: 'initial' }
+  
+  try {
+    const parsed = parseGitHubUrl(githubUrl)
+    if (!parsed) {
+      console.warn('Could not parse GitHub URL:', githubUrl)
+      return defaultResult
+    }
+
+    const { owner, repo } = parsed
+
+    // Get repository info to find default branch
+    const repoResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+      headers: {
+        'Authorization': `Bearer ${githubToken}`,
+        'Accept': 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+      },
+    })
+
+    if (!repoResponse.ok) {
+      console.warn(`Failed to fetch repo info: ${repoResponse.status}`)
+      return defaultResult
+    }
+
+    const repoData = await repoResponse.json()
+    const defaultBranch = repoData.default_branch || 'main'
+
+    // Get latest commit on the default branch
+    const commitsResponse = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/commits?sha=${defaultBranch}&per_page=1`,
+      {
+        headers: {
+          'Authorization': `Bearer ${githubToken}`,
+          'Accept': 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+        },
+      }
+    )
+
+    if (!commitsResponse.ok) {
+      console.warn(`Failed to fetch commits: ${commitsResponse.status}`)
+      return { branch: defaultBranch, commitHash: 'initial' }
+    }
+
+    const commits = await commitsResponse.json()
+    const latestCommit = commits[0]?.sha || 'initial'
+
+    return {
+      branch: defaultBranch,
+      commitHash: latestCommit,
+    }
+  } catch (error) {
+    console.error('Failed to get repo latest info:', error)
+    return defaultResult
+  }
+}
+
+/**
  * Trigger initial document generation for a project.
  * This is called asynchronously after project creation to not block the response.
  */
@@ -17,12 +82,15 @@ const triggerInitialDocGeneration = async (
   projectId: string,
   projectName: string,
   githubUrl: string,
-  githubToken: string,
-  branch: string = 'main'
+  githubToken: string
 ) => {
   console.log(`Triggering initial document generation for project: ${projectName}`)
   
   try {
+    // Get the actual latest commit and default branch from GitHub
+    const { branch, commitHash } = await getRepoLatestInfo(githubUrl, githubToken)
+    console.log(`Using branch: ${branch}, commit: ${commitHash.substring(0, 7)}`)
+
     // Step 1: Call code-detect API to analyze the repository
     const analyzeResponse = await fetch('https://code-detect.onrender.com/analyze', {
       method: 'POST',
@@ -44,7 +112,7 @@ const triggerInitialDocGeneration = async (
     }
 
     const analysisResult = await analyzeResponse.json()
-    console.log(`Code-detect analysis completed for ${projectName}:`, analysisResult)
+    console.log(`Code-detect analysis completed for ${projectName}`)
 
     // Step 2: Call generate-docs API
     const generateDocsResponse = await fetch('https://ci-docs-gen.onrender.com/generate-docs', {
@@ -54,7 +122,7 @@ const triggerInitialDocGeneration = async (
       },
       body: JSON.stringify({
         branch,
-        commit_hash: 'initial',
+        commit_hash: commitHash,
         impact_report: analysisResult,
         project_id: projectId,
         repo_url: githubUrl,
@@ -66,7 +134,6 @@ const triggerInitialDocGeneration = async (
       return
     }
 
-    const docsResult = await generateDocsResponse.json()
     console.log(`Documentation generated for ${projectName}`)
 
     // Step 3: Call generate-summary API
@@ -78,7 +145,7 @@ const triggerInitialDocGeneration = async (
       body: JSON.stringify({
         impact_report: analysisResult,
         drift_report: {},
-        commit_sha: 'initial',
+        commit_sha: commitHash,
         project_id: projectId,
       }),
     })
@@ -88,8 +155,7 @@ const triggerInitialDocGeneration = async (
       return
     }
 
-    const summaryResult = await generateSummaryResponse.json()
-    console.log(`Initial documentation generation completed for ${projectName}`)
+    console.log(`Initial documentation generation completed for ${projectName} (branch: ${branch}, commit: ${commitHash.substring(0, 7)})`)
   } catch (error) {
     console.error(`Failed to trigger initial doc generation for ${projectName}:`, error)
   }
