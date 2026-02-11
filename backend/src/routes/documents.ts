@@ -9,6 +9,7 @@ import {
   getDocumentMetadata,
   getDocumentContent,
   getDocumentSummary,
+  getDocumentReadme,
   searchDocumentsContent,
   updateDocumentTags,
   uploadDocument,
@@ -266,12 +267,47 @@ router.get('/:id/documents/:commit/summary', async (req: AuthRequest, res: Respo
 
     return res.json({
       projectId: id,
+      projectName: project.name,
       commit,
-      summary,
+      content: summary,
     })
   } catch (error: any) {
     console.error('Get summary error:', error)
     return res.status(500).json({ detail: error.message || 'Failed to get summary' })
+  }
+})
+
+// GET /projects/:id/documents/:commit/readme - Get README for a commit
+router.get('/:id/documents/:commit/readme', async (req: AuthRequest, res: Response) => {
+  try {
+    const { id, commit } = req.params
+    const userId = req.user!.id
+
+    const member = await isProjectMember(id, userId)
+    if (!member) {
+      return res.status(403).json({ detail: 'Access denied' })
+    }
+
+    const project = await getProjectById(id)
+    if (!project) {
+      return res.status(404).json({ detail: 'Project not found' })
+    }
+
+    const readme = await getDocumentReadme(project.id, commit)
+
+    if (!readme) {
+      return res.status(404).json({ detail: 'README not found' })
+    }
+
+    return res.json({
+      projectId: id,
+      projectName: project.name,
+      commit,
+      content: readme,
+    })
+  } catch (error: any) {
+    console.error('Get readme error:', error)
+    return res.status(500).json({ detail: error.message || 'Failed to get readme' })
   }
 })
 

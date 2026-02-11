@@ -204,13 +204,17 @@ export const documentsApi = {
   list: (projectId: string) =>
     api.get<DocumentsListResponse>(`/projects/${projectId}/documents`),
 
-  // Get specific document commit with content (from docs/)
+  // Get specific document commit with API content (from docs/api/api-descriptions.json)
   get: (projectId: string, commit: string) =>
     api.get<DocumentDetailResponse>(`/projects/${projectId}/documents/${encodeURIComponent(commit)}`),
 
-  // Get document summary (from summaries/summary.md)
+  // Get document summary (from docs/summary/summary.md)
   getSummary: (projectId: string, commit: string) =>
     api.get<{ content: string; projectName: string }>(`/projects/${projectId}/documents/${encodeURIComponent(commit)}/summary`),
+
+  // Get document README (from docs/README.generated.md)
+  getReadme: (projectId: string, commit: string) =>
+    api.get<{ content: string; projectName: string }>(`/projects/${projectId}/documents/${encodeURIComponent(commit)}/readme`),
 
   // Get only metadata for a commit
   getMetadata: (projectId: string, commit: string) =>

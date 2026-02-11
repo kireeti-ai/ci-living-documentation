@@ -89,42 +89,86 @@ export const listProjectDocuments = async (projectId: string): Promise<string[]>
 
 /**
  * Get document metadata for a specific commit
+ * Tries docs/summary/summary.json first, falls back to logs/epic4_execution.json
  */
 export const getDocumentMetadata = async (projectId: string, commitHash: string): Promise<DocumentMetadata | null> => {
   if (!r2Client) throw new Error('R2 not configured')
   
-  const key = `${projectId}/${commitHash}/logs/epic4_execution.json`
+  // Try new path first: docs/summary/summary.json
+  const newKey = `${projectId}/${commitHash}/docs/summary/summary.json`
+  // Fallback to old path: logs/epic4_execution.json
+  const oldKey = `${projectId}/${commitHash}/logs/epic4_execution.json`
   
-  try {
-    const command = new GetObjectCommand({
-      Bucket: DOCS_BUCKET,
-      Key: key,
-    })
-    
-    const response = await r2Client.send(command)
-    
-    if (!response.Body) {
-      return null
+  for (const key of [newKey, oldKey]) {
+    try {
+      const command = new GetObjectCommand({
+        Bucket: DOCS_BUCKET,
+        Key: key,
+      })
+      
+      const response = await r2Client.send(command)
+      
+      if (!response.Body) {
+        continue
+      }
+      
+      const text = await streamToString(response.Body)
+      return JSON.parse(text) as DocumentMetadata
+    } catch (error: any) {
+      if (error.name === 'NoSuchKey' || error.$metadata?.httpStatusCode === 404) {
+        continue
+      }
+      console.error('Error fetching metadata:', error)
     }
-    
-    const text = await streamToString(response.Body)
-    return JSON.parse(text) as DocumentMetadata
-  } catch (error: any) {
-    if (error.name === 'NoSuchKey' || error.$metadata?.httpStatusCode === 404) {
-      return null
-    }
-    console.error('Error fetching metadata:', error)
-    return null
   }
+  
+  return null
 }
 
 /**
  * Get summary content for a specific commit
+ * Tries docs/summary/summary.md first, falls back to summaries/summary.md
  */
 export const getDocumentSummary = async (projectId: string, commitHash: string): Promise<string | null> => {
   if (!r2Client) throw new Error('R2 not configured')
   
-  const key = `${projectId}/${commitHash}/summaries/summary.md`
+  // Try new path first: docs/summary/summary.md
+  const newKey = `${projectId}/${commitHash}/docs/summary/summary.md`
+  // Fallback to old path: summaries/summary.md
+  const oldKey = `${projectId}/${commitHash}/summaries/summary.md`
+  
+  for (const key of [newKey, oldKey]) {
+    try {
+      const command = new GetObjectCommand({
+        Bucket: DOCS_BUCKET,
+        Key: key,
+      })
+      
+      const response = await r2Client.send(command)
+      
+      if (!response.Body) {
+        continue
+      }
+      
+      return await streamToString(response.Body)
+    } catch (error: any) {
+      if (error.name === 'NoSuchKey' || error.$metadata?.httpStatusCode === 404) {
+        continue
+      }
+      console.error('Error fetching summary:', error)
+    }
+  }
+  
+  return null
+}
+
+/**
+ * Get README content for a specific commit
+ */
+export const getDocumentReadme = async (projectId: string, commitHash: string): Promise<string | null> => {
+  if (!r2Client) throw new Error('R2 not configured')
+  
+  const key = `${projectId}/${commitHash}/docs/README.generated.md`
   
   try {
     const command = new GetObjectCommand({
@@ -143,21 +187,42 @@ export const getDocumentSummary = async (projectId: string, commitHash: string):
     if (error.name === 'NoSuchKey' || error.$metadata?.httpStatusCode === 404) {
       return null
     }
-    console.error('Error fetching summary:', error)
+    console.error('Error fetching readme:', error)
     return null
   }
 }
 
 /**
- * Get all docs content for a specific commit
+ * Get API docs content for a specific commit (JSON format)
+ * Path: docs/api/api-descriptions.json
  */
 export const getDocumentContent = async (projectId: string, commitHash: string): Promise<string | null> => {
   if (!r2Client) throw new Error('R2 not configured')
   
+  // New path: docs/api/api-descriptions.json
+  const newKey = `${projectId}/${commitHash}/docs/api/api-descriptions.json`
+  
+  try {
+    const command = new GetObjectCommand({
+      Bucket: DOCS_BUCKET,
+      Key: newKey,
+    })
+    
+    const response = await r2Client.send(command)
+    
+    if (response.Body) {
+      return await streamToString(response.Body)
+    }
+  } catch (error: any) {
+    if (error.name !== 'NoSuchKey' && error.$metadata?.httpStatusCode !== 404) {
+      console.error('Error fetching api-descriptions.json:', error)
+    }
+  }
+  
+  // Fallback: try to find any file in the docs folder (old behavior)
   const prefix = `${projectId}/${commitHash}/docs/`
   
   try {
-    // List all files in the docs folder
     const listCommand = new ListObjectsV2Command({
       Bucket: DOCS_BUCKET,
       Prefix: prefix,
@@ -166,18 +231,21 @@ export const getDocumentContent = async (projectId: string, commitHash: string):
     const listResponse = await r2Client.send(listCommand)
     const files: _Object[] = listResponse.Contents || []
     
-    // Find markdown file
-    const mdFile = files.find((f: _Object) => f.Key?.endsWith('.md'))
+    // Find markdown or json file (excluding api/ and summary/ subdirs)
+    const docFile = files.find((f: _Object) => {
+      const key = f.Key || ''
+      return (key.endsWith('.md') || key.endsWith('.json')) && 
+             !key.includes('/api/') && 
+             !key.includes('/summary/')
+    })
     
-    if (!mdFile || !mdFile.Key) {
-      console.error('No markdown file found in docs folder')
+    if (!docFile || !docFile.Key) {
       return null
     }
     
-    // Download the markdown file
     const getCommand = new GetObjectCommand({
       Bucket: DOCS_BUCKET,
-      Key: mdFile.Key,
+      Key: docFile.Key,
     })
     
     const response = await r2Client.send(getCommand)

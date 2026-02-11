@@ -158,6 +158,27 @@ const handlePushEvent = async (payload: any) => {
       } else {
         const docsResult = await generateDocsResponse.json()
         console.log(`Documentation generated for ${project.name}:`)
+
+        // Call generate-summary endpoint to create summary in the bucket
+        const generateSummaryResponse = await fetch('https://ci-living-documentation.onrender.com/generate-summary', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            impact_report: result,
+            drift_report: {},
+            commit_sha: headCommit?.id || 'unknown',
+            project_id: project.id,
+          }),
+        })
+
+        if (!generateSummaryResponse.ok) {
+          console.error(`Generate-summary API error: ${generateSummaryResponse.status} ${await generateSummaryResponse.text()}`)
+        } else {
+          const summaryResult = await generateSummaryResponse.json()
+          console.log(`Summary generated for ${project.name}:`, summaryResult)
+        }
       }
     }
   } catch (error) {

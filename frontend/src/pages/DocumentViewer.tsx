@@ -5,7 +5,7 @@ import Navbar from '../components/Navbar'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
-type Tab = 'summary' | 'apis' | 'settings'
+type Tab = 'summary' | 'readme' | 'apis' | 'settings'
 
 // API Endpoint structure from the docs JSON
 interface ApiEndpoint {
@@ -31,6 +31,7 @@ const DocumentViewer = () => {
   // State
   const [activeTab, setActiveTab] = useState<Tab>('summary')
   const [summaryContent, setSummaryContent] = useState<string | null>(null)
+  const [readmeContent, setReadmeContent] = useState<string | null>(null)
   const [apiContent, setApiContent] = useState<string | null>(null)
   const [apiDocs, setApiDocs] = useState<ApiDocs | null>(null)
   const [metadata, setMetadata] = useState<DocumentMetadata | null>(null)
@@ -56,31 +57,45 @@ const DocumentViewer = () => {
       setIsLoading(true)
       setError(null)
       try {
-        // Load summary, API content, and metadata in parallel
-        const [summaryRes, apiRes, metadataRes] = await Promise.all([
+        // Load summary, readme, API content, and metadata in parallel
+        const [summaryRes, readmeRes, apiRes, metadataRes] = await Promise.allSettled([
           documentsApi.getSummary(id, commit),
+          documentsApi.getReadme(id, commit),
           documentsApi.get(id, commit),
           documentsApi.getMetadata(id, commit),
         ])
 
-        setSummaryContent(summaryRes.data.content)
-        setApiContent(apiRes.data.content)
-        
-        // Try to parse API content as JSON
-        try {
-          const parsed = JSON.parse(apiRes.data.content)
-          setApiDocs(parsed)
-        } catch {
-          // If not valid JSON, keep as markdown
-          setApiDocs(null)
+        // Handle summary
+        if (summaryRes.status === 'fulfilled') {
+          setSummaryContent(summaryRes.value.data.content)
         }
-        
-        setMetadata(metadataRes.data)
-        setProjectName(apiRes.data.projectName)
-        
-        // Initialize settings
-        setEditableTags(metadataRes.data.tags)
-        setEditableVersion(metadataRes.data.version)
+
+        // Handle readme
+        if (readmeRes.status === 'fulfilled') {
+          setReadmeContent(readmeRes.value.data.content)
+        }
+
+        // Handle API content
+        if (apiRes.status === 'fulfilled') {
+          setApiContent(apiRes.value.data.content)
+          setProjectName(apiRes.value.data.projectName)
+          
+          // Try to parse API content as JSON
+          try {
+            const parsed = JSON.parse(apiRes.value.data.content)
+            setApiDocs(parsed)
+          } catch {
+            // If not valid JSON, keep as markdown
+            setApiDocs(null)
+          }
+        }
+
+        // Handle metadata
+        if (metadataRes.status === 'fulfilled') {
+          setMetadata(metadataRes.value.data)
+          setEditableTags(metadataRes.value.data.tags)
+          setEditableVersion(metadataRes.value.data.version)
+        }
       } catch (err: any) {
         setError(err.response?.data?.detail || 'Failed to load document')
       } finally {
@@ -422,6 +437,12 @@ const DocumentViewer = () => {
             Summary
           </button>
           <button
+            className={`tab ${activeTab === 'readme' ? 'active' : ''}`}
+            onClick={() => setActiveTab('readme')}
+          >
+            README
+          </button>
+          <button
             className={`tab ${activeTab === 'apis' ? 'active' : ''}`}
             onClick={() => setActiveTab('apis')}
           >
@@ -445,6 +466,20 @@ const DocumentViewer = () => {
                 </ReactMarkdown>
               ) : (
                 <p>No summary available for this commit.</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'readme' && (
+          <div className="tab-content">
+            <div className="document-content markdown-content">
+              {readmeContent ? (
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {readmeContent}
+                </ReactMarkdown>
+              ) : (
+                <p>No README available for this commit.</p>
               )}
             </div>
           </div>
