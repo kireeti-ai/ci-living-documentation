@@ -134,6 +134,7 @@ const triggerInitialDocGeneration = async (
       return
     }
 
+    const docsResult = await generateDocsResponse.json()
     console.log(`Documentation generated for ${projectName}`)
 
     // Step 3: Call generate-summary API
@@ -144,7 +145,13 @@ const triggerInitialDocGeneration = async (
       },
       body: JSON.stringify({
         impact_report: analysisResult,
-        drift_report: {},
+        drift_report: {
+          "findings": [],
+          "statistics": {
+            "total_issues": 0
+          }
+        },
+        doc_snapshot: docsResult.doc_snapshot,
         commit_sha: commitHash,
         project_id: projectId,
       }),
