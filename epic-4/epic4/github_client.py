@@ -28,9 +28,9 @@ class GitHubClient:
         # Redact tokens in URLs
         text = re.sub(r'://[^@:]+:[^@]+@', '://***@', text)
         text = re.sub(r'://x-access-token:[^@]+@', '://***@', text)
-        # Redact token-like strings
-        text = re.sub(r'ghp_[a-zA-Z0-9]{36}', '***REDACTED_TOKEN***', text)
-        text = re.sub(r'gho_[a-zA-Z0-9]{36}', '***REDACTED_TOKEN***', text)
+        # Redact token-like strings (ghp_ for personal access tokens, gho_ for OAuth tokens)
+        text = re.sub(r'ghp_[a-zA-Z0-9_]+', '***REDACTED_TOKEN***', text)
+        text = re.sub(r'gho_[a-zA-Z0-9_]+', '***REDACTED_TOKEN***', text)
         return text
 
     def _setup_git_credentials(self):

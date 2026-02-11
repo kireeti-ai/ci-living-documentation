@@ -4,30 +4,30 @@ from epic4.github_client import GitHubClient
 
 class TestSecurityFeatures(unittest.TestCase):
     def setUp(self):
-        self.client = GitHubClient("owner", "repo", "ghp_1234567890abcdefghijklmnopqrstuvwxyz")
+        self.client = GitHubClient("owner", "repo", "ghp_FAKE_TOKEN_FOR_TESTING_ONLY")
 
     def test_sanitize_token_in_url(self):
         """Test that tokens in URLs are sanitized."""
-        text = "fatal: repository 'https://x-access-token:ghp_1234567890abcdefghijklmnopqrstuvwxyz@github.com/owner/repo.git' not found"
+        text = "fatal: repository 'https://x-access-token:ghp_FAKE_TOKEN_FOR_TESTING_ONLY@github.com/owner/repo.git' not found"
         sanitized = self.client._sanitize_log(text)
 
-        self.assertNotIn("ghp_1234567890", sanitized)
+        self.assertNotIn("ghp_FAKE", sanitized)
         self.assertIn("***", sanitized)
 
     def test_sanitize_github_personal_token(self):
         """Test that GitHub personal access tokens are sanitized."""
-        text = "Using token ghp_1234567890abcdefghijklmnopqrstuvwxyz for authentication"
+        text = "Using token ghp_FAKE_TOKEN_FOR_TESTING_ONLY for authentication"
         sanitized = self.client._sanitize_log(text)
 
-        self.assertNotIn("ghp_1234567890", sanitized)
+        self.assertNotIn("ghp_FAKE", sanitized)
         self.assertIn("***REDACTED_TOKEN***", sanitized)
 
     def test_sanitize_github_oauth_token(self):
         """Test that GitHub OAuth tokens are sanitized."""
-        text = "Using token gho_1234567890abcdefghijklmnopqrstuvwxyz for authentication"
+        text = "Using token gho_FAKE_TOKEN_FOR_TESTING_ONLY for authentication"
         sanitized = self.client._sanitize_log(text)
 
-        self.assertNotIn("gho_1234567890", sanitized)
+        self.assertNotIn("gho_FAKE", sanitized)
         self.assertIn("***REDACTED_TOKEN***", sanitized)
 
     def test_sanitize_basic_auth_url(self):
