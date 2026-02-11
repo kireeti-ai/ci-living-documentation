@@ -4,6 +4,7 @@ import { documentsApi, DocumentMetadata } from '../services/api'
 import Navbar from '../components/Navbar'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import rehypeRaw from 'rehype-raw'
 
 type Tab = 'summary' | 'readme' | 'apis' | 'settings'
 
@@ -198,7 +199,11 @@ const DocumentViewer = () => {
   const renderApiCard = (path: string, endpoint: ApiEndpoint) => {
     const isExpanded = expandedApis.has(path)
     const method = getMethodFromPath(path)
-    const cleanPath = path.replace(/^(GET|POST|PUT|DELETE|PATCH)\s+/i, '')
+    let cleanPath = path.replace(/^(GET|POST|PUT|DELETE|PATCH)\s+/i, '')
+    // Ensure API path starts with /
+    if (cleanPath && !cleanPath.startsWith('/')) {
+      cleanPath = '/' + cleanPath
+    }
 
     return (
       <div key={path} className="api-card">
@@ -271,7 +276,7 @@ const DocumentViewer = () => {
     
     if (!searchQuery.trim()) {
       return (
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+        <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
           {apiContent}
         </ReactMarkdown>
       )
@@ -400,15 +405,23 @@ const DocumentViewer = () => {
               </div>
               <div className="metadata-item">
                 <span className="label">Branch:</span>
-                <a href={metadata.branchUrl} target="_blank" rel="noopener noreferrer">
-                  {metadata.branch}
-                </a>
+                {metadata.branch && metadata.branchUrl ? (
+                  <a href={metadata.branchUrl} target="_blank" rel="noopener noreferrer">
+                    {metadata.branch}
+                  </a>
+                ) : (
+                  <span>{metadata.branch || 'N/A'}</span>
+                )}
               </div>
               <div className="metadata-item">
                 <span className="label">Commit:</span>
-                <a href={metadata.commitUrl} target="_blank" rel="noopener noreferrer">
-                  {metadata.commit.substring(0, 7)}
-                </a>
+                {metadata.commit && metadata.commitUrl ? (
+                  <a href={metadata.commitUrl} target="_blank" rel="noopener noreferrer">
+                    {metadata.commit.substring(0, 7)}
+                  </a>
+                ) : (
+                  <span>{metadata.commit ? metadata.commit.substring(0, 7) : 'N/A'}</span>
+                )}
               </div>
               <div className="metadata-item">
                 <span className="label">Created:</span>
@@ -461,7 +474,7 @@ const DocumentViewer = () => {
           <div className="tab-content">
             <div className="document-content markdown-content">
               {summaryContent ? (
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
                   {summaryContent}
                 </ReactMarkdown>
               ) : (
@@ -475,7 +488,7 @@ const DocumentViewer = () => {
           <div className="tab-content">
             <div className="document-content markdown-content">
               {readmeContent ? (
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
                   {readmeContent}
                 </ReactMarkdown>
               ) : (

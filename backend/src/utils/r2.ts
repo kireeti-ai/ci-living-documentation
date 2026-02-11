@@ -127,17 +127,21 @@ export const getDocumentMetadata = async (projectId: string, commitHash: string)
 
 /**
  * Get summary content for a specific commit
- * Tries docs/summary/summary.md first, falls back to summaries/summary.md
+ * Tries multiple paths where summary might be stored
  */
 export const getDocumentSummary = async (projectId: string, commitHash: string): Promise<string | null> => {
   if (!r2Client) throw new Error('R2 not configured')
   
-  // Try new path first: docs/summary/summary.md
-  const newKey = `${projectId}/${commitHash}/docs/summary/summary.md`
-  // Fallback to old path: summaries/summary.md
-  const oldKey = `${projectId}/${commitHash}/summaries/summary.md`
+  // Try multiple possible paths for summary
+  const possiblePaths = [
+    `${projectId}/${commitHash}/docs/summary/summary.md`,
+    `${projectId}/${commitHash}/summaries/summary.md`,
+    `${projectId}/${commitHash}/summary/summary.md`,
+    `${projectId}/${commitHash}/summary.md`,
+    `${projectId}/${commitHash}/docs/summary.md`,
+  ]
   
-  for (const key of [newKey, oldKey]) {
+  for (const key of possiblePaths) {
     try {
       const command = new GetObjectCommand({
         Bucket: DOCS_BUCKET,
@@ -150,6 +154,7 @@ export const getDocumentSummary = async (projectId: string, commitHash: string):
         continue
       }
       
+      console.log(`Found summary at: ${key}`)
       return await streamToString(response.Body)
     } catch (error: any) {
       if (error.name === 'NoSuchKey' || error.$metadata?.httpStatusCode === 404) {
@@ -159,37 +164,50 @@ export const getDocumentSummary = async (projectId: string, commitHash: string):
     }
   }
   
+  console.log(`No summary found for ${projectId}/${commitHash} in any of the expected paths`)
   return null
 }
 
 /**
  * Get README content for a specific commit
+ * Tries multiple paths where README might be stored
  */
 export const getDocumentReadme = async (projectId: string, commitHash: string): Promise<string | null> => {
   if (!r2Client) throw new Error('R2 not configured')
   
-  const key = `${projectId}/${commitHash}/docs/README.generated.md`
+  // Try multiple possible paths for README
+  const possiblePaths = [
+    `${projectId}/${commitHash}/docs/README.generated.md`,
+    `${projectId}/${commitHash}/docs/README.md`,
+    `${projectId}/${commitHash}/README.generated.md`,
+    `${projectId}/${commitHash}/README.md`,
+  ]
   
-  try {
-    const command = new GetObjectCommand({
-      Bucket: DOCS_BUCKET,
-      Key: key,
-    })
-    
-    const response = await r2Client.send(command)
-    
-    if (!response.Body) {
-      return null
+  for (const key of possiblePaths) {
+    try {
+      const command = new GetObjectCommand({
+        Bucket: DOCS_BUCKET,
+        Key: key,
+      })
+      
+      const response = await r2Client.send(command)
+      
+      if (!response.Body) {
+        continue
+      }
+      
+      console.log(`Found README at: ${key}`)
+      return await streamToString(response.Body)
+    } catch (error: any) {
+      if (error.name === 'NoSuchKey' || error.$metadata?.httpStatusCode === 404) {
+        continue
+      }
+      console.error('Error fetching readme:', error)
     }
-    
-    return await streamToString(response.Body)
-  } catch (error: any) {
-    if (error.name === 'NoSuchKey' || error.$metadata?.httpStatusCode === 404) {
-      return null
-    }
-    console.error('Error fetching readme:', error)
-    return null
   }
+  
+  console.log(`No README found for ${projectId}/${commitHash} in any of the expected paths`)
+  return null
 }
 
 /**
