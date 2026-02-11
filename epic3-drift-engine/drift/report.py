@@ -59,13 +59,34 @@ def build_drift_report(
             })
 
     # Add obsolete documentation issues
+    # Categorize as UNUSED_API if it looks like an API endpoint, otherwise DOCUMENTATION_OBSOLETE
+    unused_api_count: int = 0
     for symbol in symbol_drift.get("obsolete", []):
-        issues.append({
-            "type": "DOCUMENTATION_OBSOLETE",
-            "severity": "MINOR",
-            "symbol": symbol,
-            "description": f"Documentation references obsolete symbol '{symbol}'"
-        })
+        # Check if symbol looks like an API endpoint (starts with / or HTTP method)
+        is_api_endpoint = (
+            symbol.startswith('/') or 
+            symbol.startswith('GET ') or 
+            symbol.startswith('POST ') or 
+            symbol.startswith('PUT ') or 
+            symbol.startswith('PATCH ') or 
+            symbol.startswith('DELETE ')
+        )
+        
+        if is_api_endpoint:
+            issues.append({
+                "type": "UNUSED_API",
+                "severity": "MINOR",
+                "symbol": symbol,
+                "description": f"API endpoint '{symbol}' is documented but not found in code"
+            })
+            unused_api_count += 1
+        else:
+            issues.append({
+                "type": "DOCUMENTATION_OBSOLETE",
+                "severity": "MINOR",
+                "symbol": symbol,
+                "description": f"Documentation references obsolete symbol '{symbol}'"
+            })
 
     # Calculate severity summary counts
     severity_summary = {
@@ -76,6 +97,9 @@ def build_drift_report(
 
     # Determine if drift was detected
     drift_detected = len(issues) > 0
+    
+    # Determine if Swagger sync is required
+    swagger_sync_required = len(api_drift) > 0 or unused_api_count > 0
 
     # Build the complete report
     report = {
@@ -83,7 +107,8 @@ def build_drift_report(
         "generated_at": datetime.utcnow().isoformat() + "Z",
         "repo": repo_metadata.get("repo", {}),
         "drift_detected": drift_detected,
-        "overall_severity": severity if drift_detected else "NONE",
+        "drift_severity": severity if drift_detected else "NONE",
+        "swagger_sync_required": swagger_sync_required,
         "severity_summary": severity_summary,
         "issues": issues,
         "validated_docs_bucket_path": docs_bucket_path,
@@ -93,7 +118,8 @@ def build_drift_report(
             "api_drift_count": len(api_drift),
             "schema_drift_count": len(schema_drift),
             "undocumented_count": len(symbol_drift.get("undocumented", [])),
-            "obsolete_documentation_count": len(symbol_drift.get("obsolete", []))
+            "obsolete_documentation_count": len(symbol_drift.get("obsolete", [])),
+            "unused_api_count": unused_api_count
         }
     }
 

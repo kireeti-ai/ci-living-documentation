@@ -134,16 +134,26 @@ def validate_output_schema() -> Dict[str, Any]:
         # Check required fields per spec
         required_fields = [
             "report_id", "generated_at", "drift_detected", 
-            "overall_severity", "issues", "statistics"
+            "issues", "statistics"
         ]
         
+        # Accept either drift_severity or overall_severity
+        has_severity = "drift_severity" in report or "overall_severity" in report
+        
         missing = [f for f in required_fields if f not in report]
-        if missing:
-            findings.append({
-                "severity": "MAJOR",
-                "finding": f"Missing required fields in drift_report.json: {missing}",
-                "location": report_path
-            })
+        if missing or not has_severity:
+            if missing:
+                findings.append({
+                    "severity": "MAJOR",
+                    "finding": f"Missing required fields in drift_report.json: {missing}",
+                    "location": report_path
+                })
+            if not has_severity:
+                findings.append({
+                    "severity": "MAJOR",
+                    "finding": "Missing severity field (drift_severity or overall_severity)",
+                    "location": report_path
+                })
         else:
             findings.append({
                 "severity": "INFO",
@@ -154,7 +164,8 @@ def validate_output_schema() -> Dict[str, Any]:
         # Validate issue types
         valid_issue_types = ["API_DRIFT", "SCHEMA_DRIFT", "MISSING_DOC", "VERSION_MISMATCH", 
                             "API_UNDOCUMENTED", "SCHEMA_UNDOCUMENTED", "SYMBOL_UNDOCUMENTED", 
-                            "DOCUMENTATION_OBSOLETE"]
+                            "DOCUMENTATION_OBSOLETE", "UNUSED_API", "DEPRECATED_API", 
+                            "REDUNDANT_ENDPOINT", "SWAGGER_OUTDATED"]
         
         if "issues" in report:
             for issue in report["issues"]:
@@ -166,13 +177,14 @@ def validate_output_schema() -> Dict[str, Any]:
                     })
         
         # Check severity classification
-        if "overall_severity" in report:
+        severity_field = "drift_severity" if "drift_severity" in report else "overall_severity"
+        if severity_field in report:
             valid_severities = ["CRITICAL", "MAJOR", "MINOR", "NONE"]
-            if report["overall_severity"] not in valid_severities:
+            if report[severity_field] not in valid_severities:
                 findings.append({
                     "severity": "MAJOR",
-                    "finding": f"Invalid severity: {report['overall_severity']}",
-                    "location": "drift_report.json.overall_severity"
+                    "finding": f"Invalid severity: {report[severity_field]}",
+                    "location": f"drift_report.json.{severity_field}"
                 })
         
     except Exception as e:
