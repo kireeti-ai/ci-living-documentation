@@ -94,7 +94,7 @@ const DocumentViewer = () => {
         // Handle metadata
         if (metadataRes.status === 'fulfilled') {
           setMetadata(metadataRes.value.data)
-          setEditableTags(metadataRes.value.data.tags)
+          // setEditableTags(metadataRes.value.data.tags)
           setEditableVersion(metadataRes.value.data.version)
         }
       } catch (err: any) {
