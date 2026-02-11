@@ -519,6 +519,59 @@ router.put('/:id/settings', async (req: AuthRequest, res: Response) => {
   }
 })
 
+// POST /projects/:id/generate-docs - Manually trigger documentation generation
+router.post('/:id/generate-docs', async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params
+    const userId = req.user!.id
+
+    // Check if user is owner or admin
+    const member = await isProjectAdminOrOwner(id, userId)
+    if (!member) {
+      return res.status(403).json({ detail: 'Only project owners and admins can trigger documentation generation' })
+    }
+
+    // Get project details
+    const [project] = await db
+      .select()
+      .from(projects)
+      .where(eq(projects.id, id))
+      .limit(1)
+
+    if (!project) {
+      return res.status(404).json({ detail: 'Project not found' })
+    }
+
+    if (!project.githubUrl) {
+      return res.status(400).json({ detail: 'Project has no GitHub URL configured' })
+    }
+
+    // Get project settings for the GitHub token
+    const [settings] = await db
+      .select()
+      .from(projectSettings)
+      .where(eq(projectSettings.projectId, id))
+      .limit(1)
+
+    if (!settings?.githubAccessToken) {
+      return res.status(400).json({ detail: 'GitHub access token is required to generate documentation' })
+    }
+
+    // Trigger documentation generation asynchronously
+    triggerInitialDocGeneration(project.id, project.name, project.githubUrl, settings.githubAccessToken)
+      .catch(err => console.error('Manual doc generation failed:', err))
+
+    return res.json({ 
+      message: 'Documentation generation started', 
+      projectId: id,
+      projectName: project.name 
+    })
+  } catch (error) {
+    console.error('Trigger doc generation error:', error)
+    return res.status(500).json({ detail: 'Failed to trigger documentation generation' })
+  }
+})
+
 // DELETE /projects/:id - Delete project (owner only)
 router.delete('/:id', async (req: AuthRequest, res: Response) => {
   try {

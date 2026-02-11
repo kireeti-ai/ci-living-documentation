@@ -13,6 +13,7 @@ import {
   clearCurrentProject,
   clearError,
 } from '../store/slices/projectsSlice'
+import { projectsApi } from '../services/api'
 import Navbar from '../components/Navbar'
 import DocumentList from '../components/DocumentList'
 
@@ -38,6 +39,8 @@ const ProjectDetail = () => {
   const [githubToken, setGithubToken] = useState('')
   const [showGithubToken, setShowGithubToken] = useState(false)
   const [settingsLoading, setSettingsLoading] = useState(false)
+  const [docGenLoading, setDocGenLoading] = useState(false)
+  const [docGenMessage, setDocGenMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   useEffect(() => {
     if (id) {
@@ -148,6 +151,20 @@ const ProjectDetail = () => {
     setSettingsLoading(true)
     await dispatch(updateProjectSettings({ id, data: { githubAccessToken: null } }))
     setSettingsLoading(false)
+  }
+
+  const handleTriggerDocGeneration = async () => {
+    if (!id) return
+    setDocGenLoading(true)
+    setDocGenMessage(null)
+    try {
+      await projectsApi.triggerDocGeneration(id)
+      setDocGenMessage({ type: 'success', text: 'Documentation generation started! This may take a few minutes.' })
+    } catch (err: any) {
+      setDocGenMessage({ type: 'error', text: err.response?.data?.detail || 'Failed to trigger documentation generation' })
+    } finally {
+      setDocGenLoading(false)
+    }
   }
 
   if (isLoading && !currentProject) {
@@ -491,6 +508,31 @@ const ProjectDetail = () => {
                 {currentProject?.settings?.hasGithubToken && !currentProject?.settings?.hasWebhook && (
                   <p className="setting-note" style={{ marginTop: '8px', color: '#f59e0b' }}>
                     ⚠️ Webhook not configured. Token may lack "admin:repo_hook" permission.
+                  </p>
+                )}
+              </div>
+
+              {/* Manual Documentation Generation */}
+              <div className="setting-item-block">
+                <label>Manual Documentation Generation</label>
+                <p className="setting-description">
+                  Manually trigger documentation generation for this project. Requires a GitHub access token.
+                </p>
+                {docGenMessage && (
+                  <div className={`alert ${docGenMessage.type === 'success' ? 'alert-success' : 'alert-error'}`} style={{ marginBottom: '12px' }}>
+                    {docGenMessage.text}
+                  </div>
+                )}
+                <button
+                  className="btn btn-primary"
+                  onClick={handleTriggerDocGeneration}
+                  disabled={docGenLoading || !currentProject?.settings?.hasGithubToken}
+                >
+                  {docGenLoading ? 'Generating...' : 'Generate Documentation'}
+                </button>
+                {!currentProject?.settings?.hasGithubToken && (
+                  <p className="setting-note" style={{ marginTop: '8px', color: '#f59e0b' }}>
+                    Please add a GitHub access token above to enable documentation generation.
                   </p>
                 )}
               </div>
