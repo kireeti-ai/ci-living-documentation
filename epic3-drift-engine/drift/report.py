@@ -34,7 +34,7 @@ def build_drift_report(
     for symbol in api_drift:
         issues.append({
             "type": "API_UNDOCUMENTED",
-            "severity": "MAJOR",
+            "severity": "CRITICAL",
             "symbol": symbol,
             "description": f"API symbol '{symbol}' is not documented"
         })
@@ -43,7 +43,7 @@ def build_drift_report(
     for symbol in schema_drift:
         issues.append({
             "type": "SCHEMA_UNDOCUMENTED",
-            "severity": "MINOR",
+            "severity": "MAJOR",
             "symbol": symbol,
             "description": f"Schema symbol '{symbol}' is not documented"
         })
@@ -53,7 +53,7 @@ def build_drift_report(
         if symbol not in api_drift and symbol not in schema_drift:
             issues.append({
                 "type": "SYMBOL_UNDOCUMENTED",
-                "severity": "PATCH",
+                "severity": "MINOR",
                 "symbol": symbol,
                 "description": f"Symbol '{symbol}' is not documented"
             })
@@ -62,16 +62,16 @@ def build_drift_report(
     for symbol in symbol_drift.get("obsolete", []):
         issues.append({
             "type": "DOCUMENTATION_OBSOLETE",
-            "severity": "PATCH",
+            "severity": "MINOR",
             "symbol": symbol,
             "description": f"Documentation references obsolete symbol '{symbol}'"
         })
 
     # Calculate severity summary counts
     severity_summary = {
-        "MAJOR": len(api_drift),
-        "MINOR": len(schema_drift),
-        "PATCH": len(symbol_drift.get("undocumented", [])) - len(api_drift) - len(schema_drift) + len(symbol_drift.get("obsolete", []))
+        "CRITICAL": len(api_drift),
+        "MAJOR": len(schema_drift),
+        "MINOR": len(symbol_drift.get("undocumented", [])) - len(api_drift) - len(schema_drift) + len(symbol_drift.get("obsolete", []))
     }
 
     # Determine if drift was detected
