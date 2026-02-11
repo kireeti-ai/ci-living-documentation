@@ -167,7 +167,12 @@ const handlePushEvent = async (payload: any) => {
           },
           body: JSON.stringify({
             impact_report: result,
-            drift_report: {},
+            drift_report: {
+              "findings" : [],
+              "statistics" : {
+                "total_issues" : 0
+              }
+            },
             commit_sha: headCommit?.id || 'unknown',
             project_id: project.id,
           }),

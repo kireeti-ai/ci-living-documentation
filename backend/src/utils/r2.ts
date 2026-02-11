@@ -135,10 +135,6 @@ export const getDocumentSummary = async (projectId: string, commitHash: string):
   // Try multiple possible paths for summary
   const possiblePaths = [
     `${projectId}/${commitHash}/docs/summary/summary.md`,
-    `${projectId}/${commitHash}/summaries/summary.md`,
-    `${projectId}/${commitHash}/summary/summary.md`,
-    `${projectId}/${commitHash}/summary.md`,
-    `${projectId}/${commitHash}/docs/summary.md`,
   ]
   
   for (const key of possiblePaths) {
