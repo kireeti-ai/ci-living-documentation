@@ -173,6 +173,7 @@ const handlePushEvent = async (payload: any) => {
                 "total_issues" : 0
               }
             },
+            doc_snapshot : docsResult.doc_snapshot,
             commit_sha: headCommit?.id || 'unknown',
             project_id: project.id,
           }),
