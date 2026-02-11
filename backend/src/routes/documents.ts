@@ -140,26 +140,27 @@ router.get('/:id/documents/filters', async (req: AuthRequest, res: Response) => 
       return res.status(404).json({ detail: 'Project not found' })
     }
 
-    const commits = await listProjectDocuments(project.id)
-    
-    const branches = new Set<string>()
-    const tags = new Set<string>()
+      const commits = await listProjectDocuments(project.id)
 
-    for (const commit of commits) {
-      const metadata = await getDocumentMetadata(project.id, commit)
-      if (metadata) {
-        branches.add(metadata.branch)
-        if (metadata && Array.isArray(metadata.tags)) {
-          metadata.tags.forEach(tag => tags.add(tag))
+      const branches = new Set<string>()
+      const tags = new Set<string>()
+
+      for (const commit of commits) {
+        const metadata = await getDocumentMetadata(project.id, commit)
+        if (metadata) {
+          if (metadata.branch) branches.add(metadata.branch)
+          if (Array.isArray(metadata.tags)) {
+            metadata.tags.forEach(tag => tags.add(tag))
+          }
         }
       }
-    }
 
-    return res.json({
-      commits: commits,
-      branches: Array.from(branches),
-      tags: Array.from(tags),
-    })
+      // Always return arrays, never undefined
+      return res.json({
+        commits: Array.isArray(commits) ? commits : [],
+        branches: Array.from(branches),
+        tags: Array.from(tags),
+      })
   } catch (error: any) {
     console.error('Get filters error:', error)
     return res.status(500).json({ detail: error.message || 'Failed to get filters' })
