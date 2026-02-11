@@ -20,6 +20,10 @@ from src.scorers import SeverityCalculator
 from src.parsers.java_parser import JavaParser
 from src.parsers.python_parser import PythonParser
 from src.parsers.schema_detector import SchemaDetector
+from src.parsers.js_parser import JSParser
+from src.parsers.ts_parser import TSParser
+from src.git_manager import GitManager
+from unittest.mock import MagicMock, patch
 
 
 
@@ -676,3 +680,295 @@ class TestConfigLoader:
         config = ConfigLoader.load(None)
         assert "ignore_patterns" in config
         assert config["ignore_patterns"] == []
+
+
+# ============================================================================
+# JSParser Tests
+# ============================================================================
+
+class TestJSParser:
+    """Test suite for JSParser module."""
+
+    def test_extract_react_component(self):
+        """Test extraction of React components."""
+        code = """
+        function MyComponent(props) {
+            return <div>Hello</div>;
+        }
+        const AnotherComponent = () => {
+            return <span>World</span>;
+        }
+        """
+        result = JSParser.analyze(code)
+        assert "REACT_COMPONENT" in result["react_components"]
+        # It might appear multiple times if there are multiple matches, but we just check presence
+        assert len(result["react_components"]) >= 1
+
+    def test_extract_hooks(self):
+        """Test extraction of React hooks."""
+        code = """
+        function MyComponent() {
+            const [state, setState] = useState(0);
+            useEffect(() => {}, []);
+            const val = useMemo(() => 5, []);
+        }
+        """
+        result = JSParser.analyze(code)
+        assert "useState" in result["hooks"]
+        assert "useEffect" in result["hooks"]
+        assert "useMemo" in result["hooks"]
+
+    def test_extract_express_routes(self):
+        """Test extraction of Express API routes."""
+        code = """
+        app.get('/api/users', (req, res) => {});
+        router.post('/api/login', auth, (req, res) => {});
+        app.delete('/api/users/:id', (req, res) => {});
+        """
+        result = JSParser.analyze(code)
+        routes = result["api_endpoints"]
+        assert len(routes) == 3
+        
+        verbs = {r["verb"] for r in routes}
+        paths = {r["route"] for r in routes}
+        
+        assert "GET" in verbs
+        assert "POST" in verbs
+        assert "DELETE" in verbs
+        assert "/api/users" in paths
+        assert "/api/login" in paths
+
+    def test_extract_dependencies(self):
+        """Test extraction of imports/requires."""
+        code = """
+        import React from 'react';
+        const express = require('express');
+        import { useState } from 'react';
+        """
+        result = JSParser.analyze(code)
+        assert "react" in result["dependencies"]
+        assert "express" in result["dependencies"]
+
+    def test_empty_js_file(self):
+        """Test empty JS file."""
+        result = JSParser.analyze("")
+        assert result["functions"] == []
+        assert result["react_components"] == []
+        assert result["hooks"] == []
+        assert result["dependencies"] == []
+        assert result["api_endpoints"] == []
+
+
+# ============================================================================
+# TSParser Tests
+# ============================================================================
+
+class TestTSParser:
+    """Test suite for TSParser module."""
+
+    def test_extract_functions(self):
+        """Test extraction of TypeScript functions."""
+        code = """
+        function regularFunc(a: number): void {}
+        const arrowFunc = (b: string): boolean => true;
+        async function asyncFunc(): Promise<void> {}
+        """
+        result = TSParser.analyze(code)
+        assert "regularFunc" in result["functions"]
+        assert "arrowFunc" in result["functions"]
+        assert "asyncFunc" in result["functions"]
+
+    def test_extract_classes(self):
+        """Test extraction of TypeScript classes."""
+        code = """
+        class UserService implements IService {}
+        abstract class BaseController {}
+        """
+        result = TSParser.analyze(code)
+        assert "UserService" in result["classes"]
+        assert "BaseController" in result["classes"]
+
+    def test_extract_exported_items(self):
+        """Test extraction of exported functions and classes."""
+        code = """
+        export function publicFunc() {}
+        export const publicArrow = () => {};
+        export class PublicClass {}
+        export default class DefaultClass {}
+        """
+        result = TSParser.analyze(code)
+        assert "publicFunc" in result["exported_functions"]
+        assert "publicArrow" in result["exported_functions"]
+        assert "PublicClass" in result["exported_classes"]
+        assert "DefaultClass" in result["exported_classes"]
+
+    def test_extract_express_routes_ts(self):
+        """Test extraction of Express routes in TypeScript."""
+        code = """
+        import { Router } from 'express';
+        const router = Router();
+        
+        router.get('/api/v1/items', controller.getItems);
+        router.post('/api/v1/items', controller.createItem);
+        """
+        result = TSParser.analyze(code)
+        routes = result["api_endpoints"]
+        assert len(routes) == 2
+        assert routes[0]["verb"] == "GET"
+        assert routes[0]["route"] == "/api/v1/items"
+        assert routes[1]["verb"] == "POST"
+        assert routes[1]["route"] == "/api/v1/items"
+
+    def test_empty_ts_file(self):
+        """Test empty TypeScript file."""
+        result = TSParser.analyze("")
+        assert result["functions"] == []
+        assert result["classes"] == []
+        assert result["exported_functions"] == []
+        assert result["exported_classes"] == []
+        assert result["api_endpoints"] == []
+
+
+# ============================================================================
+# GitManager Tests
+# ============================================================================
+
+class TestGitManager:
+    """Test suite for GitManager module."""
+
+    def test_init_local_repo(self):
+        """Test initialization with local repository."""
+        path = "/tmp/test-repo"
+        with patch('src.git_manager.os.path.exists', return_value=True):
+            with patch('src.git_manager.Repo') as mock_repo:
+                 mock_repo.return_value.head.is_detached = False
+                 mock_repo.return_value.active_branch.name = "main"
+                 manager = GitManager(path)
+                 assert manager.repo_path == path
+                 assert manager.is_temporary is False
+
+    def test_get_metadata_success(self):
+        """Test successful metadata extraction."""
+        with patch('src.git_manager.os.path.exists', return_value=True):
+             with patch('src.git_manager.Repo') as mock_repo_class:
+                 mock_repo = mock_repo_class.return_value
+                 mock_repo.head.is_detached = False
+                 mock_repo.active_branch.name = "main"
+                 
+                 # Setup mock commit
+                 mock_commit = MagicMock()
+                 mock_commit.hexsha = "abcdef1234567890"
+                 mock_commit.author.name = "Test User"
+                 mock_commit.author.email = "test@example.com"
+                 mock_commit.message = "Initial commit"
+                 mock_commit.committed_date = 1609459200
+                 mock_commit.parents = []
+                 
+                 mock_repo.head.commit = mock_commit
+                 mock_repo.iter_commits.return_value = [mock_commit]
+                 
+                 with patch('src.git_manager.os.path.basename', return_value="repo"):
+                    with patch('src.git_manager.os.path.abspath', return_value="/path/to/repo"):
+                        manager = GitManager("/path/to/repo")
+                        metadata = manager.get_metadata()
+                        
+                        assert metadata["branch"] == "main"
+                        assert metadata["commit_sha"] == "abcdef12"
+
+    @patch('src.git_manager.Repo.clone_from')
+    @patch('src.git_manager.tempfile.mkdtemp')
+    def test_init_remote_repo(self, mock_mkdtemp, mock_clone):
+        """Test initialization with remote GitHub URL."""
+        url = "https://github.com/user/repo"
+        mock_mkdtemp.return_value = "/tmp/cloned-repo"
+        
+        # Setup mock return value for clone_from
+        mock_repo_instance = MagicMock()
+        mock_clone.return_value = mock_repo_instance
+        mock_repo_instance.head.is_detached = False
+        mock_repo_instance.active_branch.name = "main"
+
+        manager = GitManager(url)
+        
+        assert manager.is_temporary is True
+        assert manager.repo_path == "/tmp/cloned-repo"
+        mock_clone.assert_called_once()
+
+    def test_get_changed_files_first_commit(self):
+        """Test getting changes for the first commit (all added)."""
+        with patch('src.git_manager.os.path.exists', return_value=True):
+            with patch('src.git_manager.Repo') as mock_repo_class:
+                mock_repo = mock_repo_class.return_value
+                mock_repo.head.is_detached = False
+                mock_repo.active_branch.name = "main"
+
+                mock_commit = MagicMock()
+                mock_commit.parents = []
+                
+                # Mock tree traversal
+                blob1 = MagicMock()
+                blob1.type = 'blob'
+                blob1.path = 'file1.txt'
+                
+                blob2 = MagicMock()
+                blob2.type = 'blob'
+                blob2.path = 'src/main.py'
+                
+                mock_commit.tree.traverse.return_value = [blob1, blob2]
+                mock_repo.head.commit = mock_commit
+        
+                manager = GitManager(".")
+                changes = manager.get_changed_files()
+            
+                assert len(changes) == 2
+                assert changes[0]["change_type"] == "ADDED"
+                assert changes[1]["change_type"] == "ADDED"
+
+    def test_get_changed_files_modified(self):
+        """Test getting modified files."""
+        with patch('src.git_manager.os.path.exists', return_value=True):
+            with patch('src.git_manager.Repo') as mock_repo_class:
+                mock_repo = mock_repo_class.return_value
+                mock_repo.head.is_detached = False
+                mock_repo.active_branch.name = "main"
+
+                mock_commit = MagicMock()
+                mock_commit.parents = [MagicMock()]
+                mock_repo.head.commit = mock_commit
+                
+                # Mock diff
+                diff_added = MagicMock()
+                diff_added.new_file = True
+                diff_added.deleted_file = False
+                diff_added.renamed_file = False
+                diff_added.b_path = "new_file.py"
+                
+                diff_modified = MagicMock()
+                diff_modified.new_file = False
+                diff_modified.deleted_file = False
+                diff_modified.renamed_file = False
+                diff_modified.b_path = "modified.py"
+                
+                mock_commit.diff.return_value = [diff_added, diff_modified]
+                
+                manager = GitManager(".")
+                changes = manager.get_changed_files()
+                
+                assert len(changes) == 2
+                assert changes[0]["path"] == "new_file.py"
+                assert changes[0]["change_type"] == "ADDED"
+                assert changes[1]["path"] == "modified.py"
+                assert changes[1]["change_type"] == "MODIFIED"
+
+    def test_cleanup_temporary(self):
+        """Test cleanup of temporary repository."""
+        with patch('src.git_manager.tempfile.mkdtemp', return_value="/tmp/git_clone_123"):
+            with patch('src.git_manager.Repo.clone_from'):
+                 # Need to mock Repo here too for imports
+                 with patch('src.git_manager.Repo'):
+                     manager = GitManager("https://github.com/test/repo")
+                 
+                 with patch('shutil.rmtree') as mock_rmtree:
+                     with patch('os.path.exists', return_value=True):
+                         manager.cleanup()
+                         mock_rmtree.assert_called_with("/tmp/git_clone_123")

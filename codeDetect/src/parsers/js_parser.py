@@ -13,7 +13,7 @@ class JSParser:
 
     # Express API route patterns
     RX_EXPRESS_ROUTE = re.compile(r'(?:app|router)\.(get|post|put|delete|patch)\s*\(\s*[\'"]([^\'"]+)[\'"]', re.MULTILINE)
-    RX_IMPORT = re.compile(r'(?:import|require)\s+.*?[\'"](.+?)[\'"]', re.MULTILINE)
+    RX_IMPORT = re.compile(r'(?:import\s+.*?from\s+|require\s*\(\s*)[\'"](.+?)[\'"]', re.MULTILINE)
 
     @staticmethod
     def analyze(content):
