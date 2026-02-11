@@ -427,7 +427,7 @@ const DocumentViewer = () => {
                 <span className="label">Created:</span>
                 <span>{new Date(metadata.createdAt).toLocaleString()}</span>
               </div>
-              {metadata.tags.length > 0 && (
+              {/* {metadata.tags.length > 0 && (
                 <div className="metadata-item">
                   <span className="label">Tags:</span>
                   <div className="tags-list">
@@ -436,7 +436,7 @@ const DocumentViewer = () => {
                     ))}
                   </div>
                 </div>
-              )}
+              )} */}
             </div>
           )}
         </div>
