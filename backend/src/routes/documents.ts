@@ -264,7 +264,7 @@ router.get('/:id/documents/:commit/summary', async (req: AuthRequest, res: Respo
     if (!summary) {
       return res.status(404).json({ detail: 'Summary not found' })
     }
-
+    console.log("Summary", summary);
     return res.json({
       projectId: id,
       projectName: project.name,
