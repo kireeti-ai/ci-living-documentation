@@ -155,7 +155,7 @@ export const searchDocumentsContent = async (
     if (filters?.branch && metadata.branch !== filters.branch) continue
     if (filters?.version && version !== filters.version) continue
     if (filters?.tags && filters.tags.length > 0) {
-      const hasMatchingTag = filters.tags.some(tag => metadata.tags.includes(tag))
+      const hasMatchingTag = Array.isArray(metadata.tags) && filters.tags.some(tag => metadata.tags.includes(tag))
       if (!hasMatchingTag) continue
     }
     

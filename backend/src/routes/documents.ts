@@ -148,8 +148,10 @@ router.get('/:id/documents/filters', async (req: AuthRequest, res: Response) => 
     for (const commit of commits) {
       const metadata = await getDocumentMetadata(project.id, commit)
       if (metadata) {
-        branches.add(metadata.branch)
-        metadata.tags.forEach(tag => tags.add(tag))
+        if (metadata.branch) branches.add(metadata.branch)
+        if (Array.isArray(metadata.tags)) {
+          metadata.tags.forEach(tag => tags.add(tag))
+        }
       }
     }
 

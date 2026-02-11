@@ -81,7 +81,7 @@ const DocumentList = ({ projectId, canManage }: DocumentListProps) => {
       if (selectedBranch && doc.metadata.branch !== selectedBranch) return false
       if (selectedCommit && doc.commit !== selectedCommit) return false
       if (selectedTags.length > 0) {
-        const hasMatchingTag = selectedTags.some(tag => doc.metadata?.tags.includes(tag))
+        const hasMatchingTag = Array.isArray(doc.metadata?.tags) && selectedTags.some(tag => doc.metadata?.tags.includes(tag))
         if (!hasMatchingTag) return false
       }
       
@@ -257,7 +257,7 @@ const DocumentList = ({ projectId, canManage }: DocumentListProps) => {
               )}
               className="tags-select"
             >
-              {filters.tags.map(tag => (
+              {(filters.tags || []).map(tag => (
                 <option key={tag} value={tag}>{tag}</option>
               ))}
             </select>
@@ -439,7 +439,7 @@ const DocumentList = ({ projectId, canManage }: DocumentListProps) => {
                     </td>
                     <td>
                       <div className="tags-list">
-                        {doc.metadata?.tags.map(tag => (
+                        {(doc.metadata?.tags || []).map(tag => (
                           <span key={tag} className="tag-badge">{tag}</span>
                         ))}
                       </div>
