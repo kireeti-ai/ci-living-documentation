@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from typing import Dict, List, Any, Optional
 from epic4.summary import generate_summary, SummaryGenerator
@@ -17,14 +17,13 @@ Production-grade service for generating deterministic change summaries from impa
 
 ### Features
 - **Deterministic Summaries**: Consistent Markdown and JSON summaries
-- **Cloud Storage Integration**: Automatic upload to R2/S3/GCS
+- **Cloud Storage Integration**: Automatic upload to R2/S3/GCS after generation
 - **Fault Tolerant**: Handles missing drift reports gracefully
 - **Security Hardened**: No credential logging
 
 ### Workflow
 1. **Generate Summary**: Process impact and drift reports
-2. **Upload Artifacts**: Store summaries in cloud storage
-3. **Deliver Docs**: Optional PR creation (SUMMARY_ONLY mode)
+2. **Upload Artifacts**: Automatically store summaries in cloud storage
 
 ### Links
 - [GitHub Repository](https://github.com/kireeti-ai/ci-living-documentation)
@@ -47,11 +46,7 @@ Production-grade service for generating deterministic change summaries from impa
         },
         {
             "name": "summary",
-            "description": "Summary generation operations"
-        },
-        {
-            "name": "delivery",
-            "description": "Documentation delivery and PR operations"
+            "description": "Summary generation and artifact upload operations"
         }
     ]
 )
@@ -173,61 +168,51 @@ class GenerateSummaryRequest(BaseModel):
             }
         }
 
+class UploadResult(BaseModel):
+    """Upload result details"""
+    uploaded: bool = Field(
+        ...,
+        description="Whether the upload to cloud storage was successful",
+        example=True
+    )
+    bucket_path: Optional[str] = Field(
+        None,
+        description="Cloud storage path where artifacts were uploaded",
+        example="quiz-app-java/63d36c2b/docs/summary/"
+    )
+    files: List[str] = Field(
+        default=[],
+        description="List of uploaded file names",
+        example=["summary.md", "summary.json"]
+    )
+    error: Optional[str] = Field(
+        None,
+        description="Error message if upload failed",
+        example=None
+    )
+
 class SummaryResponse(BaseModel):
-    """Response model for summary generation"""
+    """Response model for summary generation and upload"""
     summary_markdown: str = Field(
         ...,
         description="Generated summary in Markdown format",
         example="# Change Summary\n\n**Commit SHA:** `63d36c2b`\n**Severity:** MAJOR\n\n## Impact Analysis\n..."
     )
-    
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "summary_markdown": "# Change Summary\n\n**Commit SHA:** `63d36c2b`\n**Severity:** MAJOR\n\n## Impact Analysis\n### Changed Modules/Files (114)\n..."
-            }
-        }
-
-class DeliverDocsRequest(BaseModel):
-    """Request model for documentation delivery"""
-    commit_sha: str = Field(
-        ...,
-        description="Git commit SHA",
-        example="63d36c2b",
-        min_length=8
-    )
-    target_branch: str = Field(
-        ...,
-        description="Target branch for PR creation",
-        example="main"
+    upload: Optional[UploadResult] = Field(
+        None,
+        description="Cloud storage upload result (null if storage not configured)"
     )
     
     class Config:
         json_schema_extra = {
             "example": {
-                "commit_sha": "63d36c2b",
-                "target_branch": "main"
-            }
-        }
-
-class DeliverDocsResponse(BaseModel):
-    """Response model for documentation delivery"""
-    message: str = Field(
-        ...,
-        description="Status message",
-        example="Summary-only task accepted (PR creation disabled for now)"
-    )
-    status: str = Field(
-        default="accepted",
-        description="Task status",
-        example="accepted"
-    )
-    
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "message": "Summary-only task accepted (PR creation disabled for now)",
-                "status": "accepted"
+                "summary_markdown": "# Change Summary\n\n**Commit SHA:** `63d36c2b`\n**Severity:** MAJOR\n\n## Impact Analysis\n### Changed Modules/Files (114)\n...",
+                "upload": {
+                    "uploaded": True,
+                    "bucket_path": "quiz-app-java/63d36c2b/docs/summary/",
+                    "files": ["summary.md", "summary.json"],
+                    "error": None
+                }
             }
         }
 
@@ -279,12 +264,14 @@ def health():
     tags=["summary"],
     summary="Generate Change Summary",
     description="""
-    Generate a deterministic change summary from impact and drift analysis reports.
+    Generate a deterministic change summary from impact and drift analysis reports,
+    and automatically upload artifacts to cloud storage.
     
     ### Process Flow:
     1. Accepts impact_report, drift_report, and optional doc_snapshot as JSON
-    2. Generates comprehensive Markdown summary
-    3. Returns formatted summary content
+    2. Generates comprehensive Markdown and JSON summaries
+    3. Uploads artifacts to cloud storage (if configured via doc_snapshot)
+    4. Returns formatted summary content with upload status
     
     ### Input Requirements:
     - **impact_report**: Must contain nested structure with analysis_summary
@@ -300,6 +287,7 @@ def health():
       - Risk assessment
       - Recommended actions
       - Drift findings (if available)
+    - Upload result (if cloud storage is configured)
     
     ### Error Handling:
     - Returns 500 if summary generation fails
@@ -307,11 +295,17 @@ def health():
     """,
     responses={
         200: {
-            "description": "Summary generated successfully",
+            "description": "Summary generated and uploaded successfully",
             "content": {
                 "application/json": {
                     "example": {
-                        "summary_markdown": "# Change Summary\n\n**Commit SHA:** `63d36c2b`\n**Severity:** MAJOR\n\n## Impact Analysis\n### Changed Modules/Files (114)\n..."
+                        "summary_markdown": "# Change Summary\n\n**Commit SHA:** `63d36c2b`\n**Severity:** MAJOR\n\n## Impact Analysis\n### Changed Modules/Files (114)\n...",
+                        "upload": {
+                            "uploaded": True,
+                            "bucket_path": "quiz-app-java/63d36c2b/docs/summary/",
+                            "files": ["summary.md", "summary.json"],
+                            "error": None
+                        }
                     }
                 }
             }
@@ -326,10 +320,11 @@ def health():
 )
 def api_generate_summary(req: GenerateSummaryRequest):
     """
-    Generate a comprehensive change summary from impact and drift reports.
+    Generate a comprehensive change summary from impact and drift reports,
+    then upload artifacts to cloud storage.
     
-    This endpoint processes the provided reports and generates a deterministic
-    Markdown summary suitable for PR comments and documentation.
+    This endpoint processes the provided reports, generates a deterministic
+    Markdown summary, and uploads summary.md + summary.json to cloud storage.
     """
     try:
         import tempfile
@@ -356,7 +351,15 @@ def api_generate_summary(req: GenerateSummaryRequest):
             with open(output_path_md, 'r') as f:
                 content = f.read()
 
-            return {"summary_markdown": content}
+            # --- Upload to cloud storage ---
+            upload_result = _upload_summary_artifacts(
+                output_path_md, output_path_json, req.doc_snapshot, req.commit_sha
+            )
+
+            return {
+                "summary_markdown": content,
+                "upload": upload_result
+            }
 
     except Exception as e:
         logger.error(f"Error generating summary: {e}")
@@ -365,128 +368,75 @@ def api_generate_summary(req: GenerateSummaryRequest):
             detail=f"Summary generation failed: {str(e)}"
         )
 
-@app.post(
-    "/deliver-docs-pr",
-    response_model=DeliverDocsResponse,
-    tags=["delivery"],
-    summary="Deliver Documentation (Summary-Only Mode)",
-    description="""
-    Trigger the documentation delivery process in SUMMARY-ONLY mode.
+def _upload_summary_artifacts(
+    summary_md_path: str,
+    summary_json_path: str,
+    doc_snapshot: Dict[str, Any],
+    commit_sha: str
+) -> Dict[str, Any]:
+    """
+    Upload summary artifacts to cloud storage.
+    Derives the upload path from doc_snapshot's docs_bucket_path.
     
-    ### Current Mode: SUMMARY_ONLY
-    - Generates summary artifacts
-    - Uploads to cloud storage
-    - **PR creation is disabled**
+    Returns:
+        dict with keys: uploaded, bucket_path, files, error
+    """
+    # Derive upload path from doc_snapshot
+    docs_bucket_path = None
+    if doc_snapshot:
+        docs_bucket_path = doc_snapshot.get("docs_bucket_path")
     
-    ### Process Flow:
-    1. Validates commit SHA and target branch
-    2. Queues background task for summary generation
-    3. Returns immediately with task acceptance status
-    4. Background task:
-       - Downloads artifacts from cloud (if configured)
-       - Generates summary from local impact/drift reports
-       - Uploads summary artifacts to cloud storage
+    # Fallback to config if not provided in doc_snapshot
+    if not docs_bucket_path:
+        docs_bucket_path = config.DOCS_BUCKET_PATH
     
-    ### Requirements:
-    - Artifacts must be available at configured paths
-    - Cloud storage must be configured (R2/S3/GCS)
-    - Valid commit SHA and target branch
-    
-    ### Response:
-    - Immediate acknowledgment of task acceptance
-    - Actual processing happens in background
-    - Check logs for completion status
-    
-    ### Note:
-    This endpoint is designed for CI/CD integration. PR creation will be
-    enabled in future versions (FULL_MODE).
-    """,
-    responses={
-        200: {
-            "description": "Task accepted and queued for background processing",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "message": "Summary-only task accepted (PR creation disabled for now)",
-                        "status": "accepted"
-                    }
-                }
-            }
-        },
-        422: {
-            "description": "Validation error - invalid commit SHA or target branch"
-        },
-        500: {
-            "description": "Internal server error - task queueing failed"
+    if not docs_bucket_path:
+        logger.info("No docs_bucket_path available — skipping cloud upload")
+        return {
+            "uploaded": False,
+            "bucket_path": None,
+            "files": [],
+            "error": "No docs_bucket_path configured (provide in doc_snapshot or DOCS_BUCKET_PATH env)"
         }
-    }
-)
-def deliver_docs_pr(req: DeliverDocsRequest, background_tasks: BackgroundTasks):
-    """
-    Trigger documentation delivery in SUMMARY-ONLY mode.
     
-    Queues a background task to generate and upload summary artifacts.
-    PR creation is currently disabled.
-    """
-    logger.info(f"Received deliver-docs-pr request for commit {req.commit_sha}")
+    # Build the summary bucket path: <docs_bucket_path>summary/
+    summary_path_relative = docs_bucket_path
+    if not summary_path_relative.endswith('/'):
+        summary_path_relative += '/'
+    summary_path_relative += "summary/"
     
-    background_tasks.add_task(run_pr_delivery, req.commit_sha, req.target_branch)
-    return {
-        "message": "Summary-only task accepted (PR creation disabled for now)",
-        "status": "accepted"
-    }
-
-def run_pr_delivery(commit_sha: str, target_branch: str):
-    logger.info(f"Starting summary-only delivery task for {commit_sha}")
+    # Construct full R2 URI
+    summary_bucket_uri = f"r2://{config.R2_BUCKET_NAME}/{summary_path_relative}"
+    logger.info(f"Uploading summary artifacts to {summary_bucket_uri}")
+    
     try:
-        # 0. Download from cloud if configured
-        if config.DOCS_BUCKET_PATH:
-            logger.info(f"Downloading docs from cloud storage: {config.DOCS_BUCKET_PATH}")
-            storage_client = StorageClient()
-            storage_client.download_artifacts(config.DOCS_BUCKET_PATH, config.DOCS_DIR)
-
-        # 1. Generate Summary (using local files as source)
-        # 1. Generate Summary (using local files as source)
-        summary_md_path = ""
-        summary_json_path = ""
-        try:
-            summary_md_path, summary_json_path = generate_summary(config.IMPACT_REPORT_PATH, config.DRIFT_REPORT_PATH, commit_sha, config.SUMMARIES_DIR)
-            with open(summary_md_path, 'r') as f:
-                summary_content = f.read()
-        except Exception as e:
-            logger.error(f"Failed to generate summary: {e}")
-            # Create error summary for fault tolerance
-            summary_md_path = os.path.join(config.SUMMARIES_DIR, "summary.md")
-            summary_json_path = os.path.join(config.SUMMARIES_DIR, "summary.json")
-            os.makedirs(config.SUMMARIES_DIR, exist_ok=True)
-            summary_content = f"""# Change Summary - Generation Failed
-
-**Commit SHA:** `{commit_sha}`
-**Status:** ERROR
-
-## Error
-Summary generation encountered an error:
-```
-{str(e)}
-```
-
----
-*Generated by Epic-4 Automation*
-"""
-            with open(summary_md_path, 'w') as f:
-                f.write(summary_content)
-                
-            with open(summary_json_path, 'w') as f:
-                import json
-                json.dump({"error": str(e), "status": "ERROR"}, f)
-
-        if config.DOCS_BUCKET_PATH:
-            storage_client = StorageClient()
-            storage_client.upload_file(summary_md_path, config.DOCS_BUCKET_PATH)
-            storage_client.upload_file(summary_json_path, config.DOCS_BUCKET_PATH)
-            logger.info("Summary-only delivery task completed")
+        storage_client = StorageClient()
+        upload_md = storage_client.upload_file(summary_md_path, summary_bucket_uri)
+        upload_json = storage_client.upload_file(summary_json_path, summary_bucket_uri)
+        
+        if upload_md and upload_json:
+            logger.info("Summary artifacts uploaded successfully")
+            return {
+                "uploaded": True,
+                "bucket_path": summary_path_relative,
+                "files": ["summary.md", "summary.json"],
+                "error": None
+            }
         else:
-            logger.info("Summary-only delivery task completed (no cloud upload configured)")
-
+            error_msg = "One or more artifact uploads failed"
+            logger.error(error_msg)
+            return {
+                "uploaded": False,
+                "bucket_path": summary_path_relative,
+                "files": [],
+                "error": error_msg
+            }
     except Exception as e:
-        logger.error(f"Summary-only delivery task failed: {e}")
+        error_msg = f"Upload failed: {str(e)}"
+        logger.error(error_msg)
+        return {
+            "uploaded": False,
+            "bucket_path": summary_path_relative,
+            "files": [],
+            "error": error_msg
+        }
