@@ -9,33 +9,32 @@ interface DiffLine {
   lineNumber: { left?: number; right?: number }
 }
 
-// API Endpoint structure
+// API Endpoint structure (matching DocumentViewer.tsx)
 interface ApiEndpoint {
+  key: string
+  method: string
+  path: string
+  source_file: string
   summary: string
-  params?: Array<{
-    name: string
-    type?: string
-    required?: boolean
-    description?: string
-  }>
-  responses?: Record<string, {
-    description?: string
-    schema?: any
-  }>
+  parameters: string
+  responses: string
 }
 
-type ApiDocs = Record<string, ApiEndpoint>
+interface ApiDocs {
+  total_endpoints: number
+  endpoints: ApiEndpoint[]
+}
 
 interface ApiDiff {
-  added: Array<{ path: string; endpoint: ApiEndpoint }>
-  removed: Array<{ path: string; endpoint: ApiEndpoint }>
-  modified: Array<{ 
-    path: string
+  added: ApiEndpoint[]
+  removed: ApiEndpoint[]
+  modified: Array<{
+    key: string
     old: ApiEndpoint
     new: ApiEndpoint
     changes: string[]
   }>
-  unchanged: Array<{ path: string; endpoint: ApiEndpoint }>
+  unchanged: ApiEndpoint[]
 }
 
 const DocumentComparison = () => {
@@ -73,8 +72,16 @@ const DocumentComparison = () => {
           documentsApi.get(id, version2),
         ])
 
-        setContent1(response1.data.content)
-        setContent2(response2.data.content)
+        // Handle string or object content
+        const processContent = (content: any) => {
+          if (typeof content === 'object' && content !== null) {
+            return JSON.stringify(content, null, 2)
+          }
+          return content
+        }
+
+        setContent1(processContent(response1.data.content))
+        setContent2(processContent(response2.data.content))
         setMetadata1(response1.data.metadata)
         setMetadata2(response2.data.metadata)
         setProjectName(response1.data.projectName)
@@ -92,65 +99,66 @@ const DocumentComparison = () => {
   const parsedDocs = useMemo(() => {
     let docs1: ApiDocs | null = null
     let docs2: ApiDocs | null = null
-    
+
     try {
       if (content1) docs1 = JSON.parse(content1)
     } catch {
       docs1 = null
     }
-    
+
     try {
       if (content2) docs2 = JSON.parse(content2)
     } catch {
       docs2 = null
     }
-    
-    return { docs1, docs2, isJson: docs1 !== null && docs2 !== null }
+
+    // Check if it matches the expected structure (endpoints array)
+    const isJson = docs1 && Array.isArray(docs1.endpoints) && docs2 && Array.isArray(docs2.endpoints)
+
+    return { docs1, docs2, isJson }
   }, [content1, content2])
 
   // Compute API diff for JSON docs
   const apiDiff = useMemo<ApiDiff | null>(() => {
     if (!parsedDocs.isJson || !parsedDocs.docs1 || !parsedDocs.docs2) return null
-    
-    const docs1 = parsedDocs.docs1
-    const docs2 = parsedDocs.docs2
-    const paths1 = new Set(Object.keys(docs1))
-    const paths2 = new Set(Object.keys(docs2))
-    
-    const added: ApiDiff['added'] = []
-    const removed: ApiDiff['removed'] = []
+
+    // Create maps for easier comparison by key
+    const endpoints1 = new Map(parsedDocs.docs1.endpoints.map(e => [e.key, e]))
+    const endpoints2 = new Map(parsedDocs.docs2.endpoints.map(e => [e.key, e]))
+
+    const added: ApiEndpoint[] = []
+    const removed: ApiEndpoint[] = []
     const modified: ApiDiff['modified'] = []
-    const unchanged: ApiDiff['unchanged'] = []
-    
+    const unchanged: ApiEndpoint[] = []
+
     // Find added endpoints (in docs2 but not in docs1)
-    for (const path of paths2) {
-      if (!paths1.has(path)) {
-        added.push({ path, endpoint: docs2[path] })
+    for (const [key, endpoint] of endpoints2.entries()) {
+      if (!endpoints1.has(key)) {
+        added.push(endpoint)
       }
     }
-    
+
     // Find removed endpoints (in docs1 but not in docs2)
-    for (const path of paths1) {
-      if (!paths2.has(path)) {
-        removed.push({ path, endpoint: docs1[path] })
+    for (const [key, endpoint] of endpoints1.entries()) {
+      if (!endpoints2.has(key)) {
+        removed.push(endpoint)
       }
     }
-    
+
     // Find modified/unchanged endpoints
-    for (const path of paths1) {
-      if (paths2.has(path)) {
-        const old = docs1[path]
-        const newEndpoint = docs2[path]
-        const changes = compareEndpoints(old, newEndpoint)
-        
+    for (const [key, oldEndpoint] of endpoints1.entries()) {
+      if (endpoints2.has(key)) {
+        const newEndpoint = endpoints2.get(key)!
+        const changes = compareEndpoints(oldEndpoint, newEndpoint)
+
         if (changes.length > 0) {
-          modified.push({ path, old, new: newEndpoint, changes })
+          modified.push({ key, old: oldEndpoint, new: newEndpoint, changes })
         } else {
-          unchanged.push({ path, endpoint: newEndpoint })
+          unchanged.push(newEndpoint)
         }
       }
     }
-    
+
     return { added, removed, modified, unchanged }
   }, [parsedDocs])
 
@@ -194,16 +202,7 @@ const DocumentComparison = () => {
     })
   }
 
-  // Get HTTP method from path
-  const getMethodFromPath = (path: string): string => {
-    const methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
-    for (const method of methods) {
-      if (path.toUpperCase().startsWith(method + ' ')) {
-        return method
-      }
-    }
-    return 'GET'
-  }
+
 
   const getMethodColor = (method: string): string => {
     switch (method.toUpperCase()) {
@@ -263,7 +262,7 @@ const DocumentComparison = () => {
         {/* Comparison Header */}
         <div className="comparison-header">
           <h1>Comparing Versions</h1>
-          
+
           <div className="comparison-versions">
             <div className="version-info left">
               <span className="version-badge">{version1}</span>
@@ -303,14 +302,14 @@ const DocumentComparison = () => {
               <div className="api-diff-section">
                 <h3 className="section-title added">Added Endpoints ({apiDiff.added.length})</h3>
                 <div className="api-diff-cards">
-                  {apiDiff.added.map(({ path, endpoint }) => {
-                    const method = getMethodFromPath(path)
-                    const cleanPath = path.replace(/^(GET|POST|PUT|DELETE|PATCH)\s+/i, '')
+                  {apiDiff.added.map((endpoint) => {
+                    const method = endpoint.method
+                    const path = endpoint.path
                     return (
-                      <div key={path} className="api-diff-card added">
+                      <div key={endpoint.key} className="api-diff-card added">
                         <div className="api-diff-card-header">
                           <span className={`api-method ${getMethodColor(method)}`}>{method}</span>
-                          <code className="api-path">{cleanPath}</code>
+                          <code className="api-path">{path}</code>
                         </div>
                         <p className="api-summary">{endpoint.summary}</p>
                       </div>
@@ -325,14 +324,14 @@ const DocumentComparison = () => {
               <div className="api-diff-section">
                 <h3 className="section-title removed">Removed Endpoints ({apiDiff.removed.length})</h3>
                 <div className="api-diff-cards">
-                  {apiDiff.removed.map(({ path, endpoint }) => {
-                    const method = getMethodFromPath(path)
-                    const cleanPath = path.replace(/^(GET|POST|PUT|DELETE|PATCH)\s+/i, '')
+                  {apiDiff.removed.map((endpoint) => {
+                    const method = endpoint.method
+                    const path = endpoint.path
                     return (
-                      <div key={path} className="api-diff-card removed">
+                      <div key={endpoint.key} className="api-diff-card removed">
                         <div className="api-diff-card-header">
                           <span className={`api-method ${getMethodColor(method)}`}>{method}</span>
-                          <code className="api-path">{cleanPath}</code>
+                          <code className="api-path">{path}</code>
                         </div>
                         <p className="api-summary">{endpoint.summary}</p>
                       </div>
@@ -347,19 +346,19 @@ const DocumentComparison = () => {
               <div className="api-diff-section">
                 <h3 className="section-title modified">Modified Endpoints ({apiDiff.modified.length})</h3>
                 <div className="api-diff-cards">
-                  {apiDiff.modified.map(({ path, old, new: newEndpoint, changes }) => {
-                    const method = getMethodFromPath(path)
-                    const cleanPath = path.replace(/^(GET|POST|PUT|DELETE|PATCH)\s+/i, '')
-                    const isExpanded = expandedApis.has(path)
+                  {apiDiff.modified.map(({ key, old, new: newEndpoint, changes }) => {
+                    const method = newEndpoint.method
+                    const path = newEndpoint.path
+                    const isExpanded = expandedApis.has(key)
                     return (
-                      <div key={path} className="api-diff-card modified">
-                        <div 
+                      <div key={key} className="api-diff-card modified">
+                        <div
                           className="api-diff-card-header clickable"
-                          onClick={() => toggleApi(path)}
+                          onClick={() => toggleApi(key)}
                         >
                           <div className="api-diff-card-title">
                             <span className={`api-method ${getMethodColor(method)}`}>{method}</span>
-                            <code className="api-path">{cleanPath}</code>
+                            <code className="api-path">{path}</code>
                           </div>
                           <span className="expand-icon">{isExpanded ? '▼' : '▶'}</span>
                         </div>
@@ -374,24 +373,32 @@ const DocumentComparison = () => {
                               <div className="diff-old">
                                 <h5>Before</h5>
                                 <p className="api-summary">{old.summary}</p>
-                                {old.params && old.params.length > 0 && (
+                                {old.parameters && (
                                   <div className="api-params-list">
                                     <strong>Params:</strong>
-                                    {old.params.map((p, i) => (
-                                      <span key={i} className="param-tag">{p.name}</span>
-                                    ))}
+                                    <pre>{old.parameters}</pre>
+                                  </div>
+                                )}
+                                {old.responses && (
+                                  <div className="api-params-list">
+                                    <strong>Responses:</strong>
+                                    <pre>{old.responses}</pre>
                                   </div>
                                 )}
                               </div>
                               <div className="diff-new">
                                 <h5>After</h5>
                                 <p className="api-summary">{newEndpoint.summary}</p>
-                                {newEndpoint.params && newEndpoint.params.length > 0 && (
+                                {newEndpoint.parameters && (
                                   <div className="api-params-list">
                                     <strong>Params:</strong>
-                                    {newEndpoint.params.map((p, i) => (
-                                      <span key={i} className="param-tag">{p.name}</span>
-                                    ))}
+                                    <pre>{newEndpoint.parameters}</pre>
+                                  </div>
+                                )}
+                                {newEndpoint.responses && (
+                                  <div className="api-params-list">
+                                    <strong>Responses:</strong>
+                                    <pre>{newEndpoint.responses}</pre>
                                   </div>
                                 )}
                               </div>
@@ -410,14 +417,14 @@ const DocumentComparison = () => {
               <div className="api-diff-section">
                 <h3 className="section-title unchanged">Unchanged Endpoints ({apiDiff.unchanged.length})</h3>
                 <div className="api-diff-cards collapsed">
-                  {apiDiff.unchanged.map(({ path }) => {
-                    const method = getMethodFromPath(path)
-                    const cleanPath = path.replace(/^(GET|POST|PUT|DELETE|PATCH)\s+/i, '')
+                  {apiDiff.unchanged.map((endpoint) => {
+                    const method = endpoint.method
+                    const path = endpoint.path
                     return (
-                      <div key={path} className="api-diff-card unchanged">
+                      <div key={endpoint.key} className="api-diff-card unchanged">
                         <div className="api-diff-card-header">
                           <span className={`api-method ${getMethodColor(method)}`}>{method}</span>
-                          <code className="api-path">{cleanPath}</code>
+                          <code className="api-path">{path}</code>
                         </div>
                       </div>
                     )
@@ -440,8 +447,8 @@ const DocumentComparison = () => {
                 </div>
                 <div className="diff-content">
                   {diffLines.map((line, index) => (
-                    <div 
-                      key={`left-${index}`} 
+                    <div
+                      key={`left-${index}`}
                       className={`diff-line ${line.type === 'removed' ? 'removed' : line.type === 'added' ? 'empty' : ''}`}
                     >
                       <span className="line-number">
@@ -463,8 +470,8 @@ const DocumentComparison = () => {
                 </div>
                 <div className="diff-content">
                   {diffLines.map((line, index) => (
-                    <div 
-                      key={`right-${index}`} 
+                    <div
+                      key={`right-${index}`}
                       className={`diff-line ${line.type === 'added' ? 'added' : line.type === 'removed' ? 'empty' : ''}`}
                     >
                       <span className="line-number">
@@ -483,19 +490,19 @@ const DocumentComparison = () => {
 
         {/* Actions */}
         <div className="comparison-actions">
-          <button 
+          <button
             className="btn btn-secondary"
             onClick={() => navigate(`/projects/${id}`)}
           >
             Back to Project
           </button>
-          <button 
+          <button
             className="btn btn-primary"
             onClick={() => navigate(`/projects/${id}/docs/${encodeURIComponent(version1)}`)}
           >
             View {version1}
           </button>
-          <button 
+          <button
             className="btn btn-primary"
             onClick={() => navigate(`/projects/${id}/docs/${encodeURIComponent(version2)}`)}
           >
@@ -512,49 +519,22 @@ const DocumentComparison = () => {
  */
 function compareEndpoints(old: ApiEndpoint, newEndpoint: ApiEndpoint): string[] {
   const changes: string[] = []
-  
+
   // Check summary change
   if (old.summary !== newEndpoint.summary) {
     changes.push('Summary changed')
   }
-  
-  // Check params changes
-  const oldParams = old.params || []
-  const newParams = newEndpoint.params || []
-  const oldParamNames = new Set(oldParams.map(p => p.name))
-  const newParamNames = new Set(newParams.map(p => p.name))
-  
-  const addedParams = newParams.filter(p => !oldParamNames.has(p.name))
-  const removedParams = oldParams.filter(p => !newParamNames.has(p.name))
-  
-  if (addedParams.length > 0) {
-    changes.push(`+${addedParams.length} param${addedParams.length > 1 ? 's' : ''}`)
+
+  // Check params changes (string comparison)
+  if ((old.parameters || '') !== (newEndpoint.parameters || '')) {
+    changes.push('Parameters modified')
   }
-  if (removedParams.length > 0) {
-    changes.push(`-${removedParams.length} param${removedParams.length > 1 ? 's' : ''}`)
+
+  // Check responses changes (string comparison)
+  if ((old.responses || '') !== (newEndpoint.responses || '')) {
+    changes.push('Responses modified')
   }
-  
-  // Check for modified params (same name, different properties)
-  for (const oldParam of oldParams) {
-    const newParam = newParams.find(p => p.name === oldParam.name)
-    if (newParam) {
-      if (oldParam.type !== newParam.type || 
-          oldParam.required !== newParam.required ||
-          oldParam.description !== newParam.description) {
-        changes.push(`Param '${oldParam.name}' modified`)
-      }
-    }
-  }
-  
-  // Check responses changes
-  const oldResponses = Object.keys(old.responses || {})
-  const newResponses = Object.keys(newEndpoint.responses || {})
-  
-  if (oldResponses.length !== newResponses.length || 
-      !oldResponses.every(r => newResponses.includes(r))) {
-    changes.push('Responses changed')
-  }
-  
+
   return changes
 }
 
@@ -564,10 +544,10 @@ function compareEndpoints(old: ApiEndpoint, newEndpoint: ApiEndpoint): string[] 
 function computeDiff(lines1: string[], lines2: string[]): DiffLine[] {
   const m = lines1.length
   const n = lines2.length
-  
+
   // Build LCS table
   const dp: number[][] = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0))
-  
+
   for (let i = 1; i <= m; i++) {
     for (let j = 1; j <= n; j++) {
       if (lines1[i - 1] === lines2[j - 1]) {
@@ -577,14 +557,14 @@ function computeDiff(lines1: string[], lines2: string[]): DiffLine[] {
       }
     }
   }
-  
+
   // Backtrack to find diff
   const result: DiffLine[] = []
   let i = m
   let j = n
-  
+
   const items: { type: 'unchanged' | 'added' | 'removed'; content: string; i: number; j: number }[] = []
-  
+
   while (i > 0 || j > 0) {
     if (i > 0 && j > 0 && lines1[i - 1] === lines2[j - 1]) {
       items.unshift({ type: 'unchanged', content: lines1[i - 1], i: i - 1, j: j - 1 })
@@ -598,18 +578,18 @@ function computeDiff(lines1: string[], lines2: string[]): DiffLine[] {
       i--
     }
   }
-  
+
   // Build result with line numbers
   let leftNum = 1
   let rightNum = 1
-  
+
   for (const item of items) {
     const line: DiffLine = {
       type: item.type,
       content: item.content,
       lineNumber: {}
     }
-    
+
     if (item.type === 'unchanged') {
       line.lineNumber.left = leftNum++
       line.lineNumber.right = rightNum++
@@ -618,10 +598,10 @@ function computeDiff(lines1: string[], lines2: string[]): DiffLine[] {
     } else if (item.type === 'added') {
       line.lineNumber.right = rightNum++
     }
-    
+
     result.push(line)
   }
-  
+
   return result
 }
 

@@ -1,14 +1,115 @@
+@import "./utilities.css";
+
+/* ===== GITHUB-INSPIRED DESIGN TOKENS ===== */
+:root {
+  /* Backgrounds â€” GitHub dark */
+  --bg-canvas: #0d1117;
+  --bg-default: #161b22;
+  --bg-subtle: #1c2128;
+  --bg-inset: #010409;
+  --bg-overlay: rgba(22, 27, 34, 0.85);
+
+  /* Borders */
+  --border-default: #30363d;
+  --border-muted: #21262d;
+  --border-subtle: rgba(240, 246, 252, 0.06);
+
+  /* Text */
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted: #484f58;
+  --text-link: #58a6ff;
+
+  /* Accent colors â€” GitHub palette */
+  --accent-blue: #58a6ff;
+  --accent-blue-emphasis: #1f6feb;
+  --accent-green: #3fb950;
+  --accent-green-emphasis: #238636;
+  --accent-purple: #bc8cff;
+  --accent-purple-emphasis: #8b5cf6;
+  --accent-orange: #d29922;
+  --accent-red: #f85149;
+  --accent-pink: #f778ba;
+  --accent-cyan: #39d2c0;
+
+  /* Fonts */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+}
+
+/* ===== BASE ===== */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  background-color: #f5f5f5;
+  font-family: var(--font-sans);
+  background: var(--bg-canvas);
+  color: var(--text-primary);
+  overflow-x: hidden;
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== TYPOGRAPHY SPACING ===== */
+h1 {
+  margin-bottom: 2rem;
+  line-height: 1.2;
+}
+
+h2 {
+  margin-bottom: 1.5rem;
+  line-height: 1.3;
+}
+
+h3 {
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+
+p {
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+ul,
+ol {
+  margin-bottom: 1rem;
+}
+
+li {
+  margin-bottom: 0.5rem;
+}
+
+/* ===== SCROLLBAR â€” subtle GitHub style ===== */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-canvas);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ===== SELECTION ===== */
+::selection {
+  background: rgba(31, 111, 235, 0.3);
+  color: #fff;
 }
 
 .app {
@@ -25,7 +126,7 @@ body {
 }
 
 .auth-card {
-  background: white;
+  background: var(--bg-default);
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   padding: 40px;
@@ -35,21 +136,21 @@ body {
 
 .auth-card h1 {
   text-align: center;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 30px;
   font-size: 28px;
 }
 
 .auth-card h2 {
   text-align: center;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 10px;
   font-size: 24px;
 }
 
 .auth-card p.subtitle {
   text-align: center;
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 30px;
   font-size: 14px;
 }
@@ -62,7 +163,7 @@ body {
 .form-group label {
   display: block;
   margin-bottom: 8px;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 500;
   font-size: 14px;
 }
@@ -70,7 +171,7 @@ body {
 .form-group input {
   width: 100%;
   padding: 12px 16px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-default);
   border-radius: 8px;
   font-size: 16px;
   transition: border-color 0.2s, box-shadow 0.2s;
@@ -78,7 +179,7 @@ body {
 
 .form-group input:focus {
   outline: none;
-  border-color: #4f46e5;
+  border-color: var(--text-link);
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
@@ -114,21 +215,44 @@ body {
 }
 
 .btn-primary {
-  background-color: #4f46e5;
-  color: white;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent-green-emphasis);
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 12px 24px;
+  border-radius: 6px;
+  border: 1px solid rgba(240, 246, 252, 0.1);
+  cursor: pointer;
+  transition: background 0.15s ease;
+  font-family: var(--font-sans);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #4338ca;
+  background: #2ea043;
 }
 
 .btn-secondary {
-  background-color: #e5e7eb;
-  color: #374151;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 14px;
+  padding: 12px 24px;
+  border-radius: 6px;
+  border: 1px solid var(--border-default);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: var(--font-sans);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background-color: #d1d5db;
+  background: var(--bg-default);
+  border-color: var(--text-muted);
 }
 
 .btn-danger {
@@ -149,12 +273,12 @@ body {
 .auth-link {
   text-align: center;
   margin-top: 20px;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 14px;
 }
 
 .auth-link a {
-  color: #4f46e5;
+  color: var(--text-link);
   text-decoration: none;
   font-weight: 500;
 }
@@ -204,17 +328,17 @@ body {
 
 .otp-input:focus {
   outline: none;
-  border-color: #4f46e5;
+  border-color: var(--text-link);
 }
 
 /* Dashboard & Settings Styles */
 .page-container {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-color: var(--bg-canvas);
 }
 
 .navbar {
-  background-color: white;
+  background-color: var(--bg-default);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   padding: 16px 24px;
   display: flex;
@@ -224,7 +348,7 @@ body {
 
 .navbar h1 {
   font-size: 20px;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .navbar-links {
@@ -234,7 +358,7 @@ body {
 }
 
 .navbar-links a {
-  color: #4f46e5;
+  color: var(--text-link);
   text-decoration: none;
   font-weight: 500;
   font-size: 14px;
@@ -251,7 +375,7 @@ body {
 }
 
 .card {
-  background: white;
+  background: var(--bg-default);
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   padding: 24px;
@@ -260,13 +384,13 @@ body {
 
 .card h2 {
   font-size: 18px;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 16px;
 }
 
 .card h3 {
   font-size: 16px;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 12px;
 }
 
@@ -280,14 +404,15 @@ table {
   border-collapse: collapse;
 }
 
-th, td {
+th,
+td {
   padding: 12px 16px;
   text-align: left;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-muted);
 }
 
 th {
-  background-color: #f9fafb;
+  background-color: var(--bg-subtle);
   font-weight: 600;
   color: #374151;
   font-size: 14px;
@@ -299,7 +424,7 @@ td {
 }
 
 tr:hover {
-  background-color: #f9fafb;
+  background-color: var(--bg-subtle);
 }
 
 /* Badge */
@@ -341,7 +466,7 @@ tr:hover {
 }
 
 .modal {
-  background: white;
+  background: var(--bg-default);
   border-radius: 12px;
   padding: 24px;
   width: 100%;
@@ -357,7 +482,7 @@ tr:hover {
 .modal h3 {
   font-size: 18px;
   margin-bottom: 20px;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .modal-actions {
@@ -374,7 +499,7 @@ tr:hover {
 .form-section {
   margin-top: 24px;
   padding-top: 20px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border-muted);
 }
 
 .form-section h3 {
@@ -412,7 +537,7 @@ tr:hover {
 
 .checkbox-label span {
   font-weight: 500;
-  color: #333;
+  color: var(--text-primary);
 }
 
 /* Disabled Input */
@@ -426,16 +551,16 @@ tr:hover {
 .form-group select {
   width: 100%;
   padding: 12px 16px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-default);
   border-radius: 8px;
   font-size: 16px;
-  background-color: white;
+  background-color: var(--bg-default);
   cursor: pointer;
 }
 
 .form-group select:focus {
   outline: none;
-  border-color: #4f46e5;
+  border-color: var(--text-link);
 }
 
 /* Action Buttons in Table */
@@ -462,7 +587,7 @@ tr:hover {
   width: 40px;
   height: 40px;
   border: 3px solid #e5e7eb;
-  border-top-color: #4f46e5;
+  border-top-color: var(--text-link);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -482,7 +607,7 @@ tr:hover {
 .resend-otp button {
   background: none;
   border: none;
-  color: #4f46e5;
+  color: var(--text-link);
   font-size: 14px;
   cursor: pointer;
   font-weight: 500;
@@ -514,7 +639,7 @@ tr:hover {
 
 .content-header h1 {
   font-size: 24px;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .content-header .btn {
@@ -530,7 +655,7 @@ tr:hover {
 }
 
 .project-card {
-  background: white;
+  background: var(--bg-default);
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -554,12 +679,12 @@ tr:hover {
 
 .project-card-header h3 {
   font-size: 18px;
-  color: #333;
+  color: var(--text-primary);
   margin: 0;
 }
 
 .project-description {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 14px;
   margin-bottom: 12px;
   line-height: 1.5;
@@ -570,7 +695,7 @@ tr:hover {
 }
 
 .project-github {
-  color: #4f46e5;
+  color: var(--text-link);
   font-size: 14px;
   margin-bottom: 12px;
 }
@@ -609,17 +734,17 @@ tr:hover {
 .empty-state {
   text-align: center;
   padding: 60px 20px;
-  background: white;
+  background: var(--bg-default);
   border-radius: 12px;
 }
 
 .empty-state h2 {
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 12px;
 }
 
 .empty-state p {
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 24px;
 }
 
@@ -638,7 +763,7 @@ tr:hover {
 
 .modal-header h2 {
   font-size: 20px;
-  color: #333;
+  color: var(--text-primary);
   margin: 0;
 }
 
@@ -653,14 +778,14 @@ tr:hover {
 }
 
 .btn-close:hover {
-  color: #333;
+  color: var(--text-primary);
 }
 
 /* Form textarea */
 .form-group textarea {
   width: 100%;
   padding: 12px 16px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-default);
   border-radius: 8px;
   font-size: 16px;
   font-family: inherit;
@@ -670,7 +795,7 @@ tr:hover {
 
 .form-group textarea:focus {
   outline: none;
-  border-color: #4f46e5;
+  border-color: var(--text-link);
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
@@ -689,7 +814,7 @@ tr:hover {
 .btn-link {
   background: none;
   border: none;
-  color: #4f46e5;
+  color: var(--text-link);
   cursor: pointer;
   font-size: inherit;
   padding: 0;
@@ -703,7 +828,7 @@ tr:hover {
 .tabs {
   display: flex;
   gap: 4px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-muted);
   margin-bottom: 24px;
 }
 
@@ -713,7 +838,7 @@ tr:hover {
   padding: 12px 20px;
   font-size: 14px;
   font-weight: 500;
-  color: #666;
+  color: var(--text-secondary);
   cursor: pointer;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
@@ -721,17 +846,17 @@ tr:hover {
 }
 
 .tab:hover {
-  color: #333;
+  color: var(--text-primary);
 }
 
 .tab.active {
-  color: #4f46e5;
-  border-bottom-color: #4f46e5;
+  color: var(--text-link);
+  border-bottom-color: var(--text-link);
 }
 
 /* Tab Content */
 .tab-content {
-  background: white;
+  background: var(--bg-default);
   border-radius: 12px;
   padding: 24px;
 }
@@ -752,12 +877,12 @@ tr:hover {
 }
 
 .project-description-full {
-  color: #666;
+  color: var(--text-secondary);
   line-height: 1.6;
 }
 
 .project-github-link a {
-  color: #4f46e5;
+  color: var(--text-link);
   text-decoration: none;
 }
 
@@ -778,7 +903,7 @@ tr:hover {
 .invite-section {
   margin-bottom: 32px;
   padding-bottom: 24px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-muted);
 }
 
 .invite-section h3 {
@@ -794,14 +919,14 @@ tr:hover {
 .invite-input {
   flex: 1;
   padding: 10px 16px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-default);
   border-radius: 8px;
   font-size: 14px;
 }
 
 .invite-input:focus {
   outline: none;
-  border-color: #4f46e5;
+  border-color: var(--text-link);
 }
 
 .invite-form .btn {
@@ -844,7 +969,7 @@ tr:hover {
 
 .member-email,
 .invitation-email {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 14px;
 }
 
@@ -856,21 +981,21 @@ tr:hover {
 
 .role-select {
   padding: 6px 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-default);
   border-radius: 6px;
   font-size: 14px;
-  background: white;
+  background: var(--bg-default);
   cursor: pointer;
   transition: border-color 0.2s;
 }
 
 .role-select:hover {
-  border-color: #4f46e5;
+  border-color: var(--text-link);
 }
 
 .role-select:focus {
   outline: none;
-  border-color: #4f46e5;
+  border-color: var(--text-link);
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
@@ -900,12 +1025,12 @@ tr:hover {
 .settings-display .setting-item label {
   display: block;
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 4px;
 }
 
 .settings-display .setting-item p {
-  color: #333;
+  color: var(--text-primary);
 }
 
 .edit-form .form-actions {
@@ -946,7 +1071,7 @@ tr:hover {
 }
 
 .danger-item p {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 14px;
 }
 
@@ -961,7 +1086,7 @@ tr:hover {
 }
 
 .modal-danger p {
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 20px;
 }
 
@@ -972,18 +1097,18 @@ tr:hover {
 }
 
 .invitation-details p {
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 8px;
 }
 
 .project-name-highlight {
-  color: #4f46e5;
+  color: var(--text-link);
   font-size: 28px;
 }
 
 .invitation-notice {
   text-align: center;
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 24px;
 }
 
@@ -1045,7 +1170,7 @@ tr:hover {
   justify-content: space-between;
   align-items: flex-start;
   padding: 16px 0;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-muted);
 }
 
 .setting-info {
@@ -1060,7 +1185,7 @@ tr:hover {
 }
 
 .setting-description {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 14px;
   margin: 0;
 }
@@ -1098,20 +1223,20 @@ tr:hover {
   width: 20px;
   left: 3px;
   bottom: 3px;
-  background-color: white;
+  background-color: var(--bg-default);
   transition: 0.3s;
   border-radius: 50%;
 }
 
-.toggle-switch input:checked + .toggle-slider {
-  background-color: #4f46e5;
+.toggle-switch input:checked+.toggle-slider {
+  background-color: var(--accent-green-emphasis);
 }
 
-.toggle-switch input:checked + .toggle-slider:before {
+.toggle-switch input:checked+.toggle-slider:before {
   transform: translateX(22px);
 }
 
-.toggle-switch input:disabled + .toggle-slider {
+.toggle-switch input:disabled+.toggle-slider {
   opacity: 0.5;
   cursor: not-allowed;
 }
@@ -1119,10 +1244,10 @@ tr:hover {
 /* Setting Block Item */
 .setting-item-block {
   padding: 16px 0;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-muted);
 }
 
-.setting-item-block > label {
+.setting-item-block>label {
   display: block;
   font-weight: 500;
   margin-bottom: 4px;
@@ -1148,7 +1273,7 @@ tr:hover {
 .token-input {
   flex: 1;
   padding: 10px 70px 10px 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-default);
   border-radius: 8px;
   font-size: 14px;
   font-family: monospace;
@@ -1156,7 +1281,7 @@ tr:hover {
 
 .token-input:focus {
   outline: none;
-  border-color: #4f46e5;
+  border-color: var(--text-link);
 }
 
 .btn-toggle-visibility {
@@ -1166,7 +1291,7 @@ tr:hover {
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: #4f46e5;
+  color: var(--text-link);
   cursor: pointer;
   font-size: 13px;
   padding: 4px 8px;
@@ -1193,7 +1318,7 @@ tr:hover {
 /* ======================= */
 
 .documents-container {
-  background: white;
+  background: var(--bg-default);
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
@@ -1206,7 +1331,7 @@ tr:hover {
   gap: 16px;
   margin-bottom: 24px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-muted);
 }
 
 .documents-filters {
@@ -1225,21 +1350,21 @@ tr:hover {
 .filter-group label {
   font-size: 12px;
   font-weight: 500;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .filter-group select {
   padding: 8px 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-default);
   border-radius: 6px;
   font-size: 14px;
   min-width: 150px;
-  background: white;
+  background: var(--bg-default);
 }
 
 .filter-group select:focus {
   outline: none;
-  border-color: #4f46e5;
+  border-color: var(--text-link);
 }
 
 .tags-select {
@@ -1260,14 +1385,14 @@ tr:hover {
 .search-input {
   flex: 1;
   padding: 10px 16px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-default);
   border-radius: 8px;
   font-size: 14px;
 }
 
 .search-input:focus {
   outline: none;
-  border-color: #4f46e5;
+  border-color: var(--text-link);
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
@@ -1280,7 +1405,7 @@ tr:hover {
 
 .compare-hint {
   font-size: 13px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 /* Documents Actions (Test Upload) */
@@ -1310,7 +1435,7 @@ tr:hover {
 .documents-table td {
   padding: 12px 16px;
   text-align: left;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-muted);
 }
 
 .documents-table th {
@@ -1395,7 +1520,7 @@ tr:hover {
 /* Links in table */
 .branch-link,
 .commit-link {
-  color: #4f46e5;
+  color: var(--text-link);
   text-decoration: none;
   font-family: monospace;
   font-size: 13px;
@@ -1416,7 +1541,7 @@ tr:hover {
 .empty-state {
   text-align: center;
   padding: 48px 24px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .empty-state p {
@@ -1434,7 +1559,7 @@ tr:hover {
 }
 
 .no-results {
-  color: #666;
+  color: var(--text-secondary);
   font-style: italic;
 }
 
@@ -1446,7 +1571,7 @@ tr:hover {
 
 .search-result-item {
   background: #f9fafb;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-default);
   border-radius: 8px;
   padding: 16px;
 }
@@ -1465,8 +1590,8 @@ tr:hover {
 }
 
 .match-preview {
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--bg-default);
+  border: 1px solid var(--border-default);
   border-radius: 4px;
   padding: 8px 12px;
   font-size: 13px;
@@ -1484,7 +1609,7 @@ tr:hover {
 
 .more-matches {
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
   font-style: italic;
 }
 
@@ -1493,7 +1618,7 @@ tr:hover {
 /* ======================= */
 
 .document-header {
-  background: white;
+  background: var(--bg-default);
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 24px;
@@ -1506,7 +1631,7 @@ tr:hover {
 }
 
 .document-description {
-  color: #666;
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -1516,7 +1641,7 @@ tr:hover {
   gap: 24px;
   margin-top: 20px;
   padding-top: 20px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border-muted);
 }
 
 .metadata-item {
@@ -1528,11 +1653,11 @@ tr:hover {
 .metadata-item .label {
   font-size: 12px;
   font-weight: 500;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .metadata-item a {
-  color: #4f46e5;
+  color: var(--text-link);
   text-decoration: none;
 }
 
@@ -1542,7 +1667,7 @@ tr:hover {
 
 /* Document Search Bar */
 .document-search-bar {
-  background: white;
+  background: var(--bg-default);
   border-radius: 8px;
   padding: 12px 16px;
   margin-bottom: 24px;
@@ -1567,7 +1692,7 @@ tr:hover {
 
 .document-search-bar .search-input {
   flex: 1;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-default);
   border-radius: 6px;
   padding: 8px 12px;
   font-size: 14px;
@@ -1575,19 +1700,19 @@ tr:hover {
 
 .document-search-bar .search-input:focus {
   outline: none;
-  border-color: #4f46e5;
+  border-color: var(--text-link);
 }
 
 .match-count {
   font-size: 13px;
-  color: #666;
+  color: var(--text-secondary);
   padding: 0 8px;
   white-space: nowrap;
 }
 
 .btn-icon {
   background: #f3f4f6;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-default);
   border-radius: 4px;
   padding: 6px 10px;
   cursor: pointer;
@@ -1606,7 +1731,7 @@ tr:hover {
 
 /* Document Content */
 .document-content {
-  background: white;
+  background: var(--bg-default);
   border-radius: 12px;
   padding: 32px;
   margin-bottom: 24px;
@@ -1636,10 +1761,23 @@ tr:hover {
   color: #1f2937;
 }
 
-.markdown-content h1 { font-size: 2em; }
-.markdown-content h2 { font-size: 1.5em; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }
-.markdown-content h3 { font-size: 1.25em; }
-.markdown-content h4 { font-size: 1.1em; }
+.markdown-content h1 {
+  font-size: 2em;
+}
+
+.markdown-content h2 {
+  font-size: 1.5em;
+  border-bottom: 1px solid var(--border-muted);
+  padding-bottom: 8px;
+}
+
+.markdown-content h3 {
+  font-size: 1.25em;
+}
+
+.markdown-content h4 {
+  font-size: 1.1em;
+}
 
 .markdown-content p {
   margin: 16px 0;
@@ -1683,7 +1821,7 @@ tr:hover {
   margin: 16px 0;
   padding: 8px 16px;
   background: #f9fafb;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .markdown-content table {
@@ -1694,7 +1832,7 @@ tr:hover {
 
 .markdown-content th,
 .markdown-content td {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-default);
   padding: 12px;
   text-align: left;
 }
@@ -1705,7 +1843,7 @@ tr:hover {
 }
 
 .markdown-content a {
-  color: #4f46e5;
+  color: var(--text-link);
   text-decoration: none;
 }
 
@@ -1739,8 +1877,8 @@ tr:hover {
 }
 
 .api-card {
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--bg-default);
+  border: 1px solid var(--border-default);
   border-radius: 8px;
   overflow: hidden;
   transition: box-shadow 0.2s;
@@ -1757,7 +1895,7 @@ tr:hover {
   padding: 16px;
   cursor: pointer;
   background: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-muted);
 }
 
 .api-card-header:hover {
@@ -1829,7 +1967,7 @@ tr:hover {
 
 .api-card-body {
   padding: 16px;
-  background: white;
+  background: var(--bg-default);
 }
 
 .api-section {
@@ -1857,7 +1995,7 @@ tr:hover {
 
 .api-param {
   background: #f9fafb;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-default);
   border-radius: 6px;
   padding: 12px;
 }
@@ -1966,9 +2104,9 @@ tr:hover {
 .tabs {
   display: flex;
   gap: 4px;
-  border-bottom: 2px solid #e5e7eb;
+  border-bottom: 2px solid var(--border-muted);
   margin-bottom: 24px;
-  background: white;
+  background: var(--bg-default);
   border-radius: 12px 12px 0 0;
   padding: 16px 16px 0 16px;
 }
@@ -1987,19 +2125,19 @@ tr:hover {
 }
 
 .tab:hover {
-  color: #4f46e5;
+  color: var(--text-link);
   background: #f9fafb;
   border-radius: 8px 8px 0 0;
 }
 
 .tab.active {
-  color: #4f46e5;
-  border-bottom-color: #4f46e5;
+  color: var(--text-link);
+  border-bottom-color: var(--text-link);
   font-weight: 600;
 }
 
 .tab-content {
-  background: white;
+  background: var(--bg-default);
   border-radius: 0 0 12px 12px;
   padding: 24px;
   margin-bottom: 24px;
@@ -2086,7 +2224,7 @@ tr:hover {
 
 .metadata-display {
   background: #f9fafb;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-default);
   border-radius: 8px;
   padding: 16px;
 }
@@ -2095,7 +2233,7 @@ tr:hover {
   display: flex;
   gap: 12px;
   padding: 8px 0;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-muted);
 }
 
 .metadata-row:last-child {
@@ -2132,7 +2270,7 @@ tr:hover {
 }
 
 .comparison-header {
-  background: white;
+  background: var(--bg-default);
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 24px;
@@ -2173,7 +2311,7 @@ tr:hover {
   display: flex;
   gap: 16px;
   font-size: 13px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .vs {
@@ -2212,7 +2350,7 @@ tr:hover {
 
 /* Diff Container */
 .diff-container {
-  background: white;
+  background: var(--bg-default);
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
@@ -2239,7 +2377,7 @@ tr:hover {
   align-items: center;
   padding: 12px 16px;
   background: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-muted);
 }
 
 .diff-side.left .diff-side-header {
@@ -2257,7 +2395,7 @@ tr:hover {
 
 .diff-side-header .date {
   font-size: 13px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .diff-content {
@@ -2318,7 +2456,7 @@ tr:hover {
 }
 
 .api-diff-section {
-  background: white;
+  background: var(--bg-default);
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
@@ -2369,7 +2507,7 @@ tr:hover {
 }
 
 .api-diff-card {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-default);
   border-radius: 8px;
   padding: 12px 16px;
   transition: box-shadow 0.2s;
@@ -2454,7 +2592,7 @@ tr:hover {
 .api-diff-details {
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border-muted);
 }
 
 .diff-comparison {
@@ -2465,10 +2603,10 @@ tr:hover {
 
 .diff-old,
 .diff-new {
-  background: white;
+  background: var(--bg-default);
   border-radius: 8px;
   padding: 12px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-default);
 }
 
 .diff-old {
@@ -2518,7 +2656,7 @@ tr:hover {
 /* ======================= */
 
 .edit-tags-container {
-  background: white;
+  background: var(--bg-default);
   border-radius: 12px;
   padding: 32px;
   max-width: 600px;
@@ -2582,14 +2720,14 @@ tr:hover {
 .tag-input {
   flex: 1;
   padding: 10px 16px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-default);
   border-radius: 8px;
   font-size: 14px;
 }
 
 .tag-input:focus {
   outline: none;
-  border-color: #4f46e5;
+  border-color: var(--text-link);
 }
 
 .hint {
@@ -2641,4 +2779,304 @@ tr:hover {
     flex-direction: column;
     gap: 16px;
   }
-}
+/ *   = = = = =   C A R D   P A N E L   â ¬    G i t H u b - s t y l e   c a r d   = = = = =   * /  
+ . g h - c a r d   {  
+         b a c k g r o u n d :   v a r ( - - b g - d e f a u l t ) ;  
+         b o r d e r :   1 p x   s o l i d   v a r ( - - b o r d e r - d e f a u l t ) ;  
+         b o r d e r - r a d i u s :   6 p x ;  
+         p a d d i n g :   2 4 p x ;  
+ }  
+  
+ . g h - c a r d - s u b t l e   {  
+         b a c k g r o u n d :   v a r ( - - b g - s u b t l e ) ;  
+         b o r d e r :   1 p x   s o l i d   v a r ( - - b o r d e r - m u t e d ) ;  
+         b o r d e r - r a d i u s :   6 p x ;  
+         p a d d i n g :   2 4 p x ;  
+ }  
+  
+ / *   = = = = =   C A R D   H O V E R   = = = = =   * /  
+ . c a r d - h o v e r   {  
+         t r a n s i t i o n :   b o r d e r - c o l o r   0 . 2 s   e a s e ,   b o x - s h a d o w   0 . 2 s   e a s e ;  
+ }  
+  
+ . c a r d - h o v e r : h o v e r   {  
+         b o r d e r - c o l o r :   v a r ( - - t e x t - m u t e d ) ;  
+         b o x - s h a d o w :   0   4 p x   1 2 p x   r g b a ( 0 ,   0 ,   0 ,   0 . 3 ) ;  
+ }  
+  
+ / *   = = = = =   T E X T   G R A D I E N T   = = = = =   * /  
+ . t e x t - g r a d i e n t - m a i n   {  
+         b a c k g r o u n d :   l i n e a r - g r a d i e n t ( 1 3 5 d e g ,   v a r ( - - a c c e n t - b l u e )   0 % ,   v a r ( - - a c c e n t - p u r p l e )   1 0 0 % ) ;  
+         - w e b k i t - b a c k g r o u n d - c l i p :   t e x t ;  
+         - w e b k i t - t e x t - f i l l - c o l o r :   t r a n s p a r e n t ;  
+         b a c k g r o u n d - c l i p :   t e x t ;  
+ }  
+  
+ / *   = = = = =   F O N T   M O N O   = = = = =   * /  
+ . f o n t - m o n o   {  
+         f o n t - f a m i l y :   v a r ( - - f o n t - m o n o ) ;  
+ }  
+  
+ / *   = = = = =   S E C T I O N   L A Y O U T   = = = = =   * /  
+ . s e c t i o n - p a d d i n g   {  
+         p a d d i n g :   1 2 0 p x   3 2 p x ;  
+ }  
+  
+ . s e c t i o n - c o n t a i n e r   {  
+         m a x - w i d t h :   1 2 0 0 p x ;  
+         m a r g i n :   0   a u t o ;  
+ }  
+  
+ / *   = = = = =   P R E M I U M   B A C K G R O U N D S   = = = = =   * /  
+ . m a i n - b g - g r a d i e n t   {  
+         b a c k g r o u n d :   r a d i a l - g r a d i e n t ( c i r c l e   a t   5 0 %   0 % ,   # 1 c 2 1 2 8   0 % ,   # 0 d 1 1 1 7   6 0 % ,   # 0 1 0 4 0 9   1 0 0 % ) ;  
+ }  
+  
+ / *   S o p h i s t i c a t e d   D o t   P a t t e r n   * /  
+ . d o t - p a t t e r n   {  
+         b a c k g r o u n d - i m a g e :   r a d i a l - g r a d i e n t ( # 3 0 3 6 3 d   1 p x ,   t r a n s p a r e n t   1 p x ) ;  
+         b a c k g r o u n d - s i z e :   3 2 p x   3 2 p x ;  
+         m a s k - i m a g e :   r a d i a l - g r a d i e n t ( c i r c l e   a t   5 0 %   5 0 % ,   b l a c k   4 0 % ,   t r a n s p a r e n t   1 0 0 % ) ;  
+         - w e b k i t - m a s k - i m a g e :   r a d i a l - g r a d i e n t ( c i r c l e   a t   5 0 %   5 0 % ,   b l a c k   4 0 % ,   t r a n s p a r e n t   1 0 0 % ) ;  
+ }  
+  
+ / *   = = = = =   G L O W   A C C E N T S   ( A n i m a t e d )   = = = = =   * /  
+ . g l o w - b l u e   {  
+         p o s i t i o n :   a b s o l u t e ;  
+         w i d t h :   6 0 0 p x ;  
+         h e i g h t :   6 0 0 p x ;  
+         b a c k g r o u n d :   r a d i a l - g r a d i e n t ( c i r c l e ,   r g b a ( 5 6 ,   1 3 9 ,   2 5 3 ,   0 . 0 8 )   0 % ,   t r a n s p a r e n t   7 0 % ) ;  
+         b o r d e r - r a d i u s :   5 0 % ;  
+         p o i n t e r - e v e n t s :   n o n e ;  
+         f i l t e r :   b l u r ( 6 0 p x ) ;  
+         a n i m a t i o n :   p u l s e - g l o w   8 s   i n f i n i t e   a l t e r n a t e ;  
+ }  
+  
+ . g l o w - p u r p l e   {  
+         p o s i t i o n :   a b s o l u t e ;  
+         w i d t h :   6 0 0 p x ;  
+         h e i g h t :   6 0 0 p x ;  
+         b a c k g r o u n d :   r a d i a l - g r a d i e n t ( c i r c l e ,   r g b a ( 1 3 9 ,   9 2 ,   2 4 6 ,   0 . 0 6 )   0 % ,   t r a n s p a r e n t   7 0 % ) ;  
+         b o r d e r - r a d i u s :   5 0 % ;  
+         p o i n t e r - e v e n t s :   n o n e ;  
+         f i l t e r :   b l u r ( 6 0 p x ) ;  
+         a n i m a t i o n :   p u l s e - g l o w   8 s   i n f i n i t e   a l t e r n a t e - r e v e r s e ;  
+ }  
+  
+ @ k e y f r a m e s   p u l s e - g l o w   {  
+         0 %   {  
+                 t r a n s f o r m :   s c a l e ( 1 ) ;  
+                 o p a c i t y :   0 . 5 ;  
+         }  
+  
+         1 0 0 %   {  
+                 t r a n s f o r m :   s c a l e ( 1 . 1 ) ;  
+                 o p a c i t y :   0 . 8 ;  
+         }  
+ }  
+  
+ / *   = = = = =   B A D G E   /   L A B E L   = = = = =   * /  
+ . g h - b a d g e   {  
+         d i s p l a y :   i n l i n e - f l e x ;  
+         a l i g n - i t e m s :   c e n t e r ;  
+         g a p :   6 p x ;  
+         p a d d i n g :   4 p x   1 2 p x ;  
+         f o n t - s i z e :   1 2 p x ;  
+         f o n t - w e i g h t :   5 0 0 ;  
+         b o r d e r - r a d i u s :   9 9 9 9 p x ;  
+         b o r d e r :   1 p x   s o l i d   v a r ( - - b o r d e r - d e f a u l t ) ;  
+         b a c k g r o u n d :   v a r ( - - b g - d e f a u l t ) ;  
+         c o l o r :   v a r ( - - t e x t - s e c o n d a r y ) ;  
+ }  
+  
+ / *   = = = = =   S E P A R A T O R   = = = = =   * /  
+ . s e c t i o n - d i v i d e r   {  
+         b o r d e r :   0 ;  
+         b o r d e r - t o p :   1 p x   s o l i d   v a r ( - - b o r d e r - m u t e d ) ;  
+         m a r g i n :   0 ;  
+ }  
+  
+ / *   = = = = =   A N I M A T I O N S   = = = = =   * /  
+ @ k e y f r a m e s   b l i n k   {  
+  
+         0 % ,  
+         5 0 %   {  
+                 o p a c i t y :   1 ;  
+         }  
+  
+         5 1 % ,  
+         1 0 0 %   {  
+                 o p a c i t y :   0 ;  
+         }  
+ }  
+  
+ @ k e y f r a m e s   p u l s e - d o t   {  
+  
+         0 % ,  
+         1 0 0 %   {  
+                 o p a c i t y :   0 . 4 ;  
+         }  
+  
+         5 0 %   {  
+                 o p a c i t y :   1 ;  
+         }  
+ }  
+  
+ @ k e y f r a m e s   f a d e I n U p   {  
+         f r o m   {  
+                 o p a c i t y :   0 ;  
+                 t r a n s f o r m :   t r a n s l a t e Y ( 1 6 p x ) ;  
+         }  
+  
+         t o   {  
+                 o p a c i t y :   1 ;  
+                 t r a n s f o r m :   t r a n s l a t e Y ( 0 ) ;  
+         }  
+ }  
+  
+ / *   = = = = =   M A R K D O W N   P R E V I E W   â ¬    G i t H u b   d a r k   = = = = =   * /  
+ . m a r k d o w n - p r e v i e w   {  
+         f o n t - f a m i l y :   v a r ( - - f o n t - s a n s ) ;  
+         c o l o r :   # e 6 e d f 3 ;  
+         f o n t - s i z e :   1 4 p x ;  
+         l i n e - h e i g h t :   1 . 7 ;  
+ }  
+  
+ . m a r k d o w n - p r e v i e w   h 1   {  
+         f o n t - s i z e :   2 8 p x ;  
+         f o n t - w e i g h t :   7 0 0 ;  
+         p a d d i n g - b o t t o m :   8 p x ;  
+         b o r d e r - b o t t o m :   1 p x   s o l i d   # 3 0 3 6 3 d ;  
+         m a r g i n - b o t t o m :   1 6 p x ;  
+         c o l o r :   # e 6 e d f 3 ;  
+ }  
+  
+ . m a r k d o w n - p r e v i e w   h 2   {  
+         f o n t - s i z e :   2 2 p x ;  
+         f o n t - w e i g h t :   6 0 0 ;  
+         p a d d i n g - b o t t o m :   6 p x ;  
+         b o r d e r - b o t t o m :   1 p x   s o l i d   # 2 1 2 6 2 d ;  
+         m a r g i n - t o p :   2 4 p x ;  
+         m a r g i n - b o t t o m :   1 2 p x ;  
+         c o l o r :   # e 6 e d f 3 ;  
+ }  
+  
+ . m a r k d o w n - p r e v i e w   h 3   {  
+         f o n t - s i z e :   1 8 p x ;  
+         f o n t - w e i g h t :   6 0 0 ;  
+         m a r g i n - t o p :   2 0 p x ;  
+         m a r g i n - b o t t o m :   8 p x ;  
+         c o l o r :   # e 6 e d f 3 ;  
+ }  
+  
+ . m a r k d o w n - p r e v i e w   p   {  
+         m a r g i n - b o t t o m :   1 2 p x ;  
+         c o l o r :   # 8 b 9 4 9 e ;  
+ }  
+  
+ . m a r k d o w n - p r e v i e w   a   {  
+         c o l o r :   # 5 8 a 6 f f ;  
+         t e x t - d e c o r a t i o n :   n o n e ;  
+ }  
+  
+ . m a r k d o w n - p r e v i e w   a : h o v e r   {  
+         t e x t - d e c o r a t i o n :   u n d e r l i n e ;  
+ }  
+  
+ . m a r k d o w n - p r e v i e w   i m g   {  
+         m a x - w i d t h :   1 0 0 % ;  
+         d i s p l a y :   i n l i n e - b l o c k ;  
+         v e r t i c a l - a l i g n :   m i d d l e ;  
+         h e i g h t :   2 0 p x ;  
+         m a r g i n - r i g h t :   4 p x ;  
+ }  
+  
+ . m a r k d o w n - p r e v i e w   c o d e   {  
+         f o n t - f a m i l y :   v a r ( - - f o n t - m o n o ) ;  
+         f o n t - s i z e :   1 2 p x ;  
+         b a c k g r o u n d :   r g b a ( 1 1 0 ,   1 1 8 ,   1 2 9 ,   0 . 1 5 ) ;  
+         p a d d i n g :   2 p x   6 p x ;  
+         b o r d e r - r a d i u s :   4 p x ;  
+         c o l o r :   # e 6 e d f 3 ;  
+ }  
+  
+ . m a r k d o w n - p r e v i e w   p r e   {  
+         b a c k g r o u n d :   # 0 d 1 1 1 7 ;  
+         b o r d e r :   1 p x   s o l i d   # 3 0 3 6 3 d ;  
+         b o r d e r - r a d i u s :   6 p x ;  
+         p a d d i n g :   1 4 p x   1 6 p x ;  
+         o v e r f l o w - x :   a u t o ;  
+         m a r g i n - b o t t o m :   1 6 p x ;  
+ }  
+  
+ . m a r k d o w n - p r e v i e w   p r e   c o d e   {  
+         b a c k g r o u n d :   n o n e ;  
+         p a d d i n g :   0 ;  
+         f o n t - s i z e :   1 2 p x ;  
+         l i n e - h e i g h t :   1 . 6 ;  
+         c o l o r :   # e 6 e d f 3 ;  
+ }  
+  
+ . m a r k d o w n - p r e v i e w   b l o c k q u o t e   {  
+         b o r d e r - l e f t :   3 p x   s o l i d   # 3 0 3 6 3 d ;  
+         p a d d i n g :   4 p x   1 6 p x ;  
+         m a r g i n :   0   0   1 6 p x ;  
+         c o l o r :   # 8 b 9 4 9 e ;  
+         f o n t - s t y l e :   i t a l i c ;  
+ }  
+  
+ . m a r k d o w n - p r e v i e w   t a b l e   {  
+         w i d t h :   1 0 0 % ;  
+         b o r d e r - c o l l a p s e :   c o l l a p s e ;  
+         m a r g i n - b o t t o m :   1 6 p x ;  
+ }  
+  
+ . m a r k d o w n - p r e v i e w   t h ,  
+ . m a r k d o w n - p r e v i e w   t d   {  
+         p a d d i n g :   8 p x   1 2 p x ;  
+         b o r d e r :   1 p x   s o l i d   # 3 0 3 6 3 d ;  
+         t e x t - a l i g n :   l e f t ;  
+         f o n t - s i z e :   1 3 p x ;  
+ }  
+  
+ . m a r k d o w n - p r e v i e w   t h   {  
+         b a c k g r o u n d :   # 1 6 1 b 2 2 ;  
+         f o n t - w e i g h t :   6 0 0 ;  
+         c o l o r :   # e 6 e d f 3 ;  
+ }  
+  
+ . m a r k d o w n - p r e v i e w   t d   {  
+         c o l o r :   # 8 b 9 4 9 e ;  
+ }  
+  
+ . m a r k d o w n - p r e v i e w   t r : n t h - c h i l d ( e v e n )   {  
+         b a c k g r o u n d :   r g b a ( 2 2 ,   2 7 ,   3 4 ,   0 . 5 ) ;  
+ }  
+  
+ . m a r k d o w n - p r e v i e w   u l ,  
+ . m a r k d o w n - p r e v i e w   o l   {  
+         p a d d i n g - l e f t :   2 4 p x ;  
+         m a r g i n - b o t t o m :   1 6 p x ;  
+ }  
+  
+ . m a r k d o w n - p r e v i e w   l i   {  
+         m a r g i n - b o t t o m :   6 p x ;  
+         c o l o r :   # 8 b 9 4 9 e ;  
+ }  
+  
+ . m a r k d o w n - p r e v i e w   h r   {  
+         b o r d e r :   0 ;  
+         b o r d e r - t o p :   1 p x   s o l i d   # 2 1 2 6 2 d ;  
+         m a r g i n :   2 4 p x   0 ;  
+ }  
+  
+ . m a r k d o w n - p r e v i e w   e m   {  
+         f o n t - s t y l e :   i t a l i c ;  
+         c o l o r :   # 8 b 9 4 9 e ;  
+ }  
+  
+ . m a r k d o w n - p r e v i e w   s t r o n g   {  
+         f o n t - w e i g h t :   6 0 0 ;  
+         c o l o r :   # e 6 e d f 3 ;  
+ }  
+ 
