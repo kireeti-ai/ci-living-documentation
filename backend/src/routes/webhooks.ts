@@ -65,10 +65,10 @@ const findProjectByRepo = async (repoUrl: string) => {
   }
 
   // Also try with/without .git suffix
-  const alternateUrl = repoUrl.endsWith('.git') 
-    ? repoUrl.slice(0, -4) 
+  const alternateUrl = repoUrl.endsWith('.git')
+    ? repoUrl.slice(0, -4)
     : repoUrl + '.git'
-  
+
   const [altProject] = await db
     .select()
     .from(projects)
@@ -114,7 +114,7 @@ const handlePushEvent = async (payload: any) => {
   // TODO: Trigger documentation generation
   // For now, just log the event
   console.log(`Would trigger doc generation for ${project.name} on push`)
-  
+
   // Create a placeholder document to show the webhook is working
   // Call code-detect API to analyze the repository
   try {
@@ -168,12 +168,12 @@ const handlePushEvent = async (payload: any) => {
           body: JSON.stringify({
             impact_report: result,
             drift_report: {
-              "findings" : [],
-              "statistics" : {
-                "total_issues" : 0
+              "findings": [],
+              "statistics": {
+                "total_issues": 0
               }
             },
-            doc_snapshot : docsResult.doc_snapshot,
+            doc_snapshot: docsResult.doc_snapshot,
             commit_sha: headCommit?.id || 'unknown',
             project_id: project.id,
           }),
@@ -185,6 +185,24 @@ const handlePushEvent = async (payload: any) => {
           const summaryResult = await generateSummaryResponse.json()
           console.log(`Summary generated for ${project.name}:`, summaryResult)
         }
+
+        // Save metadata to DB
+        const commitHash = headCommit?.id || 'unknown'
+        const metadata: DocumentMetadata = {
+          version: '0.1.0',
+          branch: branch || 'unknown',
+          commit: commitHash,
+          commitUrl: headCommit?.url || '',
+          branchUrl: branch ? `${repoUrl}/tree/${branch}` : '',
+          tags: ['push', 'auto-generated'],
+          createdAt: headCommit?.timestamp || new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          title: headCommit?.message?.split('\n')[0].substring(0, 255) || 'Push update',
+          description: `Auto-generated from push. Author: ${headCommit?.author?.name || 'unknown'}`,
+        }
+
+        await uploadDocumentMetadata(project.id, commitHash, metadata)
+        console.log(`Metadata saved for ${project.name} (commit: ${commitHash.substring(0, 7)})`)
       }
     }
   } catch (error) {
@@ -240,7 +258,7 @@ const handleReleaseEvent = async (payload: any) => {
   }
 
   console.log(`Release ${release.tag_name} published for ${project.name}`)
-  
+
   // Create a release document
   const commitHash = release.target_commitish || `release-${release.tag_name}`
   const metadata: DocumentMetadata = {

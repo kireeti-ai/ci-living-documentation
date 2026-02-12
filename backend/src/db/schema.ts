@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, text, boolean, timestamp, pgEnum } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, varchar, text, boolean, timestamp, pgEnum, uniqueIndex } from 'drizzle-orm/pg-core'
 
 // Enums
 export const userRoleEnum = pgEnum('user_role', ['admin', 'user'])
@@ -79,6 +79,34 @@ export const projectSettings = pgTable('project_settings', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 })
 
+// Document versions table (metadata for each commit)
+export const documentVersions = pgTable('document_versions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  projectId: uuid('project_id').notNull().references(() => projects.id, { onDelete: 'cascade' }),
+
+  // Core identifiers
+  commitIdx: varchar('commit_idx', { length: 255 }).notNull(), // The commit hash
+  branch: varchar('branch', { length: 255 }),
+  version: varchar('version', { length: 50 }),
+
+  // Metadata
+  title: varchar('title', { length: 255 }),
+  description: text('description'),
+  tags: text('tags').array(), // Drizzle array support
+
+  // File paths (optional, can be inferred but good for caching)
+  summaryPath: varchar('summary_path', { length: 500 }),
+  readmePath: varchar('readme_path', { length: 500 }),
+  apiDocsPath: varchar('api_docs_path', { length: 500 }),
+
+  // Timestamps
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (t) => ({
+  // Composite unique constraint to identifying a document version by project + commit
+  unq: uniqueIndex('project_commit_idx').on(t.projectId, t.commitIdx),
+}))
+
 // Types
 export type User = typeof users.$inferSelect
 export type NewUser = typeof users.$inferInsert
@@ -94,3 +122,5 @@ export type ProjectInvitation = typeof projectInvitations.$inferSelect
 export type NewProjectInvitation = typeof projectInvitations.$inferInsert
 export type ProjectSettings = typeof projectSettings.$inferSelect
 export type NewProjectSettings = typeof projectSettings.$inferInsert
+export type DocumentVersion = typeof documentVersions.$inferSelect
+export type NewDocumentVersion = typeof documentVersions.$inferInsert
