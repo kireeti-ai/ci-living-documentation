@@ -1,0 +1,72 @@
+services:
+  # Backend Service
+  - type: web
+    name: ci-living-docs-backend
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: cd backend && npm install --include=dev && npm run build
+    startCommand: cd backend && node dist/app.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      - key: PORT
+        value: 8000
+
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: 7d
+
+      # Email (Brevo)
+      - key: BREVO_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: EMAIL_FROM_NAME
+        value: CI Living Docs
+
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_BUCKET_NAME
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_REGION
+        value: auto
+      - key: R2_ENDPOINT
+        sync: false
+
+      - key: GITHUB_WEBHOOK_SECRET
+        sync: false
+
+      - key: FRONTEND_URL
+        value: https://ci-living-docs-frontend.onrender.com
+
+      - key: BACKEND_URL
+        value: https://ci-living-docs-backend.onrender.com
+
+      - key: BACKEND_HOSTPORT
+        fromService:
+          type: web
+          name: ci-living-docs-backend
+          property: hostport
+
+  - type: web
+    name: ci-living-docs-frontend
+    env: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        value: https://ci-living-docs-backend.onrender.com
+
