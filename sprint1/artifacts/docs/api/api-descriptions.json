@@ -24,7 +24,7 @@
       "method": "GET",
       "path": "/me",
       "source_file": "backend/src/modules/activity/routes/activity.routes.js",
-      "summary": "List Me",
+      "summary": "Get Current User",
       "parameters": "Path params: none detected",
       "responses": "200 OK, 401 Unauthorized, 403 Forbidden, 500 Internal Server Error"
     },
@@ -51,7 +51,7 @@
       "method": "POST",
       "path": "/register",
       "source_file": "backend/src/modules/auth/routes/auth.routes.js",
-      "summary": "Register Register",
+      "summary": "Register",
       "parameters": "Path params: none detected",
       "responses": "200 OK, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 500 Internal Server Error"
     },
@@ -60,7 +60,7 @@
       "method": "POST",
       "path": "/login",
       "source_file": "backend/src/modules/auth/routes/auth.routes.js",
-      "summary": "Authenticate Login",
+      "summary": "Login",
       "parameters": "Path params: none detected",
       "responses": "200 OK, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 500 Internal Server Error"
     },
@@ -69,7 +69,7 @@
       "method": "POST",
       "path": "/logout",
       "source_file": "backend/src/modules/auth/routes/auth.routes.js",
-      "summary": "Logout Logout",
+      "summary": "Logout",
       "parameters": "Path params: none detected",
       "responses": "200 OK, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 500 Internal Server Error"
     },
@@ -78,7 +78,7 @@
       "method": "POST",
       "path": "/refresh",
       "source_file": "backend/src/modules/auth/routes/auth.routes.js",
-      "summary": "Create Refresh",
+      "summary": "Refresh",
       "parameters": "Path params: none detected",
       "responses": "200 OK, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 500 Internal Server Error"
     },
@@ -87,7 +87,7 @@
       "method": "POST",
       "path": "/change-password",
       "source_file": "backend/src/modules/auth/routes/auth.routes.js",
-      "summary": "Create Change Password",
+      "summary": "Change Password",
       "parameters": "Path params: none detected",
       "responses": "200 OK, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 500 Internal Server Error"
     },
@@ -96,7 +96,7 @@
       "method": "GET",
       "path": "/me",
       "source_file": "backend/src/modules/auth/routes/auth.routes.js",
-      "summary": "List Me",
+      "summary": "Get Current User",
       "parameters": "Path params: none detected",
       "responses": "200 OK, 401 Unauthorized, 403 Forbidden, 500 Internal Server Error"
     },
@@ -105,7 +105,7 @@
       "method": "GET",
       "path": "/",
       "source_file": "backend/src/modules/comments/routes/comment.routes.js",
-      "summary": "List Resource endpoint",
+      "summary": "List comments",
       "parameters": "Path params: none detected",
       "responses": "200 OK, 201 Created, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 500 Internal Server Error"
     },
@@ -114,7 +114,7 @@
       "method": "POST",
       "path": "/",
       "source_file": "backend/src/modules/comments/routes/comment.routes.js",
-      "summary": "Create Resource endpoint",
+      "summary": "Create comment",
       "parameters": "Path params: none detected",
       "responses": "200 OK, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 500 Internal Server Error"
     },
@@ -123,7 +123,7 @@
       "method": "PATCH",
       "path": "/{id}",
       "source_file": "backend/src/modules/comments/routes/comment.routes.js",
-      "summary": "Update Resource endpoint",
+      "summary": "Update comment",
       "parameters": "Path params: id",
       "responses": "200 OK, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 500 Internal Server Error"
     },
@@ -132,7 +132,7 @@
       "method": "DELETE",
       "path": "/{id}",
       "source_file": "backend/src/modules/comments/routes/comment.routes.js",
-      "summary": "Delete Resource endpoint",
+      "summary": "Delete comment",
       "parameters": "Path params: id",
       "responses": "200 OK, 204 No Content, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 500 Internal Server Error"
     },
@@ -159,7 +159,7 @@
       "method": "GET",
       "path": "/",
       "source_file": "backend/src/modules/labels/routes/label.routes.js",
-      "summary": "List Resource endpoint",
+      "summary": "List labels",
       "parameters": "Path params: none detected",
       "responses": "200 OK, 201 Created, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 500 Internal Server Error"
     },
@@ -168,7 +168,7 @@
       "method": "POST",
       "path": "/",
       "source_file": "backend/src/modules/labels/routes/label.routes.js",
-      "summary": "Create Resource endpoint",
+      "summary": "Create label",
       "parameters": "Path params: none detected",
       "responses": "200 OK, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 500 Internal Server Error"
     },
@@ -177,7 +177,7 @@
       "method": "GET",
       "path": "/{id}",
       "source_file": "backend/src/modules/labels/routes/label.routes.js",
-      "summary": "Get Resource endpoint",
+      "summary": "Get label by ID",
       "parameters": "Path params: id",
       "responses": "200 OK, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 500 Internal Server Error"
     },
@@ -186,7 +186,7 @@
       "method": "PATCH",
       "path": "/{id}",
       "source_file": "backend/src/modules/labels/routes/label.routes.js",
-      "summary": "Update Resource endpoint",
+      "summary": "Update label",
       "parameters": "Path params: id",
       "responses": "200 OK, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 500 Internal Server Error"
     },
@@ -195,7 +195,7 @@
       "method": "DELETE",
       "path": "/{id}",
       "source_file": "backend/src/modules/labels/routes/label.routes.js",
-      "summary": "Delete Resource endpoint",
+      "summary": "Delete label",
       "parameters": "Path params: id",
       "responses": "204 No Content, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 500 Internal Server Error"
     },
@@ -213,7 +213,7 @@
       "method": "GET",
       "path": "/",
       "source_file": "backend/src/modules/projects/routes/project.routes.js",
-      "summary": "List Resource endpoint",
+      "summary": "List projects",
       "parameters": "Path params: none detected",
       "responses": "200 OK, 201 Created, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 409 Conflict, 500 Internal Server Error"
     },
@@ -222,7 +222,7 @@
       "method": "POST",
       "path": "/",
       "source_file": "backend/src/modules/projects/routes/project.routes.js",
-      "summary": "Create Resource endpoint",
+      "summary": "Create project",
       "parameters": "Path params: none detected",
       "responses": "200 OK, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 500 Internal Server Error"
     },
@@ -231,7 +231,7 @@
       "method": "GET",
       "path": "/{id}",
       "source_file": "backend/src/modules/projects/routes/project.routes.js",
-      "summary": "Get Resource endpoint",
+      "summary": "Get project by ID",
       "parameters": "Path params: id",
       "responses": "200 OK, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 500 Internal Server Error"
     },
@@ -240,7 +240,7 @@
       "method": "PATCH",
       "path": "/{id}",
       "source_file": "backend/src/modules/projects/routes/project.routes.js",
-      "summary": "Update Resource endpoint",
+      "summary": "Update project",
       "parameters": "Path params: id",
       "responses": "200 OK, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 500 Internal Server Error"
     },
@@ -249,7 +249,7 @@
       "method": "DELETE",
       "path": "/{id}",
       "source_file": "backend/src/modules/projects/routes/project.routes.js",
-      "summary": "Delete Resource endpoint",
+      "summary": "Delete project",
       "parameters": "Path params: id",
       "responses": "200 OK, 204 No Content, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 409 Conflict, 500 Internal Server Error"
     },
@@ -258,7 +258,7 @@
       "method": "POST",
       "path": "/{id}/members",
       "source_file": "backend/src/modules/projects/routes/project.routes.js",
-      "summary": "Create Members",
+      "summary": "Add member to project",
       "parameters": "Path params: id",
       "responses": "200 OK, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 500 Internal Server Error"
     },
@@ -321,7 +321,7 @@
       "method": "GET",
       "path": "/",
       "source_file": "backend/src/modules/tasks/routes/task.routes.js",
-      "summary": "List Resource endpoint",
+      "summary": "List tasks",
       "parameters": "Path params: none detected",
       "responses": "200 OK, 201 Created, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 500 Internal Server Error"
     },
@@ -330,7 +330,7 @@
       "method": "POST",
       "path": "/",
       "source_file": "backend/src/modules/tasks/routes/task.routes.js",
-      "summary": "Create Resource endpoint",
+      "summary": "Create task",
       "parameters": "Path params: none detected",
       "responses": "200 OK, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 500 Internal Server Error"
     },
@@ -339,7 +339,7 @@
       "method": "GET",
       "path": "/{id}",
       "source_file": "backend/src/modules/tasks/routes/task.routes.js",
-      "summary": "Get Resource endpoint",
+      "summary": "Get task by ID",
       "parameters": "Path params: id",
       "responses": "200 OK, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 500 Internal Server Error"
     },
@@ -348,7 +348,7 @@
       "method": "PATCH",
       "path": "/{id}",
       "source_file": "backend/src/modules/tasks/routes/task.routes.js",
-      "summary": "Update Resource endpoint",
+      "summary": "Update task",
       "parameters": "Path params: id",
       "responses": "200 OK, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 500 Internal Server Error"
     },
@@ -357,7 +357,7 @@
       "method": "DELETE",
       "path": "/{id}",
       "source_file": "backend/src/modules/tasks/routes/task.routes.js",
-      "summary": "Delete Resource endpoint",
+      "summary": "Delete task",
       "parameters": "Path params: id",
       "responses": "204 No Content, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 500 Internal Server Error"
     },
@@ -375,7 +375,7 @@
       "method": "GET",
       "path": "/",
       "source_file": "backend/src/modules/users/routes/user.routes.js",
-      "summary": "List Resource endpoint",
+      "summary": "List users",
       "parameters": "Path params: none detected",
       "responses": "200 OK, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 500 Internal Server Error"
     },
@@ -384,7 +384,7 @@
       "method": "GET",
       "path": "/{id}",
       "source_file": "backend/src/modules/users/routes/user.routes.js",
-      "summary": "Get Resource endpoint",
+      "summary": "Get user by ID",
       "parameters": "Path params: id",
       "responses": "200 OK, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 500 Internal Server Error"
     },
@@ -393,7 +393,7 @@
       "method": "PATCH",
       "path": "/{id}",
       "source_file": "backend/src/modules/users/routes/user.routes.js",
-      "summary": "Update Resource endpoint",
+      "summary": "Update user",
       "parameters": "Path params: id",
       "responses": "200 OK, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 500 Internal Server Error"
     },
@@ -411,7 +411,7 @@
       "method": "DELETE",
       "path": "/{id}",
       "source_file": "backend/src/modules/users/routes/user.routes.js",
-      "summary": "Delete Resource endpoint",
+      "summary": "Delete user",
       "parameters": "Path params: id",
       "responses": "204 No Content, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 500 Internal Server Error"
     }

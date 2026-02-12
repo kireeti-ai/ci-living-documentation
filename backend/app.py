@@ -45,7 +45,7 @@ def _extract_impact_report(payload):
     return current
 
 
-@app.route(OPENAPI_URL, methods=["GET"])
+@app.route( , methods=["GET"])
 def openapi_spec():
     """
     OpenAPI 3 spec for Swagger UI.

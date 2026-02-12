@@ -30,11 +30,14 @@ ADR_REQUIRED_SECTIONS = ["Status", "Date", "Context", "Decision", "Consequences"
 
 # README required sections
 README_REQUIRED_HEADINGS = [
-    "Auto-Generated Documentation",
-    "Repository Information",
-    "Changed Files",
-    "Change Impact",
-    "Additional Documentation"
+    "Executive Summary",
+    "Key Features",
+    "System Architecture",
+    "Tech Stack",
+    "Repository Structure",
+    "Installation & Setup",
+    "API Reference",
+    "Impact Analysis [Internal]"
 ]
 
 # doc_snapshot.json required schema fields
@@ -145,8 +148,20 @@ def validate_mermaid_syntax(content: str, diagram_type: str) -> Tuple[bool, List
     if diagram_type == "er":
         # Remove ER relationship patterns like ||--o{ or }o--|| etc.
         import re
-        content_for_brace_check = re.sub(r'\|\|--o\{', '', content)
+        # Remove ER relationship patterns recursively or in sequence
+        # We need to remove all common relationship markers that contain braces
+        # Patterns: ||--|{, ||--o{, }|--||, }o--||, }o--o{, }|--|{ 
+        # Also simple ones like --|{, --o{
+        
+        # Using a loop to clear all relationships is safer than listing every permutation
+        content_for_brace_check = re.sub(r'\|\|--\|\{', '', content_for_brace_check)
+        content_for_brace_check = re.sub(r'\|\|--o\{', '', content_for_brace_check)
+        content_for_brace_check = re.sub(r'\}\|--\|\|', '', content_for_brace_check)
         content_for_brace_check = re.sub(r'\}o--\|\|', '', content_for_brace_check)
+        content_for_brace_check = re.sub(r'\}\|--\|\{', '', content_for_brace_check)
+        content_for_brace_check = re.sub(r'\}o--o\{', '', content_for_brace_check)
+        
+        # Legacy ones from previous code
         content_for_brace_check = re.sub(r'\|\|--\|\|', '', content_for_brace_check)
         content_for_brace_check = re.sub(r'\|o--o\|', '', content_for_brace_check)
     

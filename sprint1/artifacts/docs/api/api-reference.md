@@ -424,6 +424,5 @@
 ## Notes
 
 - This documentation was generated from detected endpoint patterns with inferred metadata
-- LLM enrichment was enabled where available using local RAG context
 - Review source controllers/routes for exact auth and payload schemas
 - For detailed implementation, refer to the source files

@@ -40,6 +40,11 @@ def generate_adr(report, generated_at=None, rag_context=None) -> str:
 
 **Accepted** (Snapshot as of {generated_date})
 
+## Date
+
+{generated_date}
+
+
 ## Context
 
 {adr_context}

@@ -336,33 +336,72 @@ def generate_api_descriptions_json(report, rag_context: Optional[Dict[str, str]]
             if not path:
                 continue
 
-            summary = str(ep.get("summary", "")).strip() or _infer_summary(method, path)
+            source = ep.get("source") if isinstance(ep.get("source"), dict) else {}
+            file_path = source.get("file", "contract/unknown")
 
+            # --- Summary (fast heuristic, no LLM) ---
+            summary = str(ep.get("summary", "")).strip()
+            if not summary:
+                summary = _infer_summary(method, path)
+
+            # Derive resource name from module path for smarter summaries
+            resource_hint = "resource"
+            if "modules/" in file_path:
+                try:
+                    resource_hint = file_path.split("modules/")[1].split("/")[0].rstrip("s")
+                except Exception:
+                    pass
+
+            # Fix repetitive summaries ("Register Register" -> "Register")
+            parts = summary.split()
+            if len(parts) == 2 and parts[0].lower() == parts[1].lower():
+                summary = parts[0]
+            elif summary == "Authenticate Login":
+                summary = "Login"
+            elif summary == "List Me":
+                summary = "Get Current User"
+            elif summary.startswith("Create ") and len(parts) >= 2:
+                rest = " ".join(parts[1:]).lower()
+                if rest in ["login", "logout", "register", "refresh", "change password"]:
+                    summary = " ".join(parts[1:])
+
+            # Replace generic "Resource endpoint" with resource-aware names
+            if "Resource endpoint" in summary:
+                if method == "GET" and "{" in path:
+                    summary = f"Get {resource_hint} by ID"
+                elif method == "GET":
+                    summary = f"List {resource_hint}s"
+                elif method == "POST":
+                    summary = f"Create {resource_hint}"
+                elif method in ("PATCH", "PUT"):
+                    summary = f"Update {resource_hint}"
+                elif method == "DELETE":
+                    summary = f"Delete {resource_hint}"
+
+            # Sub-resource naming
+            if "members" in path and method == "POST":
+                summary = f"Add member to {resource_hint}"
+
+            # --- Parameters (from contract data) ---
             req = ep.get("request") if isinstance(ep.get("request"), dict) else {}
             path_params = req.get("path_params") if isinstance(req.get("path_params"), list) else []
-            param_names = []
-            for p in path_params:
-                if isinstance(p, dict) and p.get("name"):
-                    param_names.append(str(p["name"]))
+            param_names = [str(p["name"]) for p in path_params if isinstance(p, dict) and p.get("name")]
             parameters = f"Path params: {', '.join(param_names)}" if param_names else "Path params: none detected"
 
+            # --- Responses (from contract data) ---
             resp = ep.get("responses") if isinstance(ep.get("responses"), list) else []
             status_parts = []
             for r in resp:
                 if isinstance(r, dict) and r.get("status") is not None:
                     desc = str(r.get("description", "")).strip()
-                    if desc:
-                        status_parts.append(f"{r['status']} {desc}")
-                    else:
-                        status_parts.append(str(r["status"]))
+                    status_parts.append(f"{r['status']} {desc}" if desc else str(r["status"]))
             responses = ", ".join(status_parts) if status_parts else _infer_response(method)
 
-            source = ep.get("source") if isinstance(ep.get("source"), dict) else {}
             endpoints.append({
                 "key": f"{method} {path}",
                 "method": method,
                 "path": path,
-                "source_file": source.get("file", "contract/unknown"),
+                "source_file": file_path,
                 "summary": summary,
                 "parameters": parameters,
                 "responses": responses,

@@ -1,6 +1,6 @@
 # System Architecture Documentation
 
-**Repository**: `Test-Project-Deployment-Check`
+**Repository**: `ci-living-documentation`
 **Branch**: `main`
 **Snapshot Commit**: `d4509166`
 
@@ -122,9 +122,9 @@ erDiagram
     USER ||--o{ PROJECT : manages
     PROJECT ||--|{ TASK : contains
     TASK ||--o{ COMMENT : has
-    USER ||--o{ COMMENT : owns
-    USER ||--o{ ACTIVITY : owns
     USER ||--o{ LABEL : owns
+    USER ||--o{ ACTIVITY : owns
+    USER ||--o{ COMMENT : owns
 ```
 
 **Key Data Structures:**

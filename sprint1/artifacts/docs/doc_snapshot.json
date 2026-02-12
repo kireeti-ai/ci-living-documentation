@@ -1,9 +1,9 @@
 {
-  "snapshot_id": "a06afe459a319e66",
-  "project_id": "test-project-pro-readme",
-  "commit": "commit-v8-debug",
-  "generated_at": "2026-02-10T19:30:50.428705Z",
-  "docs_bucket_path": "test-project-pro-readme/commit-v8-debug/docs/",
+  "snapshot_id": "0e9be8525347db28",
+  "project_id": "test-project",
+  "commit": "test-commit",
+  "generated_at": "2026-02-12T04:35:04.988734Z",
+  "docs_bucket_path": "test-project/test-commit/docs/",
   "generated_files": [
     {
       "file": "README.generated.md",
@@ -11,19 +11,9 @@
       "description": "Auto-generated repository README"
     },
     {
-      "file": "api/api-reference.md",
-      "type": "markdown",
-      "description": "API endpoint documentation"
-    },
-    {
-      "file": "api/api-descriptions.json",
-      "type": "json",
-      "description": "API endpoint descriptions map"
-    },
-    {
       "file": "adr/ADR-001.md",
       "type": "markdown",
-      "description": "Architecture Decision Record"
+      "description": "Architecture Baseline"
     },
     {
       "file": "architecture/system.mmd",
@@ -41,14 +31,24 @@
       "description": "Entity-relationship diagram"
     },
     {
-      "file": "tree.txt",
-      "type": "text",
-      "description": "Hierarchical file tree"
-    },
-    {
       "file": "architecture/architecture.md",
       "type": "markdown",
       "description": "Architecture documentation text"
+    },
+    {
+      "file": "api/api-reference.md",
+      "type": "markdown",
+      "description": "API endpoint documentation"
+    },
+    {
+      "file": "api/api-descriptions.json",
+      "type": "json",
+      "description": "API endpoint descriptions map"
+    },
+    {
+      "file": "tree.txt",
+      "type": "text",
+      "description": "Hierarchical file tree"
     },
     {
       "file": "doc_snapshot.json",
@@ -78,7 +78,7 @@
     "diagram_count": 3
   },
   "repo": {
-    "name": "git_clone_vle_6acz",
+    "name": "ci-living-documentation",
     "branch": "main",
     "commit": "d4509166"
   },
