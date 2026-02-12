@@ -98,7 +98,7 @@ app = FastAPI(
 )
 
 
-@app.get("/", response_model=Dict[str, str])
+@app.get("/", response_model=Dict[str, Any])
 async def root():
     """Root endpoint with API information."""
     return {

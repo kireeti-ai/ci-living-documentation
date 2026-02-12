@@ -107,7 +107,7 @@ def build_drift_report(
         "generated_at": datetime.utcnow().isoformat() + "Z",
         "repo": repo_metadata.get("repo", {}),
         "drift_detected": drift_detected,
-        "drift_severity": severity if drift_detected else "NONE",
+        "overall_severity": severity if drift_detected else "NONE",
         "swagger_sync_required": swagger_sync_required,
         "severity_summary": severity_summary,
         "issues": issues,

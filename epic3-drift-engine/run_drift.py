@@ -243,7 +243,7 @@ def main():
         print("=" * 60)
         print(f"Report ID: {drift_report['report_id']}")
         print(f"Drift Detected: {drift_report['drift_detected']}")
-        print(f"Overall Severity: {drift_report['drift_severity']}")
+        print(f"Overall Severity: {drift_report['overall_severity']}")
         print(f"Swagger Sync Required: {drift_report['swagger_sync_required']}")
         print(f"Total Issues: {drift_report['statistics']['total_drift_issues']}")
         print("=" * 60)

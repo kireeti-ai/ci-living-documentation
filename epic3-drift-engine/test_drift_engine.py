@@ -184,7 +184,9 @@ def main():
     except Exception as e:
         print()
         print("=" * 60)
-        print(f"✗ Tests failed: {e}")
+        import traceback
+        traceback.print_exc()
+        print(f"✗ Tests failed: {e!r}")
         print("=" * 60)
         sys.exit(1)
 
