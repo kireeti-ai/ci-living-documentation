@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
+// @ts-ignore
 import Particles, { initParticlesEngine } from '@tsparticles/react'
+// @ts-ignore
 import { loadSlim } from '@tsparticles/slim'
-import type { Engine } from '@tsparticles/engine'
 
 export default function ParticleField() {
     const [init, setInit] = useState(false);
 
     useEffect(() => {
-        initParticlesEngine(async (engine) => {
+        initParticlesEngine(async (engine: any) => {
             await loadSlim(engine);
         }).then(() => {
             setInit(true);
