@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import Navbar from './components/Navbar'
 import HeroSection from './components/HeroSection'
 import Footer from './components/Footer'
+import './styles/landing.css'
 
 // Lazy load heavy sections for performance
 const PipelineSection = lazy(() => import('./components/PipelineSection'))
