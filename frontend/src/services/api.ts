@@ -186,6 +186,14 @@ export interface SearchResult {
   matchCount: number
 }
 
+interface RawSearchResult {
+  commit: string
+  metadata: DocumentMetadata
+  snippet?: string
+  matchCount?: number
+  matches?: string[]
+}
+
 // Filters response
 export interface FiltersResponse {
   commits: string[]
@@ -198,7 +206,7 @@ export interface SearchResponse {
   projectId: string
   projectName: string
   query: string
-  results: SearchResult[]
+  results: RawSearchResult[]
 }
 
 // Documents API
@@ -224,8 +232,33 @@ export const documentsApi = {
     api.get<DocumentMetadata>(`/projects/${projectId}/documents/${encodeURIComponent(commit)}/metadata`),
 
   // Search across all document commits
-  search: (projectId: string, query: string, filters?: { branch?: string; commit?: string; tags?: string[] }) =>
-    api.post<SearchResponse>(`/projects/${projectId}/documents/search`, { query, ...filters }),
+  search: async (projectId: string, query: string, filters?: { branch?: string; commit?: string; tags?: string[] }) => {
+    const response = await api.post<SearchResponse>(`/projects/${projectId}/documents/search`, { query, ...filters })
+    const normalizedResults: SearchResult[] = (response.data.results || []).map((result) => {
+      const matches = Array.isArray(result.matches) ? result.matches : []
+      const snippet = typeof result.snippet === 'string' && result.snippet.length > 0
+        ? result.snippet
+        : (matches[0] || '')
+      const matchCount = typeof result.matchCount === 'number'
+        ? result.matchCount
+        : matches.length
+
+      return {
+        commit: result.commit,
+        metadata: result.metadata,
+        snippet,
+        matchCount,
+      }
+    })
+
+    return {
+      ...response,
+      data: {
+        ...response.data,
+        results: normalizedResults,
+      },
+    }
+  },
 
   // Update document tags and version (owner/admin only)
   updateTags: (projectId: string, commit: string, tags: string[], version?: string) =>

@@ -97,6 +97,7 @@ const DocumentList = ({ projectId, canManage }: DocumentListProps) => {
     }
     
     setIsSearching(true)
+    setError(null)
     try {
       const response = await documentsApi.search(projectId, searchQuery, {
         branch: selectedBranch || undefined,
@@ -346,7 +347,7 @@ const DocumentList = ({ projectId, canManage }: DocumentListProps) => {
                 <div key={index} className="search-result-item">
                   <div className="search-result-header">
                     <span className="version-badge">{result.commit.substring(0, 7)}</span>
-                    <span className="branch-badge">{result.metadata.branch}</span>
+                    <span className="branch-badge">{result.metadata?.branch || '-'}</span>
                     <button
                       className="btn btn-link"
                       onClick={() => navigate(`/projects/${projectId}/docs/${encodeURIComponent(result.commit)}`)}
@@ -356,7 +357,7 @@ const DocumentList = ({ projectId, canManage }: DocumentListProps) => {
                   </div>
                   <div className="search-matches">
                     <pre className="match-preview">
-                      {highlightMatch(result.snippet, searchQuery)}
+                      {highlightMatch(result.snippet || '', searchQuery)}
                     </pre>
                     {result.matchCount > 1 && (
                       <span className="more-matches">

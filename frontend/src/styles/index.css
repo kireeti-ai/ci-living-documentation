@@ -2703,3 +2703,142 @@ tr:hover {
     gap: 16px;
   }
 }
+
+/* Unified app theme to match landing-page style direction */
+.page-container {
+  background: var(--bg-canvas);
+  color: var(--text-primary);
+}
+
+.navbar,
+.card,
+.tab-content,
+.documents-container,
+.document-header,
+.document-search-bar,
+.document-content,
+.comparison-header,
+.diff-container,
+.api-diff-section,
+.edit-tags-container,
+.search-result-item,
+.member-item,
+.invitation-item,
+.empty-state,
+.modal {
+  background: var(--bg-default);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+}
+
+.tabs {
+  border-bottom-color: var(--border-default);
+  background: transparent;
+}
+
+.tab {
+  color: var(--text-secondary);
+}
+
+.tab:hover {
+  color: var(--text-primary);
+  background: var(--bg-subtle);
+}
+
+.tab.active {
+  color: var(--accent-blue);
+  border-bottom-color: var(--accent-blue);
+}
+
+.documents-table th,
+.documents-table td,
+.markdown-content th,
+.markdown-content td {
+  border-color: var(--border-default);
+}
+
+.documents-table th,
+.markdown-content th {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+.documents-table td,
+.markdown-content td,
+.document-description,
+.project-description,
+.project-description-full,
+.project-meta,
+.member-email,
+.invitation-email,
+.setting-description,
+.form-hint,
+.hint {
+  color: var(--text-secondary);
+}
+
+.auth-card,
+.modal-overlay .modal {
+  background: var(--bg-default);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+}
+
+.auth-card h1,
+.auth-card h2,
+.card h2,
+.card h3,
+.content-header h1,
+.modal h3 {
+  color: var(--text-primary);
+}
+
+.form-group label,
+.settings-display .setting-item label,
+.metadata-item .label {
+  color: var(--text-secondary);
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select,
+.search-input,
+.invite-input,
+.tag-input,
+.token-input,
+.role-select {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder,
+.search-input::placeholder,
+.invite-input::placeholder,
+.tag-input::placeholder,
+.token-input::placeholder {
+  color: var(--text-muted);
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus,
+.search-input:focus,
+.invite-input:focus,
+.tag-input:focus,
+.token-input:focus,
+.role-select:focus {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.2);
+}
+
+.btn-secondary {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--bg-default);
+}
