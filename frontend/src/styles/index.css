@@ -2842,3 +2842,134 @@ tr:hover {
 .btn-secondary:hover:not(:disabled) {
   background: var(--bg-default);
 }
+
+/* Final contrast guardrails: enforce readable text on dark theme everywhere */
+:root {
+  --bg-canvas: #0b1220;
+  --bg-default: #121a2a;
+  --bg-subtle: #1a2438;
+  --text-primary: #e8edf7;
+  --text-secondary: #b8c2d6;
+  --text-muted: #8d98ad;
+  --text-link: #7cc4ff;
+  --border-default: #2b3853;
+}
+
+html,
+body,
+#root,
+.app,
+.page-container {
+  background: var(--bg-canvas) !important;
+  color: var(--text-primary) !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+span,
+label,
+li,
+td,
+th,
+small,
+strong {
+  color: inherit;
+}
+
+a,
+.btn-link,
+.navbar-links a,
+.project-github-link a,
+.auth-link a {
+  color: var(--text-link) !important;
+}
+
+a:hover,
+.btn-link:hover,
+.navbar-links a:hover,
+.project-github-link a:hover,
+.auth-link a:hover {
+  color: #a6d8ff !important;
+}
+
+.card,
+.tab-content,
+.documents-container,
+.document-header,
+.document-search-bar,
+.document-content,
+.comparison-header,
+.diff-container,
+.api-diff-section,
+.edit-tags-container,
+.search-result-item,
+.member-item,
+.invitation-item,
+.empty-state,
+.modal,
+.auth-card,
+.navbar,
+.project-card,
+.document-summary,
+.tags-list.editable,
+.api-card,
+.api-card-body,
+.diff-old,
+.diff-new,
+.metadata-display {
+  background: var(--bg-default) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-default) !important;
+}
+
+input,
+textarea,
+select,
+option,
+.search-input,
+.invite-input,
+.token-input,
+.tag-input,
+.role-select {
+  background: var(--bg-subtle) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-default) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted) !important;
+}
+
+table,
+thead,
+tbody,
+tr,
+th,
+td {
+  border-color: var(--border-default) !important;
+}
+
+th {
+  background: var(--bg-subtle) !important;
+  color: var(--text-primary) !important;
+}
+
+td,
+.project-description,
+.project-description-full,
+.project-meta,
+.member-email,
+.invitation-email,
+.setting-description,
+.form-hint,
+.hint,
+.no-results,
+.no-tags {
+  color: var(--text-secondary) !important;
+}

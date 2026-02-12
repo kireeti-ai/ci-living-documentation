@@ -1,4 +1,5 @@
-﻿
+@import "tailwindcss";
+
 /* ===== CRITICAL TAILWIND UTILITIES (Manual Fix) ===== */
 /* These should be auto-generated but Tailwind v4 is failing */
 .mx-auto {
@@ -638,7 +639,7 @@
 
 /* ===== GITHUB-INSPIRED DESIGN TOKENS ===== */
 :root {
-  /* Backgrounds â€” GitHub dark */
+  /* Backgrounds — GitHub dark */
   --bg-canvas: #0d1117;
   --bg-default: #161b22;
   --bg-subtle: #1c2128;
@@ -656,7 +657,7 @@
   --text-muted: #484f58;
   --text-link: #58a6ff;
 
-  /* Accent colors â€” GitHub palette */
+  /* Accent colors — GitHub palette */
   --accent-blue: #58a6ff;
   --accent-blue-emphasis: #1f6feb;
   --accent-green: #3fb950;
@@ -724,7 +725,7 @@ li {
   margin-bottom: 0.5rem;
 }
 
-/* ===== SCROLLBAR â€” subtle GitHub style ===== */
+/* ===== SCROLLBAR — subtle GitHub style ===== */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -748,7 +749,7 @@ li {
   color: #fff;
 }
 
-/* ===== CARD PANEL â€” GitHub-style card ===== */
+/* ===== CARD PANEL — GitHub-style card ===== */
 .gh-card {
   background: var(--bg-default);
   border: 1px solid var(--border-default);
@@ -775,7 +776,7 @@ li {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* ===== BUTTONS â€” GitHub-style ===== */
+/* ===== BUTTONS — GitHub-style ===== */
 .btn-primary {
   display: inline-flex;
   align-items: center;
@@ -950,7 +951,7 @@ li {
   }
 }
 
-/* ===== MARKDOWN PREVIEW â€” GitHub dark ===== */
+/* ===== MARKDOWN PREVIEW — GitHub dark ===== */
 .markdown-preview {
   font-family: var(--font-sans);
   color: #e6edf3;
@@ -1094,44 +1095,4 @@ li {
 .markdown-preview strong {
   font-weight: 600;
   color: #e6edf3;
-}
-
-/* Contrast guardrails for landing page */
-:root {
-  --bg-canvas: #0b1220;
-  --bg-default: #121a2a;
-  --bg-subtle: #1a2438;
-  --text-primary: #e8edf7;
-  --text-secondary: #b8c2d6;
-  --text-muted: #8d98ad;
-  --text-link: #7cc4ff;
-  --border-default: #2b3853;
-}
-
-.main-bg-gradient {
-  background: radial-gradient(circle at 50% 0%, #18233b 0%, #0b1220 60%, #070d18 100%) !important;
-}
-
-.gh-card,
-.gh-card-subtle {
-  background: var(--bg-default) !important;
-  color: var(--text-primary) !important;
-  border-color: var(--border-default) !important;
-}
-
-.gh-badge,
-.markdown-preview code,
-.markdown-preview pre {
-  color: var(--text-primary) !important;
-}
-
-.markdown-preview p,
-.markdown-preview li,
-.markdown-preview td,
-.markdown-preview em {
-  color: var(--text-secondary) !important;
-}
-
-.markdown-preview a {
-  color: var(--text-link) !important;
 }
