@@ -230,8 +230,9 @@ export const getDocumentReadme = async (projectId: string, commitHash: string): 
 /**
  * Get API docs content for a specific commit (JSON format)
  * Path: docs/api/api-descriptions.json
+ * Returns parsed JSON object if file is JSON, otherwise string
  */
-export const getDocumentContent = async (projectId: string, commitHash: string): Promise<string | null> => {
+export const getDocumentContent = async (projectId: string, commitHash: string): Promise<any | null> => {
   if (!r2Client) throw new Error('R2 not configured')
 
   // New path: docs/api/api-descriptions.json
@@ -246,7 +247,13 @@ export const getDocumentContent = async (projectId: string, commitHash: string):
     const response = await r2Client.send(command)
 
     if (response.Body) {
-      return await streamToString(response.Body)
+      const text = await streamToString(response.Body)
+      try {
+        return JSON.parse(text)
+      } catch (e) {
+        console.warn('Failed to parse api-descriptions.json, returning text', e)
+        return text
+      }
     }
   } catch (error: any) {
     if (error.name !== 'NoSuchKey' && error.$metadata?.httpStatusCode !== 404) {
@@ -289,7 +296,15 @@ export const getDocumentContent = async (projectId: string, commitHash: string):
       return null
     }
 
-    return await streamToString(response.Body)
+    const text = await streamToString(response.Body)
+    if (docFile.Key.endsWith('.json')) {
+      try {
+        return JSON.parse(text)
+      } catch (e) {
+        return text
+      }
+    }
+    return text
   } catch (error: any) {
     console.error('Error fetching document content:', error)
     return null
@@ -336,9 +351,17 @@ export const searchDocumentsContent = async (
     const content = await getDocumentContent(projectId, commit)
     if (!content) continue
 
+    // Convert object to string for text search if needed
+    let contentStr: string
+    if (typeof content !== 'string') {
+      contentStr = JSON.stringify(content, null, 2)
+    } else {
+      contentStr = content
+    }
+
     // Search for query in content (case-insensitive)
     const queryLower = query.toLowerCase()
-    const lines = content.split('\n')
+    const lines = contentStr.split('\n')
     const matches: string[] = []
 
     lines.forEach((line, index) => {
