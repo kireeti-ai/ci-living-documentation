@@ -2,7 +2,6 @@ import { lazy, Suspense } from 'react'
 import Navbar from './components/Navbar'
 import HeroSection from './components/HeroSection'
 import Footer from './components/Footer'
-import './styles/landing.css'
 
 // Lazy load heavy sections for performance
 const PipelineSection = lazy(() => import('./components/PipelineSection'))
@@ -24,15 +23,12 @@ function SectionLoader() {
   )
 }
 
-
-
-export default function LandingPage() {
+export default function App() {
   return (
     <div className="relative">
       <Navbar />
       <main>
         <HeroSection />
-
         <Suspense fallback={<SectionLoader />}>
           <PipelineSection />
         </Suspense>
@@ -42,9 +38,9 @@ export default function LandingPage() {
         <Suspense fallback={<SectionLoader />}>
           <DashboardSection />
         </Suspense>
-        {/* <Suspense fallback={<SectionLoader />}>
+        <Suspense fallback={<SectionLoader />}>
           <AISection />
-        </Suspense> */}
+        </Suspense>
         <Suspense fallback={<SectionLoader />}>
           <DiagramShowcase />
         </Suspense>

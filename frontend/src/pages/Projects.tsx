@@ -4,6 +4,10 @@ import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { fetchProjects, createProject, clearError } from '../store/slices/projectsSlice'
 import Navbar from '../components/Navbar'
 
+import { Book, Github, Clock, Shield, Plus, Search } from 'lucide-react'
+
+// ... (existing imports, but add lucide-react)
+
 const Projects = () => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
@@ -18,6 +22,7 @@ const Projects = () => {
   })
   const [showToken, setShowToken] = useState(false)
   const [formError, setFormError] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     dispatch(fetchProjects())
@@ -82,49 +87,94 @@ const Projects = () => {
     setFormError('')
   }
 
+  const filteredProjects = projects.filter(project =>
+    project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (project.description && project.description.toLowerCase().includes(searchQuery.toLowerCase()))
+  )
+
   return (
     <div className="page-container">
       <Navbar />
       <main className="main-content">
-        <div className="content-header">
-          <h1>Projects</h1>
-          <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
-            + New Project
-          </button>
+
+        {/* Header with Search and Action */}
+        <div className="dashboard-header flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="dashboard-title text-3xl">Projects</h1>
+            <p className="dashboard-subtitle">Manage your documentation repositories</p>
+          </div>
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <div className="relative flex-grow md:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" size={16} />
+              <input
+                type="text"
+                placeholder="Find a project..."
+                className="search-input pl-9"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <button className="btn btn-primary flex items-center gap-2" onClick={() => setShowCreateModal(true)}>
+              <Plus size={16} />
+              <span className="hidden sm:inline">New Project</span>
+            </button>
+          </div>
         </div>
 
         {error && <div className="alert alert-error">{error}</div>}
 
         {isLoading ? (
-          <div className="loading">Loading projects...</div>
-        ) : projects.length === 0 ? (
-          <div className="empty-state">
-            <h2>No projects yet</h2>
-            <p>Create your first project to get started</p>
-            <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
-              Create Project
-            </button>
+          <div className="loading">
+            <div className="spinner"></div>
+          </div>
+        ) : filteredProjects.length === 0 ? (
+          <div className="empty-state bg-[var(--bg-subtle)] border border-[var(--border-default)] rounded-lg p-12 text-center">
+            <Book size={48} className="mx-auto text-[var(--text-secondary)] mb-4 opacity-50" />
+            <h2 className="text-xl font-semibold mb-2">No projects found</h2>
+            <p className="text-[var(--text-secondary)] mb-6">
+              {projects.length === 0 ? "Get started by creating your first project." : "Try adjusting your search query."}
+            </p>
+            {projects.length === 0 && (
+              <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
+                Create Project
+              </button>
+            )}
           </div>
         ) : (
           <div className="projects-grid">
-            {projects.map((project) => (
-              <Link to={`/projects/${project.id}`} key={project.id} className="project-card">
-                <div className="project-card-header">
-                  <h3>{project.name}</h3>
-                  <span className={`role-badge role-${project.memberRole}`}>
+            {filteredProjects.map((project) => (
+              <Link to={`/projects/${project.id}`} key={project.id} className="repo-card block no-underline text-inherit h-full">
+                <div className="repo-header">
+                  <div className="repo-title text-[var(--text-link)] hover:underline">
+                    <Book size={16} className="text-[var(--text-secondary)]" />
+                    {project.name}
+                  </div>
+                  <span className={`badge badge-${project.memberRole} text-xs px-2 py-0.5`}>
                     {project.memberRole}
                   </span>
                 </div>
-                {project.description && (
-                  <p className="project-description">{project.description}</p>
-                )}
-                {project.githubUrl && (
-                  <div className="project-github">
-                    <span>GitHub</span>
+
+                <p className="repo-desc line-clamp-2">
+                  {project.description || <span className="italic opacity-50">No description provided</span>}
+                </p>
+
+                <div className="repo-meta mt-auto pt-4">
+                  {project.githubUrl && (
+                    <div className="repo-meta-item">
+                      <Github size={12} />
+                      <span className="truncate max-w-[120px]">
+                        {project.githubUrl.replace('https://github.com/', '')}
+                      </span>
+                    </div>
+                  )}
+                  <div className="repo-meta-item">
+                    <div className="language-dot" style={{ backgroundColor: '#3178c6' }}></div>
+                    TypeScript
                   </div>
-                )}
-                <div className="project-meta">
-                  <span>Created {new Date(project.createdAt).toLocaleDateString()}</span>
+                  <div className="repo-meta-item ml-auto">
+                    <Clock size={12} />
+                    {new Date(project.createdAt).toLocaleDateString()}
+                  </div>
                 </div>
               </Link>
             ))}
@@ -134,92 +184,100 @@ const Projects = () => {
         {/* Create Project Modal */}
         {showCreateModal && (
           <div className="modal-overlay" onClick={closeModal}>
-            <div className="modal modal-large" onClick={(e) => e.stopPropagation()}>
+            <div className="modal modal-large w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
               <div className="modal-header">
-                <h2>Create New Project</h2>
-                <button className="btn-close" onClick={closeModal}>×</button>
+                <h2 className="text-lg font-semibold">Create New Project</h2>
+                <button className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]" onClick={closeModal}>×</button>
               </div>
               <form onSubmit={handleCreateProject}>
-                <div className="form-group">
-                  <label htmlFor="name">Project Name *</label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="My Awesome Project"
-                    autoFocus
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="description">Description</label>
-                  <textarea
-                    id="description"
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    placeholder="What is this project about?"
-                    rows={3}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="githubUrl">GitHub URL *</label>
-                  <input
-                    type="url"
-                    id="githubUrl"
-                    name="githubUrl"
-                    value={formData.githubUrl}
-                    onChange={handleChange}
-                    placeholder="https://github.com/username/repo"
-                    required
-                  />
-                  <small className="form-hint">Cannot be changed after project creation</small>
-                </div>
+                <div className="p-6 space-y-4">
+                  <div className="form-group">
+                    <label htmlFor="name">Project Name <span className="text-red-500">*</span></label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      placeholder="e.g. backend-service"
+                      autoFocus
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="description">Description</label>
+                    <textarea
+                      id="description"
+                      name="description"
+                      value={formData.description}
+                      onChange={handleChange}
+                      placeholder="Short description of your project"
+                      rows={3}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="githubUrl">GitHub URL <span className="text-red-500">*</span></label>
+                    <div className="relative">
+                      <Github size={16} className="absolute left-3 top-2.5 text-[var(--text-secondary)]" />
+                      <input
+                        type="url"
+                        id="githubUrl"
+                        name="githubUrl"
+                        value={formData.githubUrl}
+                        onChange={handleChange}
+                        placeholder="https://github.com/username/repo"
+                        className="pl-9"
+                        required
+                      />
+                    </div>
+                  </div>
 
-                <div className="form-section">
-                  <h3>Documentation Settings</h3>
-                  
-                  <div className="form-group-inline">
-                    <label className="checkbox-label">
+                  <div className="p-4 bg-[var(--bg-subtle)] rounded-md border border-[var(--border-default)]">
+                    <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                      <Shield size={14} /> Automation Settings
+                    </h3>
+
+                    <div className="form-group-inline flex items-center gap-2 mb-3">
                       <input
                         type="checkbox"
                         name="autoGenerateDocs"
+                        id="autoGenerateDocs"
                         checked={formData.autoGenerateDocs}
                         onChange={handleChange}
+                        className="accent-[var(--accent-green)]"
                       />
-                      <span>Auto-generate Documentation</span>
-                    </label>
-                    <small className="form-hint">Automatically generate docs when code changes are pushed</small>
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="githubAccessToken">GitHub Access Token (optional)</label>
-                    <div className="token-input-wrapper">
-                      <input
-                        type={showToken ? 'text' : 'password'}
-                        id="githubAccessToken"
-                        name="githubAccessToken"
-                        value={formData.githubAccessToken}
-                        onChange={handleChange}
-                        placeholder="ghp_xxxxxxxxxxxx"
-                        className="token-input"
-                      />
-                      <button
-                        type="button"
-                        className="btn-toggle-visibility"
-                        onClick={() => setShowToken(!showToken)}
-                      >
-                        {showToken ? 'Hide' : 'Show'}
-                      </button>
+                      <label htmlFor="autoGenerateDocs" className="text-sm font-medium cursor-pointer mb-0">Auto-generate Documentation</label>
                     </div>
-                    <small className="form-hint">Required for private repositories and auto-generation</small>
+
+                    {formData.autoGenerateDocs && (
+                      <div className="mt-3 animate-in fade-in slide-in-from-top-1">
+                        <label htmlFor="githubAccessToken" className="text-xs mb-1 block">GitHub Access Token (for private repos)</label>
+                        <div className="relative">
+                          <input
+                            type={showToken ? 'text' : 'password'}
+                            id="githubAccessToken"
+                            name="githubAccessToken"
+                            value={formData.githubAccessToken}
+                            onChange={handleChange}
+                            placeholder="ghp_xxxxxxxxxxxx"
+                            className="text-sm"
+                          />
+                          <button
+                            type="button"
+                            className="absolute right-2 top-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                            onClick={() => setShowToken(!showToken)}
+                          >
+                            {showToken ? 'Hide' : 'Show'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {formError && <div className="alert alert-error">{formError}</div>}
-                {error && <div className="alert alert-error">{error}</div>}
-                <div className="modal-actions">
+                {formError && <div className="mx-6 mb-4 alert alert-error">{formError}</div>}
+                {error && <div className="mx-6 mb-4 alert alert-error">{error}</div>}
+
+                <div className="modal-actions bg-[var(--bg-subtle)] p-4 flex justify-end gap-3 rounded-b-lg border-t border-[var(--border-default)]">
                   <button type="button" className="btn btn-secondary" onClick={closeModal}>
                     Cancel
                   </button>

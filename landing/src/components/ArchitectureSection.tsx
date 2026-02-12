@@ -5,9 +5,9 @@ import { Network, GitFork, RefreshCw, Layers } from 'lucide-react'
 type DiagramMode = 'system' | 'dataflow' | 'lifecycle'
 
 const diagramModes = [
-    { id: 'system' as DiagramMode, label: 'System Architecture', icon: <Network size={14} />, color: 'var(--accent-blue)' },
-    { id: 'dataflow' as DiagramMode, label: 'Data Flow', icon: <GitFork size={14} />, color: 'var(--accent-purple)' },
-    { id: 'lifecycle' as DiagramMode, label: 'Doc Lifecycle', icon: <RefreshCw size={14} />, color: 'var(--accent-green)' },
+    { id: 'system' as DiagramMode, label: 'System Architecture', icon: <Network size={14} /> },
+    { id: 'dataflow' as DiagramMode, label: 'Data Flow', icon: <GitFork size={14} /> },
+    { id: 'lifecycle' as DiagramMode, label: 'Doc Lifecycle', icon: <RefreshCw size={14} /> },
 ]
 
 function SystemDiagram() {
@@ -163,10 +163,9 @@ export default function ArchitectureSection() {
                                 key={mode.id}
                                 onClick={() => setActiveMode(mode.id)}
                                 className={`flex items-center gap-2 px-6 py-2.5 text-[14px] font-medium transition-all rounded-md ${activeMode === mode.id
-                                    ? 'bg-[var(--bg-default)] shadow-sm'
-                                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                                        ? 'bg-[var(--bg-default)] text-[var(--text-primary)] shadow-sm'
+                                        : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                                     }`}
-                                style={activeMode === mode.id ? { color: mode.color } : undefined}
                             >
                                 {mode.icon}
                                 {mode.label}

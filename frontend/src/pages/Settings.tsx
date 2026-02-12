@@ -104,11 +104,10 @@ const Settings = () => {
         )}
 
         <div className="card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <div className="flex justify-between items-center mb-5">
             <h2>User Management</h2>
-            <button 
-              className="btn btn-primary" 
-              style={{ width: 'auto' }}
+            <button
+              className="btn btn-primary"
               onClick={() => setShowModal(true)}
             >
               + Add User
@@ -144,11 +143,7 @@ const Settings = () => {
                           value={user.role}
                           onChange={(e) => handleRoleChange(user.id, e.target.value)}
                           disabled={user.id === currentUser?.id}
-                          style={{
-                            padding: '4px 8px',
-                            borderRadius: '4px',
-                            border: '1px solid #ddd',
-                          }}
+                          className="px-2 py-1 rounded border border-default bg-canvas text-sm"
                         >
                           <option value="user">User</option>
                           <option value="admin">Admin</option>
@@ -175,7 +170,7 @@ const Settings = () => {
                   ))}
                   {users.length === 0 && (
                     <tr>
-                      <td colSpan={6} style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+                      <td colSpan={6} className="text-center p-10 text-secondary">
                         No users found
                       </td>
                     </tr>

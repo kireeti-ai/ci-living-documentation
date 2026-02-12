@@ -269,7 +269,7 @@ const ProjectDetail = () => {
         {/* Documents Tab */}
         {activeTab === 'documents' && (
           <div className="tab-content">
-            <DocumentList 
+            <DocumentList
               projectId={currentProject.id}
               canManage={canManageProject}
             />
@@ -310,7 +310,7 @@ const ProjectDetail = () => {
                       <span className="member-email">{member.email}</span>
                     </div>
                     {canManageProject && member.userId !== user?.id ? (
-                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                      <div className="flex items-center gap-3">
                         <select
                           value={member.role}
                           onChange={(e) => handleChangeRole(member.id, e.target.value)}
@@ -436,7 +436,7 @@ const ProjectDetail = () => {
             {/* Documentation Settings */}
             <div className="settings-section">
               <h3>Documentation Settings</h3>
-              
+
               <div className="setting-item-toggle">
                 <div className="setting-info">
                   <label>Auto-generate Documentation</label>
@@ -465,7 +465,7 @@ const ProjectDetail = () => {
                     <span className="token-set">
                       ✓ Token is set
                       {currentProject?.settings?.hasWebhook && (
-                        <span style={{ marginLeft: '12px', color: '#10b981' }}>
+                        <span className="ml-3 text-success">
                           • Webhook active
                         </span>
                       )}
@@ -506,7 +506,7 @@ const ProjectDetail = () => {
                   </div>
                 )}
                 {currentProject?.settings?.hasGithubToken && !currentProject?.settings?.hasWebhook && (
-                  <p className="setting-note" style={{ marginTop: '8px', color: '#f59e0b' }}>
+                  <p className="setting-note mt-2 text-warning">
                     ⚠️ Webhook not configured. Token may lack "admin:repo_hook" permission.
                   </p>
                 )}
@@ -519,7 +519,7 @@ const ProjectDetail = () => {
                   Manually trigger documentation generation for this project. Requires a GitHub access token.
                 </p>
                 {docGenMessage && (
-                  <div className={`alert ${docGenMessage.type === 'success' ? 'alert-success' : 'alert-error'}`} style={{ marginBottom: '12px' }}>
+                  <div className={`alert ${docGenMessage.type === 'success' ? 'alert-success' : 'alert-error'} mb-3`}>
                     {docGenMessage.text}
                   </div>
                 )}
@@ -531,7 +531,7 @@ const ProjectDetail = () => {
                   {docGenLoading ? 'Generating...' : 'Generate Documentation'}
                 </button>
                 {!currentProject?.settings?.hasGithubToken && (
-                  <p className="setting-note" style={{ marginTop: '8px', color: '#f59e0b' }}>
+                  <p className="setting-note mt-2 text-warning">
                     Please add a GitHub access token above to enable documentation generation.
                   </p>
                 )}

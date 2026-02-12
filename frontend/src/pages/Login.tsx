@@ -20,17 +20,17 @@ const Login = () => {
 
   const validateForm = () => {
     const errors: { email?: string; password?: string } = {}
-    
+
     if (!formData.email) {
       errors.email = 'Email is required'
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       errors.email = 'Invalid email format'
     }
-    
+
     if (!formData.password) {
       errors.password = 'Password is required'
     }
-    
+
     setFormErrors(errors)
     return Object.keys(errors).length === 0
   }
@@ -46,7 +46,7 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!validateForm()) return
 
     const result = await dispatch(login(formData))
@@ -59,9 +59,9 @@ const Login = () => {
     <div className="auth-container">
       <div className="auth-card">
         <h1>Welcome Back</h1>
-        
+
         {error && <div className="alert alert-error">{error}</div>}
-        
+
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="email">Email</label>
@@ -93,8 +93,8 @@ const Login = () => {
             {formErrors.password && <p className="error-text">{formErrors.password}</p>}
           </div>
 
-          <div style={{ textAlign: 'right', marginBottom: '15px' }}>
-            <Link to="/forgot-password" style={{ fontSize: '14px', color: '#4F46E5' }}>
+          <div className="text-right mb-4">
+            <Link to="/forgot-password" className="text-[14px]">
               Forgot Password?
             </Link>
           </div>

@@ -76,7 +76,7 @@ const VerifyOTP = () => {
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault()
     const pastedData = e.clipboardData.getData('text').slice(0, OTP_LENGTH)
-    
+
     if (!/^\d+$/.test(pastedData)) return
 
     const newOtp = [...otp]
@@ -174,13 +174,7 @@ const VerifyOTP = () => {
         <p className="auth-link">
           <button
             onClick={handleBack}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#4f46e5',
-              cursor: 'pointer',
-              fontSize: '14px',
-            }}
+            className="btn btn-link text-sm"
           >
             ← Back to Sign Up
           </button>

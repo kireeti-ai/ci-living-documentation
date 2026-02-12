@@ -10,7 +10,7 @@ const getApiBaseUrl = () => {
     const base = import.meta.env.VITE_API_BASE || 'https://'
     return `${base}${import.meta.env.VITE_API_HOSTPORT}`
   }
-  return 'http://localhost:8000/'
+  return 'https://ci-living-docs-backend.onrender.com'
 }
 
 const API_BASE_URL = getApiBaseUrl()
