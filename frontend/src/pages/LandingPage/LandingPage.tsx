@@ -8,7 +8,6 @@ import './styles/landing.css'
 const PipelineSection = lazy(() => import('./components/PipelineSection'))
 const ArchitectureSection = lazy(() => import('./components/ArchitectureSection'))
 const DashboardSection = lazy(() => import('./components/DashboardSection'))
-const AISection = lazy(() => import('./components/AISection'))
 const DiagramShowcase = lazy(() => import('./components/DiagramShowcase'))
 const ArtifactShowcase = lazy(() => import('./components/ArtifactShowcase'))
 

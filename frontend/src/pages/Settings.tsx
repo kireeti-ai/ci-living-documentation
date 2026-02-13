@@ -97,7 +97,7 @@ const Settings = () => {
 
   return (
     <div className="page-container">
-      <Navbar title="Settings" />
+      <Navbar />
       <div className="page-content">
         {successMessage && (
           <div className="alert alert-success">{successMessage}</div>
