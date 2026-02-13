@@ -3,8 +3,10 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { fetchProjects, createProject, clearError } from '../store/slices/projectsSlice'
 import Navbar from '../components/Navbar'
+import AppThreeBackground from '../components/AppThreeBackground'
+import { motion } from 'framer-motion'
 
-import { Book, Github, Clock, Shield, Plus, Search } from 'lucide-react'
+import { Book, Github, Clock, Shield, Plus, Search, TerminalSquare, GitBranch } from 'lucide-react'
 
 const Projects = () => {
   const dispatch = useAppDispatch()
@@ -92,9 +94,10 @@ const Projects = () => {
 
   return (
     <div className="page-container projects-shell">
+      <AppThreeBackground variant="projects" />
       <Navbar />
-      <main className="main-content">
-        <section className="proj-header">
+      <motion.main className="main-content" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease: 'easeOut' }}>
+        <motion.section className="proj-header" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
           <div>
             <h1 className="proj-title">Projects</h1>
             <p className="proj-subtitle">Track repositories, automate docs, and keep architecture current.</p>
@@ -115,7 +118,7 @@ const Projects = () => {
               New Project
             </button>
           </div>
-        </section>
+        </motion.section>
 
         {error && <div className="alert alert-error">{error}</div>}
 
@@ -124,7 +127,7 @@ const Projects = () => {
             <div className="spinner"></div>
           </div>
         ) : filteredProjects.length === 0 ? (
-          <section className="proj-empty">
+          <motion.section className="proj-empty" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06, duration: 0.35 }}>
             <Book size={42} />
             <h2>No projects found</h2>
             <p>
@@ -135,11 +138,21 @@ const Projects = () => {
                 Create Project
               </button>
             )}
-          </section>
+          </motion.section>
         ) : (
-          <section className="projects-grid">
+          <motion.section className="projects-grid" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06, duration: 0.35 }}>
             {filteredProjects.map((project) => (
               <Link to={`/projects/${project.id}`} key={project.id} className="repo-card">
+                <div className="repo-topline">
+                  <span className="repo-chip">
+                    <TerminalSquare size={12} />
+                    workspace
+                  </span>
+                  <span className="repo-chip repo-chip-branch">
+                    <GitBranch size={12} />
+                    main
+                  </span>
+                </div>
                 <div className="repo-header">
                   <div className="repo-title">
                     <Book size={16} />
@@ -172,9 +185,16 @@ const Projects = () => {
                     {new Date(project.createdAt).toLocaleDateString()}
                   </div>
                 </div>
+                <div className="repo-footerline">
+                  <span className="repo-mono-id">{project.id.slice(0, 8)}</span>
+                  <span className="repo-health">
+                    <Shield size={12} />
+                    {project.memberRole === 'owner' ? 'full-access' : 'collaborator'}
+                  </span>
+                </div>
               </Link>
             ))}
-          </section>
+          </motion.section>
         )}
 
         {/* Create Project Modal */}
@@ -283,7 +303,7 @@ const Projects = () => {
             </div>
           </div>
         )}
-      </main>
+      </motion.main>
     </div>
   )
 }

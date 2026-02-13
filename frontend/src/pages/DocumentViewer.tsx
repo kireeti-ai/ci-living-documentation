@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { documentsApi, DocumentMetadata, ArchitectureFile as ApiArchitectureFile } from '../services/api'
 import Navbar from '../components/Navbar'
+import AppThreeBackground from '../components/AppThreeBackground'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeRaw from 'rehype-raw'
@@ -566,6 +567,7 @@ const DocumentViewer = () => {
 
   return (
     <div className="page-container document-viewer-shell">
+      <AppThreeBackground variant="viewer" />
       <Navbar />
       <main className="main-content">
         {/* Breadcrumb */}
@@ -588,10 +590,15 @@ const DocumentViewer = () => {
         {/* Document Header */}
         <div className="document-header">
           <div className="document-title">
+            <p className="document-kicker">Document Runtime</p>
             <h1>{metadata?.title || `Commit ${commit?.substring(0, 7)}`}</h1>
             {metadata?.description && (
               <p className="document-description">{metadata.description}</p>
             )}
+            <div className="document-header-chips">
+              <span className="document-header-chip">project::{projectName || 'unknown'}</span>
+              <span className="document-header-chip">commit::{commit?.substring(0, 7)}</span>
+            </div>
           </div>
 
           {/* Metadata */}

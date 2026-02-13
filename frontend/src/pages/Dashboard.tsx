@@ -4,6 +4,8 @@ import { useAppSelector, useAppDispatch } from '../store/hooks'
 import { getMe } from '../store/slices/authSlice'
 import { fetchProjects } from '../store/slices/projectsSlice'
 import Navbar from '../components/Navbar'
+import AppThreeBackground from '../components/AppThreeBackground'
+import { motion } from 'framer-motion'
 
 import {
   Layout,
@@ -82,9 +84,15 @@ const Dashboard = () => {
 
   return (
     <div className="page-container dashboard-shell">
+      <AppThreeBackground variant="dashboard" />
       <Navbar />
-      <main className="page-content">
-        <section className="dash-header">
+      <motion.main
+        className="page-content"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
+      >
+        <motion.section className="dash-header" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
           <div className="dash-header-copy">
             <p className="dash-kicker">Workspace Overview</p>
             <h1 className="dash-title">Welcome back, {user.username}</h1>
@@ -111,9 +119,9 @@ const Dashboard = () => {
               New Project
             </button>
           </div>
-        </section>
+        </motion.section>
 
-        <section className="dash-stats">
+        <motion.section className="dash-stats" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06, duration: 0.35 }}>
           {stats.map((stat, index) => (
             <article key={index} className={`dash-stat dash-stat-${stat.tone}`}>
               <div className="dash-stat-icon">
@@ -125,9 +133,9 @@ const Dashboard = () => {
               </div>
             </article>
           ))}
-        </section>
+        </motion.section>
 
-        <section className="dash-grid">
+        <motion.section className="dash-grid" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, duration: 0.35 }}>
           <div className="dash-main">
             <article className="dash-panel">
               <div className="dash-panel-head">
@@ -255,8 +263,8 @@ const Dashboard = () => {
               </ul>
             </article>
           </aside>
-        </section>
-      </main>
+        </motion.section>
+      </motion.main>
     </div>
   )
 }

@@ -429,7 +429,7 @@ const DocumentList = ({ projectId, canManage }: DocumentListProps) => {
               </thead>
               <tbody>
                 {filteredDocuments.map((doc) => (
-                  <tr key={doc.commit}>
+                  <tr key={doc.commit} className="documents-row">
                     {compareMode && (
                       <td>
                         <input
@@ -444,7 +444,10 @@ const DocumentList = ({ projectId, canManage }: DocumentListProps) => {
                       </td>
                     )}
                     <td>
-                      <span className="version-badge">{doc.commit.substring(0, 7)}</span>
+                      <div className="doc-version-cell">
+                        <span className="version-badge">{doc.commit.substring(0, 7)}</span>
+                        <span className="doc-version-label">artifact</span>
+                      </div>
                     </td>
                     <td>
                       {doc.metadata?.branch ? (

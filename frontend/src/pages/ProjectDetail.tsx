@@ -16,6 +16,7 @@ import {
 import { projectsApi } from '../services/api'
 import Navbar from '../components/Navbar'
 import DocumentList from '../components/DocumentList'
+import AppThreeBackground from '../components/AppThreeBackground'
 
 const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>()
@@ -200,6 +201,7 @@ const ProjectDetail = () => {
 
   return (
     <div className="page-container project-detail-shell">
+      <AppThreeBackground variant="detail" />
       <Navbar />
       <main className="main-content">
         <div className="content-header">
