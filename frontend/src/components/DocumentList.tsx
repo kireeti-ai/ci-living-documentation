@@ -217,7 +217,7 @@ const DocumentList = ({ projectId, canManage }: DocumentListProps) => {
   }
 
   return (
-    <div className="documents-container">
+    <div className="documents-container document-list-shell">
       {/* Toolbar */}
       <div className="documents-toolbar">
         {/* Filters */}
@@ -482,7 +482,7 @@ const DocumentList = ({ projectId, canManage }: DocumentListProps) => {
           <div className="modal modal-large" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Upload Test Document</h2>
-              <button className="btn-close" onClick={() => setShowUploadModal(false)}>×</button>
+              <button className="btn-close" onClick={() => setShowUploadModal(false)}>x</button>
             </div>
             <form onSubmit={handleTestUpload}>
               <div className="form-group">
@@ -573,7 +573,7 @@ const DocumentList = ({ projectId, canManage }: DocumentListProps) => {
           <div className="modal modal-danger" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Delete Document</h2>
-              <button className="btn-close" onClick={() => setDeleteCommit(null)}>×</button>
+              <button className="btn-close" onClick={() => setDeleteCommit(null)}>x</button>
             </div>
             <p>
               Are you sure you want to delete commit <strong>{deleteCommit.substring(0, 7)}</strong>?

@@ -28,7 +28,7 @@ function SectionLoader() {
 
 export default function LandingPage() {
   return (
-    <div className="relative">
+    <div className="landing-page relative">
       <Navbar />
       <main>
         <HeroSection />

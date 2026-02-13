@@ -195,7 +195,7 @@ const ProjectDetail = () => {
   }
 
   return (
-    <div className="page-container">
+    <div className="page-container project-detail-shell">
       <Navbar />
       <main className="main-content">
         <div className="content-header">
@@ -463,10 +463,10 @@ const ProjectDetail = () => {
                 {currentProject?.settings?.hasGithubToken ? (
                   <div className="token-status">
                     <span className="token-set">
-                      ✓ Token is set
+                      Token is set
                       {currentProject?.settings?.hasWebhook && (
-                        <span className="ml-3 text-success">
-                          • Webhook active
+                        <span className="setting-inline-success">
+                          - Webhook active
                         </span>
                       )}
                     </span>
@@ -506,8 +506,8 @@ const ProjectDetail = () => {
                   </div>
                 )}
                 {currentProject?.settings?.hasGithubToken && !currentProject?.settings?.hasWebhook && (
-                  <p className="setting-note mt-2 text-warning">
-                    ⚠️ Webhook not configured. Token may lack "admin:repo_hook" permission.
+                  <p className="setting-note setting-note-warning">
+                    Webhook not configured. Token may lack "admin:repo_hook" permission.
                   </p>
                 )}
               </div>
@@ -519,7 +519,7 @@ const ProjectDetail = () => {
                   Manually trigger documentation generation for this project. Requires a GitHub access token.
                 </p>
                 {docGenMessage && (
-                  <div className={`alert ${docGenMessage.type === 'success' ? 'alert-success' : 'alert-error'} mb-3`}>
+                  <div className={`alert ${docGenMessage.type === 'success' ? 'alert-success' : 'alert-error'} setting-alert`}>
                     {docGenMessage.text}
                   </div>
                 )}
@@ -531,7 +531,7 @@ const ProjectDetail = () => {
                   {docGenLoading ? 'Generating...' : 'Generate Documentation'}
                 </button>
                 {!currentProject?.settings?.hasGithubToken && (
-                  <p className="setting-note mt-2 text-warning">
+                  <p className="setting-note setting-note-warning">
                     Please add a GitHub access token above to enable documentation generation.
                   </p>
                 )}
@@ -566,7 +566,7 @@ const ProjectDetail = () => {
               <div className="modal-header">
                 <h2>Delete Project</h2>
                 <button className="btn-close" onClick={() => setShowDeleteConfirm(false)}>
-                  ×
+                  x
                 </button>
               </div>
               <p>

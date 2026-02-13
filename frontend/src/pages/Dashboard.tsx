@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAppSelector, useAppDispatch } from '../store/hooks'
 import { getMe } from '../store/slices/authSlice'
 import Navbar from '../components/Navbar'
@@ -7,6 +8,7 @@ import { Layout, FileText, Key, Users, Settings, Plus, Activity, BookOpen } from
 
 const Dashboard = () => {
   const dispatch = useAppDispatch()
+  const navigate = useNavigate()
   const { user, isLoading } = useAppSelector((state) => state.auth)
 
   useEffect(() => {
@@ -29,135 +31,117 @@ const Dashboard = () => {
   }
 
   const stats = [
-    { label: 'Total Projects', value: '12', icon: <Layout className="w-5 h-5 text-blue-400" /> },
-    { label: 'Documentation Pages', value: '148', icon: <FileText className="w-5 h-5 text-green-400" /> },
-    { label: 'Active Tokens', value: '3', icon: <Key className="w-5 h-5 text-yellow-400" /> },
-    { label: 'Team Members', value: '8', icon: <Users className="w-5 h-5 text-purple-400" /> },
+    { label: 'Total Projects', value: '12', icon: <Layout size={18} />, tone: 'blue' },
+    { label: 'Documentation Pages', value: '148', icon: <FileText size={18} />, tone: 'green' },
+    { label: 'Active Tokens', value: '3', icon: <Key size={18} />, tone: 'amber' },
+    { label: 'Team Members', value: '8', icon: <Users size={18} />, tone: 'purple' },
+  ]
+
+  const activity = [
+    'Updated API docs for shopstream/backend',
+    'Generated architecture map for payment-service',
+    'Added release notes for docs portal',
   ]
 
   return (
-    <div className="page-container">
+    <div className="page-container dashboard-shell">
       <Navbar />
-      <div className="page-content">
-
-        {/* Header Section */}
-        <div className="dashboard-header">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="dashboard-title text-3xl mb-2">
-                Welcome back, {user.username}
-              </h1>
-              <p className="dashboard-subtitle text-lg">
-                Here's what's happening with your documentation today.
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <button className="btn btn-secondary flex items-center gap-2">
-                <Settings size={16} />
-                Settings
-              </button>
-              <button className="btn btn-primary flex items-center gap-2">
-                <Plus size={16} />
-                New Project
-              </button>
-            </div>
+      <main className="page-content">
+        <section className="dash-header">
+          <div>
+            <h1 className="dash-title">Welcome back, {user.username}</h1>
+            <p className="dash-subtitle">Build, diff, and ship living documentation with full Git context.</p>
           </div>
-        </div>
+          <div className="dash-actions">
+            <button className="btn btn-secondary" onClick={() => navigate('/settings')}>
+              <Settings size={16} />
+              Settings
+            </button>
+            <button className="btn btn-primary" onClick={() => navigate('/projects')}>
+              <Plus size={16} />
+              New Project
+            </button>
+          </div>
+        </section>
 
-        {/* Stats Grid */}
-        <div className="stats-grid mb-8">
+        <section className="dash-stats">
           {stats.map((stat, index) => (
-            <div key={index} className="gh-card card-hover flex items-center p-6 gap-4">
-              <div className="p-3 rounded-lg bg-[var(--bg-subtle)] border border-[var(--border-default)]">
+            <article key={index} className={`dash-stat dash-stat-${stat.tone}`}>
+              <div className="dash-stat-icon">
                 {stat.icon}
               </div>
               <div>
-                <div className="text-sm text-[var(--text-secondary)] font-medium mb-1">{stat.label}</div>
-                <div className="text-2xl font-bold text-[var(--text-primary)]">{stat.value}</div>
+                <p className="dash-stat-label">{stat.label}</p>
+                <p className="dash-stat-value">{stat.value}</p>
               </div>
-            </div>
+            </article>
           ))}
-        </div>
+        </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Recent Activity / Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="gh-card">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-semibold flex items-center gap-2">
-                  <Activity size={20} className="text-[var(--accent-orange)]" />
+        <section className="dash-grid">
+          <div className="dash-main">
+            <article className="dash-panel">
+              <div className="dash-panel-head">
+                <h2 className="dash-panel-title">
+                  <Activity size={18} />
                   Recent Activity
-                </h3>
-                <button className="text-sm text-[var(--text-link)] hover:underline">View all</button>
+                </h2>
+                <button className="dash-link-btn" onClick={() => navigate('/projects')}>View all</button>
               </div>
 
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="flex gap-4 p-4 rounded-lg hover:bg-[var(--bg-subtle)] transition-colors border border-transparent hover:border-[var(--border-muted)]">
-                    <div className="mt-1">
-                      <div className="w-2 h-2 rounded-full bg-[var(--accent-green)] mt-2"></div>
-                    </div>
+              <div className="dash-activity-list">
+                {activity.map((message, i) => (
+                  <div key={i} className="dash-activity-item">
+                    <div className="dash-activity-dot" />
                     <div>
-                      <p className="text-sm font-medium text-[var(--text-primary)]">
-                        Updated documentation for <span className="text-[var(--text-link)]">shopstream/backend</span>
-                      </p>
-                      <p className="text-xs text-[var(--text-secondary)] mt-1">2 hours ago • main branch</p>
+                      <p className="dash-activity-text">{message}</p>
+                      <p className="dash-activity-meta">2 hours ago - main branch</p>
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
+            </article>
 
-            <div className="gh-card">
-              <h3 className="text-xl font-semibold mb-4">Quick Start</h3>
-              <div className="bg-[var(--bg-subtle)] p-4 rounded-md border border-[var(--border-default)] font-mono text-sm text-[var(--text-secondary)]">
-                <span className="text-[var(--accent-purple)]">git</span> clone https://github.com/your-org/living-docs.git <br />
-                <span className="text-[var(--accent-purple)]">cd</span> living-docs <br />
-                <span className="text-[var(--accent-purple)]">npm</span> install && npm run dev
-              </div>
-            </div>
+            <article className="dash-panel">
+              <h2 className="dash-panel-title">Quick Start</h2>
+              <pre className="dash-code"><code>git clone https://github.com/your-org/living-docs.git
+cd living-docs
+npm install && npm run dev</code></pre>
+            </article>
           </div>
 
-          {/* Sidebar / Profile Card */}
-          <div className="lg:col-span-1">
-            <div className="gh-card">
-              <div className="flex flex-col items-center text-center mb-6 border-b border-[var(--border-default)] pb-6">
-                <div className="w-20 h-20 rounded-full bg-[var(--bg-subtle)] border-2 border-[var(--border-default)] flex items-center justify-center mb-4 text-3xl font-bold text-[var(--text-secondary)]">
-                  {user.username.charAt(0).toUpperCase()}
-                </div>
-                <h2 className="text-xl font-bold mb-1">{user.username}</h2>
-                <p className="text-[var(--text-secondary)] text-sm">{user.email}</p>
-                <span className={`mt-3 badge badge-${user.role} px-3 py-1`}>
-                  {user.role.toUpperCase()}
-                </span>
+          <aside className="dash-side">
+            <article className="dash-panel">
+              <div className="dash-profile">
+                <div className="dash-avatar">{user.username.charAt(0).toUpperCase()}</div>
+                <h2>{user.username}</h2>
+                <p>{user.email}</p>
+                <span className={`badge badge-${user.role}`}>{user.role.toUpperCase()}</span>
               </div>
 
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-[var(--text-secondary)]">Member since</span>
-                  <span className="font-medium">{new Date(user.created_at).toLocaleDateString()}</span>
+              <div className="dash-profile-meta">
+                <div>
+                  <span>Member since</span>
+                  <strong>{new Date(user.created_at).toLocaleDateString()}</strong>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-[var(--text-secondary)]">Status</span>
-                  <span className="text-[var(--accent-green)] flex items-center gap-1">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent-green)]"></div>
-                    Active
-                  </span>
+                <div>
+                  <span>Status</span>
+                  <strong className="dash-status">Active</strong>
                 </div>
               </div>
-            </div>
+            </article>
 
-            <div className="gh-card-subtle mt-6">
-              <h4 className="text-sm font-semibold mb-3 text-[var(--text-secondary)] uppercase tracking-wider">Help & Support</h4>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#" className="flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--text-link)]"><BookOpen size={14} /> Documentation</a></li>
-                <li><a href="#" className="flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--text-link)]"><FileText size={14} /> API Reference</a></li>
-                <li><a href="#" className="flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--text-link)]"><Layout size={14} /> System Status</a></li>
+            <article className="dash-panel dash-help">
+              <h3>Help and Support</h3>
+              <ul>
+                <li><a href="#"><BookOpen size={14} /> Documentation</a></li>
+                <li><a href="#"><FileText size={14} /> API Reference</a></li>
+                <li><a href="#"><Layout size={14} /> System Status</a></li>
               </ul>
-            </div>
-          </div>
-        </div>
-      </div>
+            </article>
+          </aside>
+        </section>
+      </main>
     </div>
   )
 }

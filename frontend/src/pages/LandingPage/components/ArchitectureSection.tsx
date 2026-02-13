@@ -151,22 +151,19 @@ export default function ArchitectureSection() {
                         Living Architecture Diagrams
                     </h2>
                     <p className="text-[16px] md:text-[18px] max-w-[640px] mx-auto leading-relaxed mb-10" style={{ color: 'var(--text-secondary)' }}>
-                        Auto-generated diagrams that stay in sync with your codebase — updated with every push.
+                        Auto-generated diagrams that stay in sync with your codebase - updated with every push.
                     </p>
                 </motion.div>
 
                 {/* Mode toggle — GitHub segmented control style */}
-                <div className="flex justify-center mb-12">
-                    <div className="inline-flex rounded-lg p-1" style={{ border: '1px solid var(--border-default)', background: 'var(--bg-subtle)' }}>
+                <div className="architecture-toggle-wrap">
+                    <div className="architecture-toggle">
                         {diagramModes.map((mode) => (
                             <button
                                 key={mode.id}
                                 onClick={() => setActiveMode(mode.id)}
-                                className={`flex items-center gap-2 px-6 py-2.5 text-[14px] font-medium transition-all rounded-md ${activeMode === mode.id
-                                    ? 'bg-[var(--bg-default)] shadow-sm'
-                                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                                    }`}
-                                style={activeMode === mode.id ? { color: mode.color } : undefined}
+                                className={`architecture-mode-btn ${activeMode === mode.id ? 'is-active' : ''}`}
+                                style={{ ['--mode-color' as string]: mode.color }}
                             >
                                 {mode.icon}
                                 {mode.label}

@@ -1,12 +1,13 @@
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { documentsApi, DocumentMetadata } from '../services/api'
+import { documentsApi, DocumentMetadata, ArchitectureFile as ApiArchitectureFile } from '../services/api'
 import Navbar from '../components/Navbar'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeRaw from 'rehype-raw'
+import mermaid from 'mermaid'
 
-type Tab = 'summary' | 'readme' | 'apis' | 'settings'
+type Tab = 'summary' | 'readme' | 'architecture' | 'apis' | 'settings'
 
 // API Endpoint structure from the docs JSON
 interface ApiEndpoint {
@@ -24,6 +25,19 @@ interface ApiDocs {
   endpoints: ApiEndpoint[]
 }
 
+interface ArtifactFile {
+  folder: string
+  name: string
+  updatedLabel: string
+}
+
+interface ArchitecturePreviewFile extends ApiArchitectureFile {}
+
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'dark',
+  securityLevel: 'loose',
+})
 
 const DocumentViewer = () => {
   const { id, commit } = useParams<{ id: string; commit: string }>()
@@ -35,6 +49,10 @@ const DocumentViewer = () => {
   const [readmeContent, setReadmeContent] = useState<string | null>(null)
   const [apiContent, setApiContent] = useState<string | null>(null)
   const [apiDocs, setApiDocs] = useState<ApiDocs | null>(null)
+  const [architectureFiles, setArchitectureFiles] = useState<ArchitecturePreviewFile[]>([])
+  const [activeArchitectureFile, setActiveArchitectureFile] = useState('')
+  const [architectureSvg, setArchitectureSvg] = useState('')
+  const [architectureRenderError, setArchitectureRenderError] = useState('')
   const [metadata, setMetadata] = useState<DocumentMetadata | null>(null)
   const [projectName, setProjectName] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)
@@ -50,6 +68,91 @@ const DocumentViewer = () => {
   const [newTag, setNewTag] = useState('')
   const [isSaving, setIsSaving] = useState(false)
 
+  const artifactFiles = useMemo<ArtifactFile[]>(() => {
+    const fallback: ArtifactFile[] = [
+      { folder: 'docs', name: 'README.generated.md', updatedLabel: 'moments ago' },
+      { folder: 'docs', name: 'documentation-health.md', updatedLabel: '2 min ago' },
+      { folder: 'docs', name: 'tree.txt', updatedLabel: '2 min ago' },
+      { folder: 'api', name: 'api-reference.md', updatedLabel: '10 min ago' },
+      { folder: 'api', name: 'openapi.yaml', updatedLabel: '10 min ago' },
+      { folder: 'architecture', name: 'system.mmd', updatedLabel: '3 min ago' },
+      { folder: 'architecture', name: 'sequence.mmd', updatedLabel: '3 min ago' },
+      { folder: 'architecture', name: 'er.mmd', updatedLabel: '3 min ago' },
+      { folder: 'architecture', name: 'architecture.md', updatedLabel: '5 min ago' },
+      { folder: 'adr', name: 'ADR-001.md', updatedLabel: '1 day ago' },
+      { folder: 'adr', name: 'doc_snapshot.json', updatedLabel: '2 min ago' },
+      { folder: 'summary', name: 'summary.md', updatedLabel: '2 min ago' },
+      { folder: 'summary', name: 'summary.json', updatedLabel: '2 min ago' },
+    ]
+
+    try {
+      const raw = typeof apiContent === 'string' ? JSON.parse(apiContent) : apiContent
+      const container = raw?.artifacts || raw?.generated_files || raw?.files || raw?.artifact_tree
+      if (!Array.isArray(container)) return fallback
+
+      const normalized = container
+        .filter((item: any) => item?.name && item?.folder)
+        .map((item: any) => ({
+          folder: String(item.folder),
+          name: String(item.name),
+          updatedLabel: String(item.updatedLabel || item.updated || 'recently'),
+        }))
+
+      return normalized.length > 0 ? normalized : fallback
+    } catch {
+      return fallback
+    }
+  }, [apiContent])
+
+  const artifactGroups = useMemo(() => {
+    return artifactFiles.reduce<Record<string, ArtifactFile[]>>((acc, file) => {
+      if (!acc[file.folder]) acc[file.folder] = []
+      acc[file.folder].push(file)
+      return acc
+    }, {})
+  }, [artifactFiles])
+
+  const selectedArchitecture = useMemo(() => {
+    return architectureFiles.find((file) => file.name === activeArchitectureFile) || null
+  }, [architectureFiles, activeArchitectureFile])
+
+  const formatRelativeTime = (isoString: string | null): string => {
+    if (!isoString) return 'recently'
+    const ts = new Date(isoString).getTime()
+    if (Number.isNaN(ts)) return 'recently'
+    const diffMs = Date.now() - ts
+    const minutes = Math.floor(diffMs / 60000)
+    if (minutes < 1) return 'moments ago'
+    if (minutes < 60) return `${minutes} min ago`
+    const hours = Math.floor(minutes / 60)
+    if (hours < 24) return `${hours} hr ago`
+    const days = Math.floor(hours / 24)
+    return `${days} day${days > 1 ? 's' : ''} ago`
+  }
+
+  useEffect(() => {
+    const renderMermaid = async () => {
+      if (!selectedArchitecture || !selectedArchitecture.name.toLowerCase().endsWith('.mmd')) {
+        setArchitectureSvg('')
+        setArchitectureRenderError('')
+        return
+      }
+
+      try {
+        const renderId = `arch-${Date.now()}-${Math.floor(Math.random() * 10000)}`
+        const { svg } = await mermaid.render(renderId, selectedArchitecture.content)
+        setArchitectureSvg(svg)
+        setArchitectureRenderError('')
+      } catch (error) {
+        console.error('Mermaid render failed:', error)
+        setArchitectureSvg('')
+        setArchitectureRenderError('Failed to render diagram, showing source instead.')
+      }
+    }
+
+    renderMermaid()
+  }, [selectedArchitecture])
+
   // Load document data
   useEffect(() => {
     const loadDocument = async () => {
@@ -59,9 +162,10 @@ const DocumentViewer = () => {
       setError(null)
       try {
         // Load summary, readme, API content, and metadata in parallel
-        const [summaryRes, readmeRes, apiRes, metadataRes] = await Promise.allSettled([
+        const [summaryRes, readmeRes, architectureRes, apiRes, metadataRes] = await Promise.allSettled([
           documentsApi.getSummary(id, commit),
           documentsApi.getReadme(id, commit),
+          documentsApi.getArchitecture(id, commit),
           documentsApi.get(id, commit),
           documentsApi.getMetadata(id, commit),
         ])
@@ -74,6 +178,13 @@ const DocumentViewer = () => {
         // Handle readme
         if (readmeRes.status === 'fulfilled') {
           setReadmeContent(readmeRes.value.data.content)
+        }
+
+        // Handle architecture files
+        if (architectureRes.status === 'fulfilled') {
+          const files = architectureRes.value.data.files || []
+          setArchitectureFiles(files)
+          setActiveArchitectureFile(files[0]?.name || '')
         }
 
         // Handle API content
@@ -214,7 +325,7 @@ const DocumentViewer = () => {
           <div className="api-card-summary">
             {endpoint.summary}
           </div>
-          <span className="api-expand-icon">{isExpanded ? '▼' : '▶'}</span>
+          <span className="api-expand-icon">{isExpanded ? 'v' : '>'}</span>
         </div>
 
         {isExpanded && (
@@ -346,7 +457,7 @@ const DocumentViewer = () => {
   }
 
   return (
-    <div className="page-container">
+    <div className="page-container document-viewer-shell">
       <Navbar />
       <main className="main-content">
         {/* Breadcrumb */}
@@ -435,6 +546,12 @@ const DocumentViewer = () => {
             README
           </button>
           <button
+            className={`tab ${activeTab === 'architecture' ? 'active' : ''}`}
+            onClick={() => setActiveTab('architecture')}
+          >
+            Architecture
+          </button>
+          <button
             className={`tab ${activeTab === 'apis' ? 'active' : ''}`}
             onClick={() => setActiveTab('apis')}
           >
@@ -451,6 +568,24 @@ const DocumentViewer = () => {
         {/* Tab Content */}
         {activeTab === 'summary' && (
           <div className="tab-content">
+            <div className="artifact-tree-card">
+              <h3>Generated Artifacts</h3>
+              <div className="artifact-tree-grid">
+                {Object.entries(artifactGroups).map(([folder, files]) => (
+                  <div key={folder} className="artifact-folder">
+                    <div className="artifact-folder-name">{folder}/</div>
+                    <div className="artifact-file-list">
+                      {files.map((file) => (
+                        <div key={`${folder}-${file.name}`} className="artifact-file-item">
+                          <span className="artifact-file-name">{file.name}</span>
+                          <span className="artifact-file-time">{file.updatedLabel}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
             <div className="document-content markdown-content">
               {summaryContent ? (
                 <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
@@ -477,6 +612,58 @@ const DocumentViewer = () => {
           </div>
         )}
 
+        {activeTab === 'architecture' && (
+          <div className="tab-content">
+            {architectureFiles.length === 0 ? (
+              <p>No architecture files found in bucket for this commit.</p>
+            ) : (
+              <div className="architecture-preview-layout">
+                <aside className="architecture-file-list">
+                  {architectureFiles.map((file) => (
+                    <button
+                      key={file.name}
+                      className={`architecture-file-item ${activeArchitectureFile === file.name ? 'active' : ''}`}
+                      onClick={() => setActiveArchitectureFile(file.name)}
+                    >
+                      <span className="architecture-file-name">{file.name}</span>
+                      <span className="architecture-file-updated">{formatRelativeTime(file.lastModified)}</span>
+                    </button>
+                  ))}
+                </aside>
+
+                <section className="architecture-file-preview">
+                  {selectedArchitecture ? (
+                    <>
+                      <div className="architecture-file-header">
+                        <h3>{selectedArchitecture.name}</h3>
+                        <span>{formatRelativeTime(selectedArchitecture.lastModified)}</span>
+                      </div>
+                      {selectedArchitecture.name.endsWith('.md') ? (
+                        <div className="markdown-content">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+                            {selectedArchitecture.content}
+                          </ReactMarkdown>
+                        </div>
+                      ) : selectedArchitecture.name.endsWith('.mmd') && architectureSvg ? (
+                        <div className="architecture-diagram-preview" dangerouslySetInnerHTML={{ __html: architectureSvg }} />
+                      ) : (
+                        <>
+                          {architectureRenderError && <p className="setting-note setting-note-warning">{architectureRenderError}</p>}
+                          <pre className="code-textarea architecture-code-preview">
+                            {selectedArchitecture.content}
+                          </pre>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <p>Select a file to preview.</p>
+                  )}
+                </section>
+              </div>
+            )}
+          </div>
+        )}
+
         {activeTab === 'apis' && (
           <div className="tab-content">
             {/* Search Bar */}
@@ -498,7 +685,7 @@ const DocumentViewer = () => {
                         : 'No matches'}
                     </span>
                     <button className="btn-icon" onClick={clearSearch} title="Clear (Esc)">
-                      ×
+                      x
                     </button>
                   </>
                 )}
@@ -571,7 +758,7 @@ const DocumentViewer = () => {
                           onClick={() => handleRemoveTag(tag)}
                           title="Remove tag"
                         >
-                          ×
+                          x
                         </button>
                       </span>
                     ))}

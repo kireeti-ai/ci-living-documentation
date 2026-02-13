@@ -10,6 +10,7 @@ import {
   getDocumentContent,
   getDocumentSummary,
   getDocumentReadme,
+  getDocumentArchitecture,
   searchDocumentsContent,
   updateDocumentTags,
   uploadDocument,
@@ -310,6 +311,36 @@ router.get('/:id/documents/:commit/readme', async (req: AuthRequest, res: Respon
   } catch (error: any) {
     console.error('Get readme error:', error)
     return res.status(500).json({ detail: error.message || 'Failed to get readme' })
+  }
+})
+
+// GET /projects/:id/documents/:commit/architecture - Get architecture files for a commit
+router.get('/:id/documents/:commit/architecture', async (req: AuthRequest, res: Response) => {
+  try {
+    const { id, commit } = req.params
+    const userId = req.user!.id
+
+    const member = await isProjectMember(id, userId)
+    if (!member) {
+      return res.status(403).json({ detail: 'Access denied' })
+    }
+
+    const project = await getProjectById(id)
+    if (!project) {
+      return res.status(404).json({ detail: 'Project not found' })
+    }
+
+    const files = await getDocumentArchitecture(project.id, commit)
+
+    return res.json({
+      projectId: id,
+      projectName: project.name,
+      commit,
+      files,
+    })
+  } catch (error: any) {
+    console.error('Get architecture error:', error)
+    return res.status(500).json({ detail: error.message || 'Failed to get architecture files' })
   }
 })
 

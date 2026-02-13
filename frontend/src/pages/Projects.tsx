@@ -6,8 +6,6 @@ import Navbar from '../components/Navbar'
 
 import { Book, Github, Clock, Shield, Plus, Search } from 'lucide-react'
 
-// ... (existing imports, but add lucide-react)
-
 const Projects = () => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
@@ -93,33 +91,31 @@ const Projects = () => {
   )
 
   return (
-    <div className="page-container">
+    <div className="page-container projects-shell">
       <Navbar />
       <main className="main-content">
-
-        {/* Header with Search and Action */}
-        <div className="dashboard-header flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <section className="proj-header">
           <div>
-            <h1 className="dashboard-title text-3xl">Projects</h1>
-            <p className="dashboard-subtitle">Manage your documentation repositories</p>
+            <h1 className="proj-title">Projects</h1>
+            <p className="proj-subtitle">Track repositories, automate docs, and keep architecture current.</p>
           </div>
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <div className="relative flex-grow md:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" size={16} />
+          <div className="proj-toolbar">
+            <div className="proj-search">
+              <Search size={16} />
               <input
                 type="text"
                 placeholder="Find a project..."
-                className="search-input pl-9"
+                className="search-input"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <button className="btn btn-primary flex items-center gap-2" onClick={() => setShowCreateModal(true)}>
+            <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
               <Plus size={16} />
-              <span className="hidden sm:inline">New Project</span>
+              New Project
             </button>
           </div>
-        </div>
+        </section>
 
         {error && <div className="alert alert-error">{error}</div>}
 
@@ -128,10 +124,10 @@ const Projects = () => {
             <div className="spinner"></div>
           </div>
         ) : filteredProjects.length === 0 ? (
-          <div className="empty-state bg-[var(--bg-subtle)] border border-[var(--border-default)] rounded-lg p-12 text-center">
-            <Book size={48} className="mx-auto text-[var(--text-secondary)] mb-4 opacity-50" />
-            <h2 className="text-xl font-semibold mb-2">No projects found</h2>
-            <p className="text-[var(--text-secondary)] mb-6">
+          <section className="proj-empty">
+            <Book size={42} />
+            <h2>No projects found</h2>
+            <p>
               {projects.length === 0 ? "Get started by creating your first project." : "Try adjusting your search query."}
             </p>
             {projects.length === 0 && (
@@ -139,30 +135,30 @@ const Projects = () => {
                 Create Project
               </button>
             )}
-          </div>
+          </section>
         ) : (
-          <div className="projects-grid">
+          <section className="projects-grid">
             {filteredProjects.map((project) => (
-              <Link to={`/projects/${project.id}`} key={project.id} className="repo-card block no-underline text-inherit h-full">
+              <Link to={`/projects/${project.id}`} key={project.id} className="repo-card">
                 <div className="repo-header">
-                  <div className="repo-title text-[var(--text-link)] hover:underline">
-                    <Book size={16} className="text-[var(--text-secondary)]" />
+                  <div className="repo-title">
+                    <Book size={16} />
                     {project.name}
                   </div>
-                  <span className={`badge badge-${project.memberRole} text-xs px-2 py-0.5`}>
+                  <span className={`badge badge-${project.memberRole}`}>
                     {project.memberRole}
                   </span>
                 </div>
 
-                <p className="repo-desc line-clamp-2">
-                  {project.description || <span className="italic opacity-50">No description provided</span>}
+                <p className="repo-desc">
+                  {project.description || <span>No description provided</span>}
                 </p>
 
-                <div className="repo-meta mt-auto pt-4">
+                <div className="repo-meta">
                   {project.githubUrl && (
                     <div className="repo-meta-item">
                       <Github size={12} />
-                      <span className="truncate max-w-[120px]">
+                      <span className="repo-meta-text">
                         {project.githubUrl.replace('https://github.com/', '')}
                       </span>
                     </div>
@@ -171,28 +167,28 @@ const Projects = () => {
                     <div className="language-dot" style={{ backgroundColor: '#3178c6' }}></div>
                     TypeScript
                   </div>
-                  <div className="repo-meta-item ml-auto">
+                  <div className="repo-meta-item repo-meta-date">
                     <Clock size={12} />
                     {new Date(project.createdAt).toLocaleDateString()}
                   </div>
                 </div>
               </Link>
             ))}
-          </div>
+          </section>
         )}
 
         {/* Create Project Modal */}
         {showCreateModal && (
           <div className="modal-overlay" onClick={closeModal}>
-            <div className="modal modal-large w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
+            <div className="modal modal-large proj-modal" onClick={(e) => e.stopPropagation()}>
               <div className="modal-header">
-                <h2 className="text-lg font-semibold">Create New Project</h2>
-                <button className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]" onClick={closeModal}>×</button>
+                <h2>Create New Project</h2>
+                <button className="proj-close" onClick={closeModal}>x</button>
               </div>
               <form onSubmit={handleCreateProject}>
-                <div className="p-6 space-y-4">
+                <div className="proj-modal-body">
                   <div className="form-group">
-                    <label htmlFor="name">Project Name <span className="text-red-500">*</span></label>
+                    <label htmlFor="name" className="proj-label">Project Name <span>*</span></label>
                     <input
                       type="text"
                       id="name"
@@ -204,7 +200,7 @@ const Projects = () => {
                     />
                   </div>
                   <div className="form-group">
-                    <label htmlFor="description">Description</label>
+                    <label htmlFor="description" className="proj-label">Description</label>
                     <textarea
                       id="description"
                       name="description"
@@ -215,9 +211,9 @@ const Projects = () => {
                     />
                   </div>
                   <div className="form-group">
-                    <label htmlFor="githubUrl">GitHub URL <span className="text-red-500">*</span></label>
-                    <div className="relative">
-                      <Github size={16} className="absolute left-3 top-2.5 text-[var(--text-secondary)]" />
+                    <label htmlFor="githubUrl" className="proj-label">GitHub URL <span>*</span></label>
+                    <div className="proj-input-icon">
+                      <Github size={16} />
                       <input
                         type="url"
                         id="githubUrl"
@@ -225,33 +221,32 @@ const Projects = () => {
                         value={formData.githubUrl}
                         onChange={handleChange}
                         placeholder="https://github.com/username/repo"
-                        className="pl-9"
                         required
                       />
                     </div>
+                    <p className="proj-field-hint">Use full URL, e.g. https://github.com/username/repo</p>
                   </div>
 
-                  <div className="p-4 bg-[var(--bg-subtle)] rounded-md border border-[var(--border-default)]">
-                    <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                  <div className="proj-automation">
+                    <h3>
                       <Shield size={14} /> Automation Settings
                     </h3>
 
-                    <div className="form-group-inline flex items-center gap-2 mb-3">
+                    <div className="form-group-inline">
                       <input
                         type="checkbox"
                         name="autoGenerateDocs"
                         id="autoGenerateDocs"
                         checked={formData.autoGenerateDocs}
                         onChange={handleChange}
-                        className="accent-[var(--accent-green)]"
                       />
-                      <label htmlFor="autoGenerateDocs" className="text-sm font-medium cursor-pointer mb-0">Auto-generate Documentation</label>
+                      <label htmlFor="autoGenerateDocs" className="proj-checkbox-label">Auto-generate Documentation</label>
                     </div>
 
                     {formData.autoGenerateDocs && (
-                      <div className="mt-3 animate-in fade-in slide-in-from-top-1">
-                        <label htmlFor="githubAccessToken" className="text-xs mb-1 block">GitHub Access Token (for private repos)</label>
-                        <div className="relative">
+                      <div className="proj-token-wrap">
+                        <label htmlFor="githubAccessToken">GitHub Access Token (for private repos)</label>
+                        <div className="proj-token-input">
                           <input
                             type={showToken ? 'text' : 'password'}
                             id="githubAccessToken"
@@ -259,11 +254,10 @@ const Projects = () => {
                             value={formData.githubAccessToken}
                             onChange={handleChange}
                             placeholder="ghp_xxxxxxxxxxxx"
-                            className="text-sm"
                           />
                           <button
                             type="button"
-                            className="absolute right-2 top-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                            className="proj-token-toggle"
                             onClick={() => setShowToken(!showToken)}
                           >
                             {showToken ? 'Hide' : 'Show'}
@@ -274,10 +268,10 @@ const Projects = () => {
                   </div>
                 </div>
 
-                {formError && <div className="mx-6 mb-4 alert alert-error">{formError}</div>}
-                {error && <div className="mx-6 mb-4 alert alert-error">{error}</div>}
+                {formError && <div className="proj-modal-alert alert alert-error">{formError}</div>}
+                {error && <div className="proj-modal-alert alert alert-error">{error}</div>}
 
-                <div className="modal-actions bg-[var(--bg-subtle)] p-4 flex justify-end gap-3 rounded-b-lg border-t border-[var(--border-default)]">
+                <div className="modal-actions proj-modal-actions">
                   <button type="button" className="btn btn-secondary" onClick={closeModal}>
                     Cancel
                   </button>

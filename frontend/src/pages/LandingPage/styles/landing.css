@@ -684,7 +684,7 @@ html {
   scroll-behavior: smooth;
 }
 
-body {
+.landing-page {
   font-family: var(--font-sans);
   background: var(--bg-canvas);
   color: var(--text-primary);
@@ -695,32 +695,32 @@ body {
 }
 
 /* ===== TYPOGRAPHY SPACING ===== */
-h1 {
+.landing-page h1 {
   margin-bottom: 2rem;
   line-height: 1.2;
 }
 
-h2 {
+.landing-page h2 {
   margin-bottom: 1.5rem;
   line-height: 1.3;
 }
 
-h3 {
+.landing-page h3 {
   margin-bottom: 1rem;
   line-height: 1.4;
 }
 
-p {
+.landing-page p {
   margin-bottom: 1rem;
   line-height: 1.6;
 }
 
-ul,
-ol {
+.landing-page ul,
+.landing-page ol {
   margin-bottom: 1rem;
 }
 
-li {
+.landing-page li {
   margin-bottom: 0.5rem;
 }
 
@@ -749,7 +749,7 @@ li {
 }
 
 /* ===== CARD PANEL â€” GitHub-style card ===== */
-.gh-card {
+.landing-page .gh-card {
   background: var(--bg-default);
   border: 1px solid var(--border-default);
   border-radius: 6px;
@@ -757,7 +757,7 @@ li {
   /* Added padding inside cards */
 }
 
-.gh-card-subtle {
+.landing-page .gh-card-subtle {
   background: var(--bg-subtle);
   border: 1px solid var(--border-muted);
   border-radius: 6px;
@@ -766,17 +766,17 @@ li {
 }
 
 /* ===== CARD HOVER ===== */
-.card-hover {
+.landing-page .card-hover {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.card-hover:hover {
+.landing-page .card-hover:hover {
   border-color: var(--text-muted);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* ===== BUTTONS â€” GitHub-style ===== */
-.btn-primary {
+.landing-page .btn-primary {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -793,11 +793,11 @@ li {
   font-family: var(--font-sans);
 }
 
-.btn-primary:hover {
+.landing-page .btn-primary:hover {
   background: #2ea043;
 }
 
-.btn-secondary {
+.landing-page .btn-secondary {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -814,7 +814,7 @@ li {
   font-family: var(--font-sans);
 }
 
-.btn-secondary:hover {
+.landing-page .btn-secondary:hover {
   background: var(--bg-default);
   border-color: var(--text-muted);
 }
@@ -910,6 +910,49 @@ li {
   border: 0;
   border-top: 1px solid var(--border-muted);
   margin: 0;
+}
+
+/* ===== ARCHITECTURE MODE TOGGLE ===== */
+.landing-page .architecture-toggle-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 3rem;
+}
+
+.landing-page .architecture-toggle {
+  display: inline-flex;
+  gap: 6px;
+  border: 1px solid var(--border-default);
+  background: var(--bg-subtle);
+  border-radius: 10px;
+  padding: 6px;
+}
+
+.landing-page .architecture-mode-btn {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.landing-page .architecture-mode-btn:hover {
+  color: var(--text-primary);
+  background: rgba(110, 118, 129, 0.12);
+}
+
+.landing-page .architecture-mode-btn.is-active {
+  color: var(--mode-color);
+  border-color: rgba(110, 118, 129, 0.35);
+  background: var(--bg-default);
+  box-shadow: 0 1px 1px rgba(1, 4, 9, 0.35);
 }
 
 /* ===== ANIMATIONS ===== */

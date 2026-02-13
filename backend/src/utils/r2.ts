@@ -54,6 +54,12 @@ export interface DocumentMetadata {
   description?: string
 }
 
+export interface ArchitectureFile {
+  name: string
+  content: string
+  lastModified: string | null
+}
+
 // Helper to convert stream to string
 const streamToString = async (stream: any): Promise<string> => {
   const chunks: Uint8Array[] = []
@@ -225,6 +231,86 @@ export const getDocumentReadme = async (projectId: string, commitHash: string): 
 
   console.log(`No README found for ${projectId}/${commitHash} in any of the expected paths`)
   return null
+}
+
+/**
+ * Get architecture files for a specific commit
+ * Path: docs/architecture/*
+ */
+export const getDocumentArchitecture = async (
+  projectId: string,
+  commitHash: string
+): Promise<ArchitectureFile[]> => {
+  if (!r2Client) throw new Error('R2 not configured')
+
+  try {
+    const prefixes = [
+      `${projectId}/${commitHash}/docs/architecture/`,
+      `${projectId}/${commitHash}/architecture/`,
+      `${projectId}/${commitHash}/docs/`,
+    ]
+
+    const keyMap = new Map<string, _Object>()
+
+    for (const prefix of prefixes) {
+      const listCommand = new ListObjectsV2Command({
+        Bucket: DOCS_BUCKET,
+        Prefix: prefix,
+      })
+
+      const listResponse = await r2Client.send(listCommand)
+      const files = (listResponse.Contents || []).filter((item: _Object) => {
+        const key = item.Key || ''
+        if (!key || key.endsWith('/')) return false
+
+        const lower = key.toLowerCase()
+        const isMermaid = lower.endsWith('.mmd')
+        const isArchitectureMd = lower.endsWith('architecture.md')
+        const fromArchitecturePath = lower.includes('/architecture/')
+
+        return isMermaid || isArchitectureMd || fromArchitecturePath
+      })
+
+      for (const file of files) {
+        if (file.Key) keyMap.set(file.Key, file)
+      }
+    }
+
+    const files = Array.from(keyMap.values()).sort((a: _Object, b: _Object) =>
+      (a.Key || '').localeCompare(b.Key || '')
+    )
+
+    const results: ArchitectureFile[] = []
+    const commitPrefix = `${projectId}/${commitHash}/`
+
+    for (const file of files) {
+      if (!file.Key) continue
+
+      try {
+        const getCommand = new GetObjectCommand({
+          Bucket: DOCS_BUCKET,
+          Key: file.Key,
+        })
+
+        const response = await r2Client.send(getCommand)
+        if (!response.Body) continue
+
+        const content = await streamToString(response.Body)
+        results.push({
+          name: file.Key.replace(commitPrefix, ''),
+          content,
+          lastModified: file.LastModified ? file.LastModified.toISOString() : null,
+        })
+      } catch (error: any) {
+        console.error(`Error reading architecture file ${file.Key}:`, error)
+      }
+    }
+
+    return results
+  } catch (error: any) {
+    console.error('Error fetching architecture files:', error)
+    return []
+  }
 }
 
 /**

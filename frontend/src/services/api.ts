@@ -178,6 +178,12 @@ export interface DocumentDetailResponse {
   metadata: DocumentMetadata
 }
 
+export interface ArchitectureFile {
+  name: string
+  content: string
+  lastModified: string | null
+}
+
 // Search result
 export interface SearchResult {
   commit: string
@@ -226,6 +232,12 @@ export const documentsApi = {
   // Get document README (from docs/README.generated.md)
   getReadme: (projectId: string, commit: string) =>
     api.get<{ content: string; projectName: string }>(`/projects/${projectId}/documents/${encodeURIComponent(commit)}/readme`),
+
+  // Get architecture files (from docs/architecture/*)
+  getArchitecture: (projectId: string, commit: string) =>
+    api.get<{ files: ArchitectureFile[]; projectName: string }>(
+      `/projects/${projectId}/documents/${encodeURIComponent(commit)}/architecture`
+    ),
 
   // Get only metadata for a commit
   getMetadata: (projectId: string, commit: string) =>
