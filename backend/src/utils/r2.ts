@@ -162,6 +162,9 @@ export const getDocumentSummary = async (projectId: string, commitHash: string):
   // Try multiple possible paths for summary
   const possiblePaths = [
     `${projectId}/${commitHash}/docs/summary/summary.md`,
+    `${projectId}/${commitHash}/summaries/summary.md`,
+    `${projectId}/${commitHash}/docs/summary.md`,
+    `${projectId}/${commitHash}/summary.md`,
   ]
 
   for (const key of possiblePaths) {
@@ -244,9 +247,18 @@ export const getDocumentArchitecture = async (
   if (!r2Client) throw new Error('R2 not configured')
 
   try {
+    const architectureFolders = ['architecture', 'arch', 'adr', 'adrs', 'diagrams', 'er', 'schema', 'schemas']
+    const allowedExts = ['.mmd', '.mermaid', '.md', '.markdown', '.mdx', '.txt', '.adoc', '.json', '.yaml', '.yml']
+
     const prefixes = [
       `${projectId}/${commitHash}/docs/architecture/`,
+      `${projectId}/${commitHash}/docs/arch/`,
+      `${projectId}/${commitHash}/docs/adr/`,
+      `${projectId}/${commitHash}/docs/adrs/`,
       `${projectId}/${commitHash}/architecture/`,
+      `${projectId}/${commitHash}/arch/`,
+      `${projectId}/${commitHash}/adr/`,
+      `${projectId}/${commitHash}/adrs/`,
       `${projectId}/${commitHash}/docs/`,
     ]
 
@@ -264,11 +276,11 @@ export const getDocumentArchitecture = async (
         if (!key || key.endsWith('/')) return false
 
         const lower = key.toLowerCase()
-        const isMermaid = lower.endsWith('.mmd')
-        const isArchitectureMd = lower.endsWith('architecture.md')
-        const fromArchitecturePath = lower.includes('/architecture/')
+        const hasSupportedExt = allowedExts.some((ext) => lower.endsWith(ext))
+        const fromArchitecturePath = architectureFolders.some((folder) => lower.includes(`/${folder}/`))
+        const isArchitectureNamedFile = lower.includes('architecture')
 
-        return isMermaid || isArchitectureMd || fromArchitecturePath
+        return fromArchitecturePath || (isArchitectureNamedFile && hasSupportedExt)
       })
 
       for (const file of files) {
@@ -315,35 +327,43 @@ export const getDocumentArchitecture = async (
 
 /**
  * Get API docs content for a specific commit (JSON format)
- * Path: docs/api/api-descriptions.json
+ * Path: docs/api/api-description.json (fallback: api-descriptions.json)
  * Returns parsed JSON object if file is JSON, otherwise string
  */
 export const getDocumentContent = async (projectId: string, commitHash: string): Promise<any | null> => {
   if (!r2Client) throw new Error('R2 not configured')
 
-  // New path: docs/api/api-descriptions.json
-  const newKey = `${projectId}/${commitHash}/docs/api/api-descriptions.json`
+  // Preferred path plus backward-compatible fallback
+  const apiKeys = [
+    `${projectId}/${commitHash}/docs/api/api-description.json`,
+    `${projectId}/${commitHash}/docs/api/api-descriptions.json`,
+    `${projectId}/${commitHash}/api/api-description.json`,
+    `${projectId}/${commitHash}/api/api-descriptions.json`,
+  ]
 
-  try {
-    const command = new GetObjectCommand({
-      Bucket: DOCS_BUCKET,
-      Key: newKey,
-    })
+  for (const key of apiKeys) {
+    try {
+      const command = new GetObjectCommand({
+        Bucket: DOCS_BUCKET,
+        Key: key,
+      })
 
-    const response = await r2Client.send(command)
+      const response = await r2Client.send(command)
 
-    if (response.Body) {
-      const text = await streamToString(response.Body)
-      try {
-        return JSON.parse(text)
-      } catch (e) {
-        console.warn('Failed to parse api-descriptions.json, returning text', e)
-        return text
+      if (response.Body) {
+        const text = await streamToString(response.Body)
+        try {
+          return JSON.parse(text)
+        } catch (e) {
+          console.warn(`Failed to parse ${key.split('/').pop()}, returning text`, e)
+          return text
+        }
       }
-    }
-  } catch (error: any) {
-    if (error.name !== 'NoSuchKey' && error.$metadata?.httpStatusCode !== 404) {
-      console.error('Error fetching api-descriptions.json:', error)
+    } catch (error: any) {
+      if (error.name === 'NoSuchKey' || error.$metadata?.httpStatusCode === 404) {
+        continue
+      }
+      console.error(`Error fetching ${key.split('/').pop()}:`, error)
     }
   }
 
