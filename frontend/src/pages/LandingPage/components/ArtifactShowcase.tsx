@@ -25,7 +25,7 @@ const fileTree: FileNode[] = [
     },
     {
         name: 'tree.txt', type: 'file', extension: 'txt', updated: '2 min ago',
-        content: `.\n├── README.generated.md\n├── documentation-health.md\n├── tree.txt\n├── api/\n│   ├── api-reference.md\n│   └── openapi.yaml\n├── architecture/\n│   ├── system.mmd\n│   ├── sequence.mmd\n│   ├── er.mmd\n│   └── architecture.md\n├── adr/\n│   └── ADR-001.md\n├── doc_snapshot.json\n└── summary/\n    ├── summary.md\n    └── summary.json`,
+        content: `.\n├── README.generated.md\n├── documentation-health.md\n├── tree.txt\n├── api/\n│   ├── api-reference.md\n│   └── api-description.json\n├── architecture/\n│   ├── system.mmd\n│   ├── sequence.mmd\n│   ├── er.mmd\n│   └── architecture.md\n├── adr/\n│   └── ADR-001.md\n├── doc_snapshot.json\n└── summary/\n    ├── summary.md\n    └── summary.json`,
     },
     {
         name: 'api', type: 'folder',
@@ -35,7 +35,7 @@ const fileTree: FileNode[] = [
                 content: `# API Reference\n\n## Endpoints\n\n### POST /api/v1/analyze\nTrigger code analysis for a repository.\n\n**Request:**\n\`\`\`json\n{\n  "repo_url": "https://github.com/org/repo",\n  "branch": "main",\n  "commit_sha": "abc123"\n}\n\`\`\`\n\n### GET /api/v1/health\nReturns service health status.\n\n### GET /api/v1/artifacts/{project_id}\nRetrieve generated documentation artifacts.`
             },
             {
-                name: 'openapi.yaml', type: 'file', extension: 'yaml', updated: '10 min ago',
+                name: 'api-description.json', type: 'file', extension: 'json', updated: '10 min ago',
                 content: `openapi: 3.0.3\ninfo:\n  title: DocPulse AI API\n  version: 2.4.1\n  description: AI-Powered CI Documentation Platform\npaths:\n  /api/v1/analyze:\n    post:\n      summary: Trigger analysis\n  /api/v1/health:\n    get:\n      summary: Health check\n  /api/v1/artifacts/{project_id}:\n    get:\n      summary: Get artifacts`
             },
         ],

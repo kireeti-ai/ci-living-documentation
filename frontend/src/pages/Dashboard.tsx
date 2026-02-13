@@ -1,19 +1,37 @@
-import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useMemo } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAppSelector, useAppDispatch } from '../store/hooks'
 import { getMe } from '../store/slices/authSlice'
+import { fetchProjects } from '../store/slices/projectsSlice'
 import Navbar from '../components/Navbar'
 
-import { Layout, FileText, Key, Users, Settings, Plus, Activity, BookOpen } from 'lucide-react'
+import {
+  Layout,
+  Github,
+  Key,
+  Shield,
+  Settings,
+  Plus,
+  Activity,
+  BookOpen,
+  ArrowRight,
+} from 'lucide-react'
 
 const Dashboard = () => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { user, isLoading } = useAppSelector((state) => state.auth)
+  const { projects, isLoading: isProjectsLoading } = useAppSelector((state) => state.projects)
 
   useEffect(() => {
     if (!user) {
       dispatch(getMe())
+    }
+  }, [user, dispatch])
+
+  useEffect(() => {
+    if (user) {
+      dispatch(fetchProjects())
     }
   }, [user, dispatch])
 
@@ -30,33 +48,64 @@ const Dashboard = () => {
     )
   }
 
+  const projectsWithGithub = useMemo(
+    () => projects.filter((project) => Boolean(project.githubUrl)).length,
+    [projects]
+  )
+
+  const projectsWithToken = useMemo(
+    () => projects.filter((project) => project.settings?.hasGithubToken).length,
+    [projects]
+  )
+
+  const ownerProjects = useMemo(
+    () => projects.filter((project) => project.memberRole === 'owner').length,
+    [projects]
+  )
+
+  const recentProjects = useMemo(
+    () =>
+      [...projects]
+        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+        .slice(0, 4),
+    [projects]
+  )
+
   const stats = [
-    { label: 'Total Projects', value: '12', icon: <Layout size={18} />, tone: 'blue' },
-    { label: 'Documentation Pages', value: '148', icon: <FileText size={18} />, tone: 'green' },
-    { label: 'Active Tokens', value: '3', icon: <Key size={18} />, tone: 'amber' },
-    { label: 'Team Members', value: '8', icon: <Users size={18} />, tone: 'purple' },
+    { label: 'Total Projects', value: String(projects.length), icon: <Layout size={18} />, tone: 'blue' },
+    { label: 'GitHub Linked', value: String(projectsWithGithub), icon: <Github size={18} />, tone: 'green' },
+    { label: 'Saved Tokens', value: String(projectsWithToken), icon: <Key size={18} />, tone: 'amber' },
+    { label: 'Owner Access', value: String(ownerProjects), icon: <Shield size={18} />, tone: 'purple' },
   ]
 
-  const activity = [
-    'Updated API docs for shopstream/backend',
-    'Generated architecture map for payment-service',
-    'Added release notes for docs portal',
-  ]
+  const primaryProject = recentProjects[0]
 
   return (
     <div className="page-container dashboard-shell">
       <Navbar />
       <main className="page-content">
         <section className="dash-header">
-          <div>
+          <div className="dash-header-copy">
+            <p className="dash-kicker">Workspace Overview</p>
             <h1 className="dash-title">Welcome back, {user.username}</h1>
             <p className="dash-subtitle">Build, diff, and ship living documentation with full Git context.</p>
+            {primaryProject && (
+              <div className="dash-highlight">
+                <span className="dash-highlight-label">Focus Project</span>
+                <button className="dash-highlight-link" onClick={() => navigate(`/projects/${primaryProject.id}`)}>
+                  {primaryProject.name}
+                  <ArrowRight size={14} />
+                </button>
+              </div>
+            )}
           </div>
           <div className="dash-actions">
-            <button className="btn btn-secondary" onClick={() => navigate('/settings')}>
-              <Settings size={16} />
-              Settings
-            </button>
+            {user.role === 'admin' && (
+              <button className="btn btn-secondary" onClick={() => navigate('/settings')}>
+                <Settings size={16} />
+                Settings
+              </button>
+            )}
             <button className="btn btn-primary" onClick={() => navigate('/projects')}>
               <Plus size={16} />
               New Project
@@ -84,29 +133,93 @@ const Dashboard = () => {
               <div className="dash-panel-head">
                 <h2 className="dash-panel-title">
                   <Activity size={18} />
-                  Recent Activity
+                  Recent Projects
                 </h2>
                 <button className="dash-link-btn" onClick={() => navigate('/projects')}>View all</button>
               </div>
 
               <div className="dash-activity-list">
-                {activity.map((message, i) => (
-                  <div key={i} className="dash-activity-item">
-                    <div className="dash-activity-dot" />
+                {isProjectsLoading ? (
+                  <div className="loading">
+                    <div className="spinner"></div>
+                  </div>
+                ) : recentProjects.length === 0 ? (
+                  <div className="dash-activity-item">
                     <div>
-                      <p className="dash-activity-text">{message}</p>
-                      <p className="dash-activity-meta">2 hours ago - main branch</p>
+                      <p className="dash-activity-text">No projects yet.</p>
+                      <p className="dash-activity-meta">Create your first project to get started.</p>
                     </div>
                   </div>
-                ))}
+                ) : (
+                  recentProjects.map((project) => (
+                    <button
+                      key={project.id}
+                      className="dash-activity-item dash-activity-btn"
+                      onClick={() => navigate(`/projects/${project.id}`)}
+                    >
+                      <div className="dash-activity-dot" />
+                      <div>
+                        <p className="dash-activity-text">{project.name}</p>
+                        <p className="dash-activity-meta">
+                          Updated {new Date(project.updatedAt).toLocaleDateString()} - {project.memberRole}
+                        </p>
+                      </div>
+                    </button>
+                  ))
+                )}
               </div>
             </article>
 
             <article className="dash-panel">
               <h2 className="dash-panel-title">Quick Start</h2>
-              <pre className="dash-code"><code>git clone https://github.com/your-org/living-docs.git
-cd living-docs
-npm install && npm run dev</code></pre>
+              <div className="dash-activity-list">
+                <button className="dash-activity-item" onClick={() => navigate('/projects')}>
+                  <div className="dash-activity-dot" />
+                  <div>
+                    <p className="dash-activity-text">1. Create a project</p>
+                    <p className="dash-activity-meta">Add repository name, GitHub URL, and optional automation settings.</p>
+                  </div>
+                  <ArrowRight size={14} />
+                </button>
+                <button className="dash-activity-item" onClick={() => navigate('/projects')}>
+                  <div className="dash-activity-dot" />
+                  <div>
+                    <p className="dash-activity-text">2. Configure repository access</p>
+                    <p className="dash-activity-meta">Set GitHub token/webhook so docs can be generated from CI events.</p>
+                  </div>
+                  <ArrowRight size={14} />
+                </button>
+                <button
+                  className="dash-activity-item"
+                  onClick={() => navigate(primaryProject ? `/projects/${primaryProject.id}` : '/projects')}
+                >
+                  <div className="dash-activity-dot" />
+                  <div>
+                    <p className="dash-activity-text">3. Generate documentation</p>
+                    <p className="dash-activity-meta">
+                      {primaryProject
+                        ? `Open ${primaryProject.name} and run/trigger docs generation.`
+                        : 'Open a project and trigger your first docs build.'}
+                    </p>
+                  </div>
+                  <ArrowRight size={14} />
+                </button>
+                <button
+                  className="dash-activity-item"
+                  onClick={() => navigate(primaryProject ? `/projects/${primaryProject.id}` : '/projects')}
+                >
+                  <div className="dash-activity-dot" />
+                  <div>
+                    <p className="dash-activity-text">4. Review versions and compare commits</p>
+                    <p className="dash-activity-meta">
+                      {primaryProject
+                        ? 'Open document history, inspect changes, and compare two commits.'
+                        : 'After generation, inspect doc history and compare commits.'}
+                    </p>
+                  </div>
+                  <ArrowRight size={14} />
+                </button>
+              </div>
             </article>
           </div>
 
@@ -134,9 +247,11 @@ npm install && npm run dev</code></pre>
             <article className="dash-panel dash-help">
               <h3>Help and Support</h3>
               <ul>
-                <li><a href="#"><BookOpen size={14} /> Documentation</a></li>
-                <li><a href="#"><FileText size={14} /> API Reference</a></li>
-                <li><a href="#"><Layout size={14} /> System Status</a></li>
+                <li><Link to="/projects"><BookOpen size={14} /> Project Documentation</Link></li>
+                {user.role === 'admin' && (
+                  <li><Link to="/settings"><Settings size={14} /> Platform Settings</Link></li>
+                )}
+                <li><a href="https://github.com" target="_blank" rel="noreferrer"><Layout size={14} /> GitHub Status</a></li>
               </ul>
             </article>
           </aside>

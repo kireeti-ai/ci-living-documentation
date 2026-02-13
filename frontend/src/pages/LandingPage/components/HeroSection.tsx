@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { GitBranch, Play, ArrowRight, Hexagon } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import HeroScene from './HeroScene'
 import ParticleField from './ParticleField'
 
@@ -87,15 +88,15 @@ export default function HeroSection() {
                     transition={{ duration: 0.6, delay: 0.8 }}
                     className="flex flex-col sm:flex-row items-center justify-center gap-6"
                 >
-                    <button className="btn-primary group text-base px-8 py-3 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all">
+                    <Link to="/signup" className="btn-primary group text-base px-8 py-3 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all">
                         <GitBranch size={18} />
                         Connect Repository
                         <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
-                    </button>
-                    <button className="btn-secondary group text-base px-8 py-3 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all">
+                    </Link>
+                    <a href="#dashboard" className="btn-secondary group text-base px-8 py-3 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all">
                         <Play size={18} />
                         See Live Demo
-                    </button>
+                    </a>
                 </motion.div>
 
                 {/* Pipeline flow labels */}

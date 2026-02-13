@@ -221,7 +221,7 @@ export const documentsApi = {
   list: (projectId: string) =>
     api.get<DocumentsListResponse>(`/projects/${projectId}/documents`),
 
-  // Get specific document commit with API content (from docs/api/api-descriptions.json)
+  // Get specific document commit with API content (from docs/api/api-description.json)
   get: (projectId: string, commit: string) =>
     api.get<DocumentDetailResponse>(`/projects/${projectId}/documents/${encodeURIComponent(commit)}`),
 

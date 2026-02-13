@@ -33,11 +33,105 @@ interface ArtifactFile {
 
 interface ArchitecturePreviewFile extends ApiArchitectureFile {}
 
+const MARKDOWN_EXTENSIONS = ['.md', '.markdown', '.mdx', '.txt', '.adoc', '.adr']
+const MERMAID_EXTENSIONS = ['.mmd', '.mermaid']
+
+const getLowerName = (name: string) => name.toLowerCase()
+const isMarkdownFile = (name: string) => MARKDOWN_EXTENSIONS.some((ext) => getLowerName(name).endsWith(ext))
+const isMermaidFile = (name: string) => MERMAID_EXTENSIONS.some((ext) => getLowerName(name).endsWith(ext))
+
 mermaid.initialize({
   startOnLoad: false,
-  theme: 'dark',
+  theme: 'base',
   securityLevel: 'loose',
+  themeVariables: {
+    darkMode: true,
+    background: '#0b0f14',
+    primaryColor: '#111827',
+    primaryTextColor: '#e6edf3',
+    primaryBorderColor: '#3b82f6',
+    secondaryColor: '#1f2937',
+    secondaryTextColor: '#e6edf3',
+    tertiaryColor: '#0f172a',
+    tertiaryTextColor: '#e6edf3',
+    lineColor: '#94a3b8',
+    textColor: '#e6edf3',
+    nodeBorder: '#3b82f6',
+    clusterBkg: '#111827',
+    clusterBorder: '#334155',
+    edgeLabelBackground: '#0f172a',
+    fontFamily: 'JetBrains Mono, ui-monospace, SFMono-Regular, Menlo, monospace',
+  },
 })
+
+const MermaidBlock = ({ code }: { code: string }) => {
+  const [svg, setSvg] = useState('')
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let cancelled = false
+
+    const render = async () => {
+      try {
+        const renderId = `md-mermaid-${Date.now()}-${Math.floor(Math.random() * 10000)}`
+        const { svg: renderedSvg } = await mermaid.render(renderId, code)
+        if (!cancelled) {
+          setSvg(renderedSvg)
+          setError('')
+        }
+      } catch (err) {
+        console.error('Markdown mermaid render failed:', err)
+        if (!cancelled) {
+          setSvg('')
+          setError('Failed to render Mermaid block. Showing source.')
+        }
+      }
+    }
+
+    render()
+    return () => {
+      cancelled = true
+    }
+  }, [code])
+
+  if (svg) {
+    return <div className="architecture-diagram-preview markdown-mermaid-block" dangerouslySetInnerHTML={{ __html: svg }} />
+  }
+
+  return (
+    <>
+      {error && <p className="setting-note setting-note-warning">{error}</p>}
+      <pre className="code-textarea architecture-code-preview">{code}</pre>
+    </>
+  )
+}
+
+const MarkdownRenderer = ({ content }: { content: string }) => (
+  <ReactMarkdown
+    remarkPlugins={[remarkGfm]}
+    rehypePlugins={[rehypeRaw]}
+    components={{
+      code: ({ inline, className, children, ...props }: any) => {
+        const rawCode = String(children ?? '').replace(/\n$/, '')
+        const langMatch = /language-([\w-]+)/.exec(className || '')
+        const language = (langMatch?.[1] || '').toLowerCase()
+        const isMermaid = !inline && (language === 'mermaid' || language === 'mmd')
+
+        if (isMermaid) {
+          return <MermaidBlock code={rawCode} />
+        }
+
+        return (
+          <code className={className} {...props}>
+            {children}
+          </code>
+        )
+      },
+    }}
+  >
+    {content}
+  </ReactMarkdown>
+)
 
 const DocumentViewer = () => {
   const { id, commit } = useParams<{ id: string; commit: string }>()
@@ -68,54 +162,6 @@ const DocumentViewer = () => {
   const [newTag, setNewTag] = useState('')
   const [isSaving, setIsSaving] = useState(false)
 
-  const artifactFiles = useMemo<ArtifactFile[]>(() => {
-    const fallback: ArtifactFile[] = [
-      { folder: 'docs', name: 'README.generated.md', updatedLabel: 'moments ago' },
-      { folder: 'docs', name: 'documentation-health.md', updatedLabel: '2 min ago' },
-      { folder: 'docs', name: 'tree.txt', updatedLabel: '2 min ago' },
-      { folder: 'api', name: 'api-reference.md', updatedLabel: '10 min ago' },
-      { folder: 'api', name: 'openapi.yaml', updatedLabel: '10 min ago' },
-      { folder: 'architecture', name: 'system.mmd', updatedLabel: '3 min ago' },
-      { folder: 'architecture', name: 'sequence.mmd', updatedLabel: '3 min ago' },
-      { folder: 'architecture', name: 'er.mmd', updatedLabel: '3 min ago' },
-      { folder: 'architecture', name: 'architecture.md', updatedLabel: '5 min ago' },
-      { folder: 'adr', name: 'ADR-001.md', updatedLabel: '1 day ago' },
-      { folder: 'adr', name: 'doc_snapshot.json', updatedLabel: '2 min ago' },
-      { folder: 'summary', name: 'summary.md', updatedLabel: '2 min ago' },
-      { folder: 'summary', name: 'summary.json', updatedLabel: '2 min ago' },
-    ]
-
-    try {
-      const raw = typeof apiContent === 'string' ? JSON.parse(apiContent) : apiContent
-      const container = raw?.artifacts || raw?.generated_files || raw?.files || raw?.artifact_tree
-      if (!Array.isArray(container)) return fallback
-
-      const normalized = container
-        .filter((item: any) => item?.name && item?.folder)
-        .map((item: any) => ({
-          folder: String(item.folder),
-          name: String(item.name),
-          updatedLabel: String(item.updatedLabel || item.updated || 'recently'),
-        }))
-
-      return normalized.length > 0 ? normalized : fallback
-    } catch {
-      return fallback
-    }
-  }, [apiContent])
-
-  const artifactGroups = useMemo(() => {
-    return artifactFiles.reduce<Record<string, ArtifactFile[]>>((acc, file) => {
-      if (!acc[file.folder]) acc[file.folder] = []
-      acc[file.folder].push(file)
-      return acc
-    }, {})
-  }, [artifactFiles])
-
-  const selectedArchitecture = useMemo(() => {
-    return architectureFiles.find((file) => file.name === activeArchitectureFile) || null
-  }, [architectureFiles, activeArchitectureFile])
-
   const formatRelativeTime = (isoString: string | null): string => {
     if (!isoString) return 'recently'
     const ts = new Date(isoString).getTime()
@@ -130,9 +176,73 @@ const DocumentViewer = () => {
     return `${days} day${days > 1 ? 's' : ''} ago`
   }
 
+  const artifactFiles = useMemo<ArtifactFile[]>(() => {
+    const defaultUpdatedLabel = formatRelativeTime(metadata?.updatedAt || null)
+
+    const inferFromCurrentData = (): ArtifactFile[] => {
+      const items: ArtifactFile[] = []
+      if (readmeContent) {
+        items.push({ folder: 'docs', name: 'README.generated.md', updatedLabel: defaultUpdatedLabel })
+      }
+      if (summaryContent) {
+        items.push({ folder: 'summary', name: 'summary.md', updatedLabel: defaultUpdatedLabel })
+      }
+      if (apiContent) {
+        items.push({ folder: 'api', name: 'api-description.json', updatedLabel: defaultUpdatedLabel })
+      }
+
+      for (const file of architectureFiles) {
+        const normalized = file.name.replace(/^docs\//, '')
+        const parts = normalized.split('/').filter(Boolean)
+        if (parts.length === 0) continue
+        const folder = parts.length > 1 ? parts[0] : 'docs'
+        const name = parts.length > 1 ? parts.slice(1).join('/') : parts[0]
+        items.push({
+          folder,
+          name,
+          updatedLabel: formatRelativeTime(file.lastModified),
+        })
+      }
+
+      return items
+    }
+
+    try {
+      const raw = typeof apiContent === 'string' ? JSON.parse(apiContent) : apiContent
+      const container = raw?.artifacts || raw?.generated_files || raw?.files || raw?.artifact_tree
+      if (!Array.isArray(container)) {
+        return inferFromCurrentData()
+      }
+
+      const normalized = container
+        .filter((item: any) => item?.name && item?.folder)
+        .map((item: any) => ({
+          folder: String(item.folder),
+          name: String(item.name),
+          updatedLabel: String(item.updatedLabel || item.updated || 'recently'),
+        }))
+
+      return normalized.length > 0 ? normalized : inferFromCurrentData()
+    } catch {
+      return inferFromCurrentData()
+    }
+  }, [apiContent, architectureFiles, metadata?.updatedAt, readmeContent, summaryContent])
+
+  const artifactGroups = useMemo(() => {
+    return artifactFiles.reduce<Record<string, ArtifactFile[]>>((acc, file) => {
+      if (!acc[file.folder]) acc[file.folder] = []
+      acc[file.folder].push(file)
+      return acc
+    }, {})
+  }, [artifactFiles])
+
+  const selectedArchitecture = useMemo(() => {
+    return architectureFiles.find((file) => file.name === activeArchitectureFile) || null
+  }, [architectureFiles, activeArchitectureFile])
+
   useEffect(() => {
     const renderMermaid = async () => {
-      if (!selectedArchitecture || !selectedArchitecture.name.toLowerCase().endsWith('.mmd')) {
+      if (!selectedArchitecture || !isMermaidFile(selectedArchitecture.name)) {
         setArchitectureSvg('')
         setArchitectureRenderError('')
         return
@@ -366,9 +476,7 @@ const DocumentViewer = () => {
 
     if (!searchQuery.trim()) {
       return (
-        <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
-          {apiContent}
-        </ReactMarkdown>
+        <MarkdownRenderer content={apiContent} />
       )
     }
 
@@ -588,9 +696,7 @@ const DocumentViewer = () => {
             </div>
             <div className="document-content markdown-content">
               {summaryContent ? (
-                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
-                  {summaryContent}
-                </ReactMarkdown>
+                <MarkdownRenderer content={summaryContent} />
               ) : (
                 <p>No summary available for this commit.</p>
               )}
@@ -602,9 +708,7 @@ const DocumentViewer = () => {
           <div className="tab-content">
             <div className="document-content markdown-content">
               {readmeContent ? (
-                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
-                  {readmeContent}
-                </ReactMarkdown>
+                <MarkdownRenderer content={readmeContent} />
               ) : (
                 <p>No README available for this commit.</p>
               )}
@@ -638,13 +742,11 @@ const DocumentViewer = () => {
                         <h3>{selectedArchitecture.name}</h3>
                         <span>{formatRelativeTime(selectedArchitecture.lastModified)}</span>
                       </div>
-                      {selectedArchitecture.name.endsWith('.md') ? (
+                      {isMarkdownFile(selectedArchitecture.name) ? (
                         <div className="markdown-content">
-                          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
-                            {selectedArchitecture.content}
-                          </ReactMarkdown>
+                          <MarkdownRenderer content={selectedArchitecture.content} />
                         </div>
-                      ) : selectedArchitecture.name.endsWith('.mmd') && architectureSvg ? (
+                      ) : isMermaidFile(selectedArchitecture.name) && architectureSvg ? (
                         <div className="architecture-diagram-preview" dangerouslySetInnerHTML={{ __html: architectureSvg }} />
                       ) : (
                         <>
@@ -725,92 +827,108 @@ const DocumentViewer = () => {
 
         {activeTab === 'settings' && (
           <div className="tab-content">
-            <div className="settings-form">
-              <h2>Document Settings</h2>
-
-              {/* Version Field */}
-              <div className="form-group">
-                <label htmlFor="version">Version Number</label>
-                <input
-                  id="version"
-                  type="text"
-                  value={editableVersion}
-                  onChange={(e) => setEditableVersion(e.target.value)}
-                  placeholder="e.g., 1.0.0, v2.1.0"
-                  className="input"
-                />
-                <small className="form-hint">
-                  Assign a semantic version to this commit (e.g., for releases/milestones)
-                </small>
+            <div className="doc-settings-shell">
+              <div className="doc-settings-hero">
+                <div>
+                  <p className="doc-settings-kicker">Settings</p>
+                  <h2>Document Configuration</h2>
+                  <p>Manage versioning, tags, and metadata for this generated documentation commit.</p>
+                </div>
+                <div className="doc-settings-chips">
+                  <span className="doc-settings-chip">{metadata?.branch || 'unknown branch'}</span>
+                  <span className="doc-settings-chip">{metadata?.commit ? metadata.commit.substring(0, 7) : 'no commit'}</span>
+                </div>
               </div>
 
-              {/* Tags Field */}
-              <div className="form-group">
-                <label htmlFor="tags">Tags</label>
-                <div className="tags-editor">
-                  <div className="tags-list">
-                    {editableTags.map(tag => (
-                      <span key={tag} className="tag-badge editable">
-                        {tag}
-                        <button
-                          type="button"
-                          className="tag-remove"
-                          onClick={() => handleRemoveTag(tag)}
-                          title="Remove tag"
-                        >
-                          x
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                  <div className="tag-input-wrapper">
+              <div className="doc-settings-grid">
+                <div className="doc-settings-card">
+                  {/* Version Field */}
+                  <div className="form-group">
+                    <label htmlFor="version">Version Number</label>
                     <input
-                      id="new-tag"
+                      id="version"
                       type="text"
-                      value={newTag}
-                      onChange={(e) => setNewTag(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault()
-                          handleAddTag()
-                        }
-                      }}
-                      placeholder="Add a tag..."
+                      value={editableVersion}
+                      onChange={(e) => setEditableVersion(e.target.value)}
+                      placeholder="e.g., 1.0.0, v2.1.0"
                       className="input"
                     />
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={handleAddTag}
-                    >
-                      Add Tag
-                    </button>
+                    <small className="form-hint">
+                      Assign a semantic version to this commit (e.g., for releases/milestones)
+                    </small>
+                  </div>
+
+                  {/* Tags Field */}
+                  <div className="form-group">
+                    <label htmlFor="tags">Tags</label>
+                    <div className="tags-editor">
+                      <div className="tags-list">
+                        {editableTags.map(tag => (
+                          <span key={tag} className="tag-badge editable">
+                            {tag}
+                            <button
+                              type="button"
+                              className="tag-remove"
+                              onClick={() => handleRemoveTag(tag)}
+                              title="Remove tag"
+                            >
+                              x
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                      <div className="tag-input-wrapper">
+                        <input
+                          id="new-tag"
+                          type="text"
+                          value={newTag}
+                          onChange={(e) => setNewTag(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              handleAddTag()
+                            }
+                          }}
+                          placeholder="Add a tag..."
+                          className="input"
+                        />
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          onClick={handleAddTag}
+                        >
+                          Add Tag
+                        </button>
+                      </div>
+                    </div>
+                    <small className="form-hint">
+                      Add tags like "release", "stable", "beta", "milestone", etc.
+                    </small>
                   </div>
                 </div>
-                <small className="form-hint">
-                  Add tags like "release", "stable", "beta", "milestone", etc.
-                </small>
-              </div>
 
-              {/* Metadata Display */}
-              <div className="form-group">
-                <label>Commit Information (Read-only)</label>
-                <div className="metadata-display">
-                  <div className="metadata-row">
-                    <span className="label">Commit Hash:</span>
-                    <code>{metadata?.commit}</code>
-                  </div>
-                  <div className="metadata-row">
-                    <span className="label">Branch:</span>
-                    <span>{metadata?.branch}</span>
-                  </div>
-                  <div className="metadata-row">
-                    <span className="label">Created:</span>
-                    <span>{metadata?.createdAt ? new Date(metadata.createdAt).toLocaleString() : 'N/A'}</span>
-                  </div>
-                  <div className="metadata-row">
-                    <span className="label">Last Updated:</span>
-                    <span>{metadata?.updatedAt ? new Date(metadata.updatedAt).toLocaleString() : 'N/A'}</span>
+                <div className="doc-settings-card">
+                  {/* Metadata Display */}
+                  <div className="form-group">
+                    <label>Commit Information (Read-only)</label>
+                    <div className="metadata-display">
+                      <div className="metadata-row">
+                        <span className="label">Commit Hash:</span>
+                        <code>{metadata?.commit}</code>
+                      </div>
+                      <div className="metadata-row">
+                        <span className="label">Branch:</span>
+                        <span>{metadata?.branch}</span>
+                      </div>
+                      <div className="metadata-row">
+                        <span className="label">Created:</span>
+                        <span>{metadata?.createdAt ? new Date(metadata.createdAt).toLocaleString() : 'N/A'}</span>
+                      </div>
+                      <div className="metadata-row">
+                        <span className="label">Last Updated:</span>
+                        <span>{metadata?.updatedAt ? new Date(metadata.updatedAt).toLocaleString() : 'N/A'}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

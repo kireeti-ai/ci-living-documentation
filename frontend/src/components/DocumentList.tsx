@@ -89,6 +89,8 @@ const DocumentList = ({ projectId, canManage }: DocumentListProps) => {
     })
   }, [documents, selectedBranch, selectedCommit, selectedTags])
 
+  const latestDocument = useMemo(() => filteredDocuments[0] || null, [filteredDocuments])
+
   // Handle search
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
@@ -218,10 +220,36 @@ const DocumentList = ({ projectId, canManage }: DocumentListProps) => {
 
   return (
     <div className="documents-container document-list-shell">
+      <div className="documents-hero">
+        <div className="documents-hero-copy">
+          <p className="documents-hero-kicker">Project Documents</p>
+          <h2>Documentation command center</h2>
+          <p>
+            Browse generated artifacts, search across versions, and compare commits from one place.
+          </p>
+        </div>
+        <div className="documents-hero-stats">
+          <div className="documents-stat">
+            <span className="documents-stat-label">Total</span>
+            <strong>{documents.length}</strong>
+          </div>
+          <div className="documents-stat">
+            <span className="documents-stat-label">Visible</span>
+            <strong>{filteredDocuments.length}</strong>
+          </div>
+          <div className="documents-stat">
+            <span className="documents-stat-label">Latest</span>
+            <strong>{latestDocument ? latestDocument.commit.substring(0, 7) : '-'}</strong>
+          </div>
+        </div>
+      </div>
+
       {/* Toolbar */}
       <div className="documents-toolbar">
         {/* Filters */}
-        <div className="documents-filters">
+        <div className="documents-toolbar-panel documents-toolbar-filters">
+          <div className="documents-panel-title">Filters</div>
+          <div className="documents-filters">
           <div className="filter-group">
             <label>Branch:</label>
             <select
@@ -269,10 +297,12 @@ const DocumentList = ({ projectId, canManage }: DocumentListProps) => {
               Clear Filters
             </button>
           )}
+          </div>
         </div>
         
         {/* Search */}
-        <div className="documents-search">
+        <div className="documents-toolbar-panel documents-search">
+          <div className="documents-panel-title">Search</div>
           <div className="search-input-group">
             <input
               type="text"
@@ -298,7 +328,8 @@ const DocumentList = ({ projectId, canManage }: DocumentListProps) => {
         </div>
         
         {/* Compare toggle */}
-        <div className="documents-compare">
+        <div className="documents-toolbar-panel documents-compare">
+          <div className="documents-panel-title">Compare</div>
           <button
             className={`btn btn-sm ${compareMode ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => {
@@ -324,7 +355,8 @@ const DocumentList = ({ projectId, canManage }: DocumentListProps) => {
 
         {/* Test Upload Button */}
         {canManage && (
-          <div className="documents-actions">
+          <div className="documents-toolbar-panel documents-actions">
+            <div className="documents-panel-title">Actions</div>
             <button
               className="btn btn-primary btn-sm"
               onClick={() => setShowUploadModal(true)}

@@ -1,18 +1,35 @@
 import { motion } from 'framer-motion'
-import { GitBranch, Hexagon, ArrowRight, Github, ExternalLink } from 'lucide-react'
+import { GitBranch, ArrowRight, Github, ExternalLink } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import TempleLogo from '../../../components/TempleLogo'
 
 const footerLinks = [
     {
         title: 'Product',
-        links: ['Documentation', 'API Reference', 'Architecture Intelligence', 'Pricing'],
+        links: [
+            { label: 'Documentation', href: '#artifacts' },
+            { label: 'API Reference', href: '#artifacts' },
+            { label: 'Architecture Intelligence', href: '#architecture' },
+            { label: 'Pricing', href: '/signup' },
+        ],
     },
     {
         title: 'Developers',
-        links: ['Quick Start', 'CLI Reference', 'Integrations', 'Changelog'],
+        links: [
+            { label: 'Quick Start', href: '/signup' },
+            { label: 'CLI Reference', href: '#pipeline' },
+            { label: 'Integrations', href: '#pipeline' },
+            { label: 'Changelog', href: '/projects' },
+        ],
     },
     {
         title: 'Company',
-        links: ['About', 'Security', 'Privacy', 'Terms'],
+        links: [
+            { label: 'About', href: '#hero' },
+            { label: 'Security', href: '#ai-intelligence' },
+            { label: 'Privacy', href: '/signup' },
+            { label: 'Terms', href: '/signup' },
+        ],
     },
 ]
 
@@ -33,16 +50,16 @@ export default function Footer() {
                             Connect your repository and start generating living documentation in under 60 seconds.
                         </p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                            <button className="btn-primary group">
+                            <Link to="/signup" className="btn-primary group">
                                 <GitBranch size={16} />
                                 Connect Repository
                                 <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
-                            </button>
-                            <button className="btn-secondary">
+                            </Link>
+                            <a href="https://github.com" target="_blank" rel="noreferrer" className="btn-secondary">
                                 <Github size={16} />
                                 View on GitHub
                                 <ExternalLink size={12} />
-                            </button>
+                            </a>
                         </div>
                     </motion.div>
                 </div>
@@ -56,7 +73,9 @@ export default function Footer() {
                         {/* Brand */}
                         <div className="col-span-2 md:col-span-1">
                             <a href="#hero" className="flex items-center gap-2 mb-3">
-                                <Hexagon size={18} style={{ color: 'var(--accent-green)' }} strokeWidth={2.5} />
+                                <span className="landing-temple-logo" style={{ color: 'var(--accent-green)' }}>
+                                    <TempleLogo />
+                                </span>
                                 <span className="text-[14px] font-semibold" style={{ color: 'var(--text-primary)' }}>
                                     DocPulse<span style={{ color: 'var(--accent-blue)' }}> AI</span>
                                 </span>
@@ -77,12 +96,12 @@ export default function Footer() {
                                 </h4>
                                 <ul className="space-y-2">
                                     {section.links.map((link) => (
-                                        <li key={link}>
-                                            <a href="#" className="text-[13px] transition-colors"
+                                        <li key={link.label}>
+                                            <a href={link.href} className="text-[13px] transition-colors"
                                                 style={{ color: 'var(--text-muted)' }}
                                                 onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-link)')}
                                                 onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}>
-                                                {link}
+                                                {link.label}
                                             </a>
                                         </li>
                                     ))}
@@ -97,9 +116,9 @@ export default function Footer() {
                             © 2026 DocPulse AI. Built for engineers, by engineers.
                         </p>
                         <div className="flex items-center gap-5 text-[12px]" style={{ color: 'var(--text-muted)' }}>
-                            <a href="#" className="transition-colors hover:text-[var(--text-link)]">Status</a>
-                            <a href="#" className="transition-colors hover:text-[var(--text-link)]">Privacy</a>
-                            <a href="#" className="transition-colors hover:text-[var(--text-link)]">Terms</a>
+                            <a href="https://www.githubstatus.com/" target="_blank" rel="noreferrer" className="transition-colors hover:text-[var(--text-link)]">Status</a>
+                            <a href="/signup" className="transition-colors hover:text-[var(--text-link)]">Privacy</a>
+                            <a href="/signup" className="transition-colors hover:text-[var(--text-link)]">Terms</a>
                         </div>
                     </div>
                 </div>
