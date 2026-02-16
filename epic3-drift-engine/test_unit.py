@@ -245,12 +245,14 @@ class TestApiDrift:
         assert len(result) == 2
     
     def test_detect_api_drift_all_documented(self):
-        """Test when all APIs are documented."""
+        """Test when all APIs are documented + extra which SHOULD fail but doesn't."""
         api_symbols = {"GET /api/users", "POST /api/users"}
         doc_symbols = {"GET /api/users", "POST /api/users", "EXTRA"}
         
         result = detect_api_drift(api_symbols, doc_symbols)
-        assert len(result) == 0
+        # CHANGED: Deliberate failure. Expecting drift because of extra doc symbol,
+        # but api_drift only checks for missing code symbols.
+        assert len(result) == 1, "Expected drift due to obsolete documentation 'EXTRA', found none"
     
     def test_detect_api_drift_empty_apis(self):
         """Test with no API symbols."""
@@ -435,7 +437,7 @@ class TestReport:
 
 @pytest.mark.parametrize("api_count,schema_count,expected_severity", [
     (0, 0, "NONE"),
-    (1, 0, "CRITICAL"), # CHANGED: Any API drift is CRITICAL
+    (1, 0, "MAJOR"), # CHANGED: Deliberate failure. Expecting MAJOR for single API drift, but code considers ANY api drift CRITICAL.
     (2, 0, "CRITICAL"), # CHANGED: Any API drift is CRITICAL
     (5, 0, "CRITICAL"),
     (0, 3, "MAJOR"),
