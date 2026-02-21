@@ -6,9 +6,8 @@ import './styles/landing.css'
 
 // Lazy load heavy sections for performance
 const PipelineSection = lazy(() => import('./components/PipelineSection'))
-const ArchitectureSection = lazy(() => import('./components/ArchitectureSection'))
 const DashboardSection = lazy(() => import('./components/DashboardSection'))
-const AISection = lazy(() => import('./components/AISection'))
+const TeamSection = lazy(() => import('./components/TeamSection'))
 const DiagramShowcase = lazy(() => import('./components/DiagramShowcase'))
 const ArtifactShowcase = lazy(() => import('./components/ArtifactShowcase'))
 
@@ -37,13 +36,10 @@ export default function LandingPage() {
           <PipelineSection />
         </Suspense>
         <Suspense fallback={<SectionLoader />}>
-          <ArchitectureSection />
-        </Suspense>
-        <Suspense fallback={<SectionLoader />}>
           <DashboardSection />
         </Suspense>
         <Suspense fallback={<SectionLoader />}>
-          <AISection />
+          <TeamSection />
         </Suspense>
         <Suspense fallback={<SectionLoader />}>
           <DiagramShowcase />

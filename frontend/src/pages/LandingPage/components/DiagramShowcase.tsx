@@ -55,7 +55,7 @@ interface DemoFile {
 const demoFiles: DemoFile[] = [
     {
         id: 'er-diagram',
-        name: 'schema.mmd',
+        name: 'er.mmd',
         type: 'mermaid',
         icon: <Database size={14} />,
         iconColor: 'var(--accent-orange)',
@@ -128,7 +128,7 @@ const demoFiles: DemoFile[] = [
     },
     {
         id: 'architecture',
-        name: 'system.mmd',
+        name: 'arch.mmd',
         type: 'mermaid',
         icon: <Network size={14} />,
         iconColor: 'var(--accent-blue)',
@@ -182,7 +182,7 @@ const demoFiles: DemoFile[] = [
     },
     {
         id: 'sequence',
-        name: 'checkout-flow.mmd',
+        name: 'sequence.mmd',
         type: 'mermaid',
         icon: <GitBranch size={14} />,
         iconColor: 'var(--accent-green)',
@@ -229,80 +229,54 @@ const demoFiles: DemoFile[] = [
     end`,
     },
     {
-        id: 'class-diagram',
-        name: 'domain-models.mmd',
+        id: 'systems',
+        name: 'systems.mmd',
         type: 'mermaid',
         icon: <Layers size={14} />,
         iconColor: 'var(--accent-purple)',
-        label: 'Class Diagram',
-        code: `classDiagram
-    class User {
-        +UUID id
-        +String email
-        +String username
-        -String passwordHash
-        +Role role
-        +DateTime createdAt
-        +register() User
-        +authenticate(password) Boolean
-        +updateProfile(data) User
-    }
+        label: 'Systems',
+        code: `graph LR
+    REPO["Git Repository"] --> CI["CI Pipeline"]
+    CI --> ANALYZER["Code Analyzer"]
+    ANALYZER --> ER["ER Diagram"]
+    ANALYZER --> ARCH["Architecture Diagram"]
+    ANALYZER --> SEQ["Sequence Diagram"]
+    ANALYZER --> ADR["ADR Draft"]
+    ANALYZER --> README["README.md"]
+    ANALYZER --> API["API Documentation"]
+    ER --> PORTAL["Project Docs Portal"]
+    ARCH --> PORTAL
+    SEQ --> PORTAL
+    ADR --> PORTAL
+    README --> PORTAL
+    API --> PORTAL`,
+    },
+    {
+        id: 'adr',
+        name: 'ADR-001.md',
+        type: 'markdown',
+        icon: <FileText size={14} />,
+        iconColor: 'var(--accent-blue)',
+        label: 'ADR',
+        code: `# ADR-001: Adopt CI-Generated Living Documentation
 
-    class Product {
-        +UUID id
-        +String title
-        +String description
-        +Decimal price
-        +Int stockCount
-        +Category category
-        +isAvailable() Boolean
-        +updateStock(qty) void
-        +toSearchIndex() Object
-    }
+## Status
+Accepted
 
-    class Order {
-        +UUID id
-        +User customer
-        +List~OrderItem~ items
-        +Decimal totalAmount
-        +OrderStatus status
-        +DateTime placedAt
-        +calculateTotal() Decimal
-        +cancel() void
-        +markShipped() void
-    }
+## Context
+Documentation drift causes onboarding delays and release risk. Our codebase changes daily, but manual docs updates are inconsistent.
 
-    class OrderItem {
-        +UUID id
-        +Product product
-        +Int quantity
-        +Decimal unitPrice
-        +subtotal() Decimal
-    }
+## Decision
+Generate and update project docs automatically in CI for every push:
+- README
+- Architecture artifacts (ADR, arch, ER, sequence, systems)
+- API documentation
 
-    class Payment {
-        +UUID id
-        +Order order
-        +Decimal amount
-        +PaymentMethod method
-        +PaymentStatus status
-        +process() Boolean
-        +refund() Boolean
-    }
-
-    class CartService {
-        +getCart(userId) Cart
-        +addItem(productId, qty) Cart
-        +removeItem(productId) Cart
-        +checkout(userId) Order
-    }
-
-    User "1" --> "*" Order : places
-    Order "1" --> "*" OrderItem : contains
-    OrderItem "*" --> "1" Product : references
-    Order "1" --> "0..1" Payment : paid via
-    CartService ..> Order : creates
-    CartService ..> Product : validates`,
+## Consequences
+- Lower documentation drift risk
+- Faster team onboarding and review
+- Reliable documentation visibility for all teammates
+`,
     },
     {
         id: 'readme',
@@ -872,18 +846,17 @@ export default function DiagramShowcase() {
                         className="text-[36px] md:text-[48px] font-bold tracking-[-0.02em] mt-6 mb-6"
                         style={{ color: 'var(--text-primary)' }}
                     >
-                        Code → Diagram, Instantly
+                        Generated Documentation, Instantly
                     </h2>
                     <p
                         className="text-[16px] md:text-[18px] max-w-[680px] mx-auto leading-relaxed mb-4"
                         style={{ color: 'var(--text-secondary)' }}
                     >
-                        See how documentation artifacts are auto-generated from your codebase.
-                        Explore ER diagrams, architecture maps, sequence flows, and more — all rendered live from Mermaid and Markdown.
+                        What we generate from your codebase: README, architecture artifacts (ADR, arch, ER, sequence, systems), and API documentation.
                     </p>
                     <div className="flex items-center justify-center gap-2 mt-4 text-[12px] font-mono" style={{ color: 'var(--text-muted)' }}>
                         <span className="px-2 py-0.5 rounded-md" style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-muted)' }}>
-                            Demo Project: ShopStream E-Commerce
+                            Auto-generated from your repository
                         </span>
                     </div>
                 </motion.div>

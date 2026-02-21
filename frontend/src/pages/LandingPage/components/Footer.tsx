@@ -9,7 +9,7 @@ const footerLinks = [
         links: [
             { label: 'Documentation', href: '#artifacts' },
             { label: 'API Reference', href: '#artifacts' },
-            { label: 'Architecture Intelligence', href: '#architecture' },
+            { label: 'Team Collaboration', href: '#team-collaboration' },
             { label: 'Pricing', href: '/signup' },
         ],
     },
